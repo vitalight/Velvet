@@ -83,6 +83,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="VtActor.cpp" />
+    <ClCompile Include="VtGraphics.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="VtActor.h" />
+    <ClInclude Include="VtGraphics.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
