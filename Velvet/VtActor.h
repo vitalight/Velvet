@@ -7,11 +7,51 @@
 #include <GLFW/glfw3.h>
 #include <fmt/core.h>
 
+#include "VtComponent.h"
+
 #define SHADER(A) "#version 330\n" #A
 
 namespace Velvet
 {
 	using namespace std;
+
+	class VtActor
+	{
+	public:
+		VtActor();
+
+		VtActor(string name) : m_name(name) {};
+
+		static shared_ptr<VtActor> FixedTriangle();
+
+		static shared_ptr<VtActor> FixedQuad();
+
+		void Start();
+
+		void Update();
+
+		void OnDestroy();
+
+		void AddComponent(shared_ptr<VtComponent> component);
+
+		template <typename T>
+		T* GetComponent()
+		{
+			T* result = nullptr;
+			for (auto c : m_components)
+			{
+				result = dynamic_cast<T*>(c.get());
+				if (result)
+					return result;
+			}
+			return result;
+		}
+
+	private:
+		string m_name;
+
+		vector<shared_ptr<VtComponent>> m_components;
+	};
 
 	class Mesh
 	{
@@ -86,48 +126,58 @@ namespace Velvet
 				if (!success)
 				{
 					glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-					fmt::print("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n{}\n", infoLog);
+					fmt::print("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n{}\n", infoLog);
 				}
 			}
 
-			m_shaderProgram = glCreateProgram();
+			m_shaderID = glCreateProgram();
 			{
-				glAttachShader(m_shaderProgram, vertexShader);
-				glAttachShader(m_shaderProgram, fragmentShader);
-				glLinkProgram(m_shaderProgram);
+				glAttachShader(m_shaderID, vertexShader);
+				glAttachShader(m_shaderID, fragmentShader);
+				glLinkProgram(m_shaderID);
 				int success;
 				char infoLog[512];
-				glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &success);
+				glGetProgramiv(m_shaderID, GL_LINK_STATUS, &success);
 				if (!success)
 				{
-					glGetProgramInfoLog(m_shaderProgram, 512, NULL, infoLog);
+					glGetProgramInfoLog(m_shaderID, 512, NULL, infoLog);
+					fmt::print("ERROR:SHADER::PROGRAM::LINKING_FAILED\n{}\n", infoLog);
 				}
 			}
 			glDeleteShader(vertexShader);
 			glDeleteShader(fragmentShader);
 		}
 
-		unsigned int GetShaderProgram()
+		unsigned int shaderID() const
 		{
-			return m_shaderProgram;
+			return m_shaderID;
 		}
+
+		void Use()
+		{
+			glUseProgram(m_shaderID);
+		}
+
+		void SetBool(const string& name, bool value) const
+		{
+			glUniform1i(glGetUniformLocation(m_shaderID, name.c_str()), (int)value);
+		}
+
+		void SetInt(const string& name, int value) const
+		{
+			glUniform1i(glGetUniformLocation(m_shaderID, name.c_str()), value);
+		}
+
+		void SetFloat(const string& name, float value) const
+		{
+			glUniform1f(glGetUniformLocation(m_shaderID, name.c_str()), value);
+		}
+
 	private:
-		unsigned int m_shaderProgram = 0;
+		unsigned int m_shaderID = 0;
 	};
 
-	class Component
-	{
-	public:
-		virtual void Start() {}
-
-		virtual void Update() { }
-
-		virtual void OnDestroy() {}
-
-		string name = "BaseComponent";
-	};
-
-	class MeshRenderer : public Component
+	class MeshRenderer : public VtComponent
 	{
 	public:
 		MeshRenderer() {}
@@ -138,17 +188,16 @@ namespace Velvet
 		void Update() override
 		{
 			// draw triangles
-			glUseProgram(m_material.GetShaderProgram());
-			
-			// update the uniform color
-			float timeValue = glfwGetTime();
-			float greenValue = sin(timeValue) / 2.0f + 0.5f;
-			int vertexColorLocation = glGetUniformLocation(m_material.GetShaderProgram(), "ourColor");
-			glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-			
+			m_material.Use();
+
 			glBindVertexArray(m_mesh.GetVAO());
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 			//glBindVertexArray(0);
+		}
+
+		Material material() const
+		{
+			return m_material;
 		}
 
 	private:
@@ -156,20 +205,28 @@ namespace Velvet
 		Material m_material;
 	};
 
-	class VtActor
+	// Animate material color with time
+	class MaterialAnimator : public VtComponent
 	{
 	public:
-		static shared_ptr<VtActor> FixedTriangle();
+		MaterialAnimator(float speed = 1.0f) : m_speed(speed) {};
 
-		void Start();
-
-		void Update();
-
-		void OnDestroy();
-
-		void AddComponent(shared_ptr<Component> component);
-
+		void Update() override
+		{
+			auto renderer = actor->GetComponent<MeshRenderer>();
+			if (!renderer)
+			{
+				fmt::print("MaterialAnimator: Renderer not found\n");
+				return;
+			}
+			auto material = renderer->material();
+			material.Use();
+			float timeValue = glfwGetTime() * m_speed;
+			float greenValue = sin(timeValue) / 2.0f + 0.5f;
+			int vertexColorLocation = glGetUniformLocation(material.shaderID(), "ourColor");
+			glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+		}
 	private:
-		vector<shared_ptr<Component>> m_components;
+		float m_speed = 1.0f;
 	};
 }
