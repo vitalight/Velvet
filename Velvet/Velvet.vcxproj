@@ -83,10 +83,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="VtActor.cpp" />
     <ClCompile Include="VtGraphics.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="External\stb_image.h" />
     <ClInclude Include="VtActor.h" />
     <ClInclude Include="VtComponent.h" />
     <ClInclude Include="VtGraphics.h" />

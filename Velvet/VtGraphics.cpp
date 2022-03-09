@@ -92,9 +92,6 @@ int VtGraphics::MainLoop()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 		for (const auto& go : m_objects)
 		{
 			go->Update();

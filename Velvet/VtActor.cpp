@@ -1,14 +1,16 @@
 #include "VtActor.h"
+#include "External/stb_image.h"
 
 using namespace Velvet;
 
 shared_ptr<VtActor> VtActor::FixedQuad()
 {
 	vector<float> vertices = {
-		0.5f, 0.5f, 0.0f, // top right
-		0.5f, -0.5f, 0.0f, // bottom right
-		-0.5f, -0.5f, 0.0f, // bottom left
-		-0.5f, 0.5f, 0.0f // top left
+		// positions // colors // texture coords
+		0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+		0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+		-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
 	};
 	vector<unsigned int> indices = { // note that we start from 0!
 		0, 1, 3, // first triangle
@@ -16,65 +18,150 @@ shared_ptr<VtActor> VtActor::FixedQuad()
 	};
 
 	const char* vertexShaderSource = SHADER(
-	layout(location = 0) in vec3 aPos;
-
-		void main()
-		{
-			gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-		}
+		layout(location = 0) in vec3 aPos;
+	layout(location = 1) in vec3 aColor;
+	layout(location = 2) in vec2 aTexCoord;
+	out vec3 ourColor;
+	out vec2 TexCoord;
+	void main()
+	{
+		gl_Position = vec4(aPos, 1.0);
+		ourColor = aColor;
+		TexCoord = aTexCoord;
+	}
 	);
 
 	const char* fragmentShaderSource = SHADER(
-	out vec4 FragColor;
-	uniform vec4 ourColor;
-
-		void main()
-		{
-			FragColor = ourColor;// vec4(1.0f, 0.5f, 0.2f, 1.0f);
-		}
+		out vec4 FragColor;
+	in vec3 ourColor;
+	in vec2 TexCoord;
+	uniform sampler2D texture1;
+	uniform sampler2D texture2;
+	void main()
+	{
+		FragColor = mix(texture(texture1, TexCoord),
+			texture(texture2, TexCoord), 0.2);
+	}
 	);
 
+	stbi_set_flip_vertically_on_load(true);
+	unsigned int texture1;
+	{
+		glGenTextures(1, &texture1);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		// set the texture wrapping/filtering options (on currently bound texture)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// load and generate the texture
+		int width, height, nrChannels;
+		unsigned char* data = stbi_load("Assets/container.jpg", &width, &height,
+			&nrChannels, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+				GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "Failed to load texture" << std::endl;
+		}
+		stbi_image_free(data);
+	}
+
+	unsigned int texture2;
+	{
+		glGenTextures(1, &texture2);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+		// set the texture wrapping/filtering options (on currently bound texture)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// load and generate the texture
+		int width, height, nrChannels;
+		unsigned char* data = stbi_load("Assets/awesomeface.png", &width, &height,
+			&nrChannels, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA,
+				GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "Failed to load texture" << std::endl;
+		}
+		stbi_image_free(data);
+	}
+
 	Mesh mesh(vertices, indices);
+	{
+		// position attribute
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+			(void*)0);
+		glEnableVertexAttribArray(0);
+		// color attribute
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+			(void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+			(void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+	}
 	Material material(vertexShaderSource, fragmentShaderSource);
-	shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
-	shared_ptr<MaterialAnimator> animator(new MaterialAnimator(5.0f));
+	material.texture1 = texture1;
+	material.texture2 = texture2;
 
 	shared_ptr<VtActor> actor(new VtActor("Fixed Quad"));
+
+	shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 	actor->AddComponent(renderer);
-	actor->AddComponent(animator);
+
+	//shared_ptr<MaterialAnimator> animator(new MaterialAnimator(5.0f));
+	//actor->AddComponent(animator);
+
 	return actor;
 }
 
 shared_ptr<VtActor> Velvet::VtActor::FixedTriangle()
 {
 	vector<float> vertices = {
-		// positions // colors
-		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-		0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f // top
+		// positions // colors // texture coords
+		0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+		0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+		-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
 	};
 	vector<unsigned int> indices = { // note that we start from 0!
 		0, 1, 2,
 	};
 
 	const char* vertexShaderSource = SHADER(
-		layout(location = 0) in vec3 aPos; // position has attribute position 0
-		layout(location = 1) in vec3 aColor; // color has attribute position 1
-		out vec3 ourColor; // output a color to the fragment shader
-		void main()
-		{
-			gl_Position = vec4(aPos, 1.0);
-			ourColor = aColor; // set ourColor to input color from the vertex data
-		}
+		layout(location = 0) in vec3 aPos;
+	layout(location = 1) in vec3 aColor;
+	layout(location = 2) in vec2 aTexCoord;
+	out vec3 ourColor;
+	out vec2 TexCoord;
+	void main()
+	{
+		gl_Position = vec4(aPos, 1.0);
+		ourColor = aColor;
+		TexCoord = aTexCoord;
+	}
 	);
 
 	const char* fragmentShaderSource = SHADER(
 		out vec4 FragColor;
-		in vec3 ourColor;
-		void main()
-		{
-			FragColor = vec4(ourColor, 1.0);
-		}
+	in vec3 ourColor;
+	in vec2 TexCoord;
+	uniform sampler2D ourTexture;
+	void main()
+	{
+		FragColor = texture(ourTexture, TexCoord);
+	}
 	);
 
 	Mesh mesh(vertices, indices);

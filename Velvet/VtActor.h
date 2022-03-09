@@ -83,7 +83,7 @@ namespace Velvet
 			glEnableVertexAttribArray(0);
 		}
 
-		unsigned int GetVAO()
+		unsigned int VAO() const
 		{
 			return m_VAO;
 		}
@@ -97,6 +97,9 @@ namespace Velvet
 	class Material
 	{
 	public:
+		unsigned int texture1 = 0;
+		unsigned int texture2 = 0;
+
 		Material() {}
 
 		Material(const char* vertexShaderSource, const char* fragmentShaderSource)
@@ -189,8 +192,15 @@ namespace Velvet
 		{
 			// draw triangles
 			m_material.Use();
+			m_material.SetInt("texture1", 0);
+			m_material.SetInt("texture2", 1);
 
-			glBindVertexArray(m_mesh.GetVAO());
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, m_material.texture1);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, m_material.texture2);
+			
+			glBindVertexArray(m_mesh.VAO());
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 			//glBindVertexArray(0);
 		}
