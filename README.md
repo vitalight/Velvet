@@ -10,5 +10,6 @@ Velvet is built using `C++ 14` and `CUDA 11.1`. Dependencies can be installed us
 $ ./vcpkg.exe install glfw3:x64-windows
 $ ./vcpkg.exe install glad:x64-windows
 $ ./vcpkg.exe install fmt:x64-windows
+$ ./vcpkg.exe install glm:x64-windows
 ```
 

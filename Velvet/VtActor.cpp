@@ -6,11 +6,11 @@ using namespace Velvet;
 shared_ptr<VtActor> VtActor::FixedQuad()
 {
 	vector<float> vertices = {
-		// positions // colors // texture coords
-		0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
-		0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
-		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-		-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
+		// positions          // texture coords
+		 0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // top right
+		 0.5f, -0.5f, 0.0f,   1.0f, 0.0f, // bottom right
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, // bottom left
+		-0.5f,  0.5f, 0.0f,   0.0f, 1.0f  // top left 
 	};
 	vector<unsigned int> indices = { // note that we start from 0!
 		0, 1, 3, // first triangle
@@ -19,29 +19,27 @@ shared_ptr<VtActor> VtActor::FixedQuad()
 
 	const char* vertexShaderSource = SHADER(
 		layout(location = 0) in vec3 aPos;
-	layout(location = 1) in vec3 aColor;
-	layout(location = 2) in vec2 aTexCoord;
-	out vec3 ourColor;
-	out vec2 TexCoord;
-	void main()
-	{
-		gl_Position = vec4(aPos, 1.0);
-		ourColor = aColor;
-		TexCoord = aTexCoord;
-	}
+		layout(location = 1) in vec2 aTexCoord;
+		out vec2 TexCoord;
+
+		uniform mat4 transform;
+		void main()
+		{
+			gl_Position = transform * vec4(aPos, 1.0f);
+			TexCoord = aTexCoord;
+		}
 	);
 
 	const char* fragmentShaderSource = SHADER(
 		out vec4 FragColor;
-	in vec3 ourColor;
-	in vec2 TexCoord;
-	uniform sampler2D texture1;
-	uniform sampler2D texture2;
-	void main()
-	{
-		FragColor = mix(texture(texture1, TexCoord),
-			texture(texture2, TexCoord), 0.2);
-	}
+		in vec2 TexCoord;
+		uniform sampler2D texture1;
+		uniform sampler2D texture2;
+		void main()
+		{
+			FragColor = mix(texture(texture1, TexCoord),
+				texture(texture2, TexCoord), 0.2);
+		}
 	);
 
 	stbi_set_flip_vertically_on_load(true);
@@ -100,16 +98,13 @@ shared_ptr<VtActor> VtActor::FixedQuad()
 	Mesh mesh(vertices, indices);
 	{
 		// position attribute
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
 			(void*)0);
 		glEnableVertexAttribArray(0);
 		// color attribute
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
 			(void*)(3 * sizeof(float)));
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-			(void*)(6 * sizeof(float)));
-		glEnableVertexAttribArray(2);
 	}
 	Material material(vertexShaderSource, fragmentShaderSource);
 	material.texture1 = texture1;
