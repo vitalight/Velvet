@@ -8,7 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <fmt/core.h>
 
-#include "VtActor.h"
+#include "Actor.h"
 
 namespace Velvet
 {
@@ -17,7 +17,7 @@ namespace Velvet
 	class VtGraphics
 	{
 	public:
-		void AddActor(shared_ptr<VtActor> actor);
+		void AddActor(shared_ptr<Actor> actor);
 
 		int Initialize();
 
@@ -32,6 +32,6 @@ namespace Velvet
 
 	private:
 		GLFWwindow* m_window;
-		vector<shared_ptr<VtActor>> m_objects;
+		vector<shared_ptr<Actor>> m_objects;
 	};
 }

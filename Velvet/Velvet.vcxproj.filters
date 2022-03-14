@@ -8,15 +8,48 @@
     <ClCompile Include="stb_image.cpp">
       <Filter>External</Filter>
     </ClCompile>
+    <ClCompile Include="Actor.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="VtGraphics.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="External">
       <UniqueIdentifier>{04e0635a-1cc3-49fc-bbdd-7e499261e0f5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphics">
+      <UniqueIdentifier>{c647f013-7c6b-4ca7-a6a7-615ec1a7ba80}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External\stb_image.h">
       <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Actor.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="VtGraphics.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRenderer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialAnimator.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="DefaultAssets.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

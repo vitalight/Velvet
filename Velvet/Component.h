@@ -6,9 +6,9 @@ namespace Velvet
 {
 	using namespace std;
 
-	class VtActor;
+	class Actor;
 
-	class VtComponent
+	class Component
 	{
 	public:
 		virtual void Start() {}
@@ -19,6 +19,6 @@ namespace Velvet
 
 		string name = "BaseComponent";
 
-		VtActor* actor;
+		Actor* actor;
 	};
 }

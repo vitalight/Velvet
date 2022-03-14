@@ -9,7 +9,7 @@ int main()
 	VtGraphics graphics;
 	graphics.Initialize();
 
-	graphics.AddActor(VtActor::FixedQuad());
+	graphics.AddActor(Actor::FixedQuad());
 
 	return graphics.Run();
 }

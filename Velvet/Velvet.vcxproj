@@ -84,13 +84,18 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stb_image.cpp" />
-    <ClCompile Include="VtActor.cpp" />
+    <ClCompile Include="Actor.cpp" />
     <ClCompile Include="VtGraphics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External\stb_image.h" />
-    <ClInclude Include="VtActor.h" />
-    <ClInclude Include="VtComponent.h" />
+    <ClInclude Include="Actor.h" />
+    <ClInclude Include="Component.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="MaterialAnimator.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="MeshRenderer.h" />
+    <ClInclude Include="DefaultAssets.h" />
     <ClInclude Include="VtGraphics.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

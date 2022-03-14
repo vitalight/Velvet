@@ -8,7 +8,7 @@ char keyOnce[GLFW_KEY_LAST + 1];
 	 (keyOnce[KEY] ? false : (keyOnce[KEY] = true)) :	\
 	 (keyOnce[KEY] = false))
 
-void VtGraphics::AddActor(shared_ptr<VtActor> gameObject)
+void VtGraphics::AddActor(shared_ptr<Actor> gameObject)
 {
 	m_objects.push_back(gameObject);
 }
