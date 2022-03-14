@@ -15,8 +15,27 @@ namespace Velvet
 	public:
 		Mesh() {}
 
-		Mesh(vector<float> vertices, vector<unsigned int> indices)
-			: m_vertices(vertices), m_indices(indices)
+		Mesh(int numVertices, vector<float> vertices)
+			: m_numVertices(numVertices), m_vertices(vertices), m_useIndices(false)
+		{
+			// 1. bind Vertex Array Object
+			glGenVertexArrays(1, &m_VAO);
+			glBindVertexArray(m_VAO);
+
+			unsigned int VBO;
+			glGenBuffers(1, &VBO);
+
+			// 2. copy our vertices array in a buffer for OpenGL to use
+			glBindBuffer(GL_ARRAY_BUFFER, VBO);
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+			// 3. then set the vertex attributes pointers
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
+		}
+
+		Mesh(int numVertices, vector<float> vertices, vector<unsigned int> indices)
+			: m_numVertices(numVertices), m_vertices(vertices), m_indices(indices), m_useIndices(true)
 		{
 			// 1. bind Vertex Array Object
 			glGenVertexArrays(1, &m_VAO);
@@ -45,10 +64,22 @@ namespace Velvet
 			return m_VAO;
 		}
 
+		bool useIndices() const
+		{
+			return m_useIndices;
+		}
+
+		unsigned int numVertices() const
+		{
+			return m_numVertices;
+		}
+
 	private:
 		vector<float> m_vertices;
 		vector<unsigned int> m_indices;
 		unsigned int m_VAO = 0;
+		bool m_useIndices = true;
+		unsigned int m_numVertices = 0;
 	};
 
 }

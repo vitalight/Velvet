@@ -9,7 +9,7 @@ int main()
 	VtGraphics graphics;
 	graphics.Initialize();
 
-	graphics.AddActor(Actor::FixedQuad());
+	graphics.AddActor(Actor::PrefabCube());
 
 	return graphics.Run();
 }

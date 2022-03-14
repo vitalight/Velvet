@@ -33,5 +33,6 @@ namespace Velvet
 	private:
 		GLFWwindow* m_window;
 		vector<shared_ptr<Actor>> m_objects;
+		bool m_pause = false;
 	};
 }

@@ -2,104 +2,41 @@
 #include "External/stb_image.h"
 #include "DefaultAssets.h"
 
-
 namespace Velvet
 {
+	unsigned int LoadTexture(const char* path, bool isPNG)
+	{
+		unsigned int texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		// set the texture wrapping/filtering options (on currently bound texture)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// load and generate the texture
+		int width, height, nrChannels;
+		unsigned char* data = stbi_load(path, &width, &height,
+			&nrChannels, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, isPNG? GL_RGBA : GL_RGB,
+				GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "Failed to load texture" << std::endl;
+		}
+		stbi_image_free(data);
+		return texture;
+	}
+
 	inline Velvet::Actor::Actor() {}
 
 	inline Velvet::Actor::Actor(string name) : m_name(name) {}
 
-	shared_ptr<Actor> Actor::FixedQuad()
-	{
-		vector<float> vertices = DefaultAssets::quad_vertices;
-		vector<unsigned int> indices = DefaultAssets::quad_indices;
-
-		const char* vertexShaderSource =
-			DefaultAssets::quad_shader_vertex;
-
-		const char* fragmentShaderSource = 
-			DefaultAssets::quad_shader_fragment;
-
-		stbi_set_flip_vertically_on_load(true);
-		unsigned int texture1;
-		{
-			glGenTextures(1, &texture1);
-			glBindTexture(GL_TEXTURE_2D, texture1);
-			// set the texture wrapping/filtering options (on currently bound texture)
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			// load and generate the texture
-			int width, height, nrChannels;
-			unsigned char* data = stbi_load("Assets/container.jpg", &width, &height,
-				&nrChannels, 0);
-			if (data)
-			{
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-					GL_UNSIGNED_BYTE, data);
-				glGenerateMipmap(GL_TEXTURE_2D);
-			}
-			else
-			{
-				std::cout << "Failed to load texture" << std::endl;
-			}
-			stbi_image_free(data);
-		}
-
-		unsigned int texture2;
-		{
-			glGenTextures(1, &texture2);
-			glBindTexture(GL_TEXTURE_2D, texture2);
-			// set the texture wrapping/filtering options (on currently bound texture)
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			// load and generate the texture
-			int width, height, nrChannels;
-			unsigned char* data = stbi_load("Assets/awesomeface.png", &width, &height,
-				&nrChannels, 0);
-			if (data)
-			{
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA,
-					GL_UNSIGNED_BYTE, data);
-				glGenerateMipmap(GL_TEXTURE_2D);
-			}
-			else
-			{
-				std::cout << "Failed to load texture" << std::endl;
-			}
-			stbi_image_free(data);
-		}
-
-		Mesh mesh(vertices, indices);
-		{
-			// position attribute
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-				(void*)0);
-			glEnableVertexAttribArray(0);
-			// color attribute
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-				(void*)(3 * sizeof(float)));
-			glEnableVertexAttribArray(1);
-		}
-		Material material(vertexShaderSource, fragmentShaderSource);
-		material.texture1 = texture1;
-		material.texture2 = texture2;
-
-		shared_ptr<Actor> actor(new Actor("Fixed Quad"));
-
-		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
-		actor->AddComponent(renderer);
-
-		//shared_ptr<MaterialAnimator> animator(new MaterialAnimator(5.0f));
-		//actor->AddComponent(animator);
-
-		return actor;
-	}
-
-	shared_ptr<Actor> Actor::FixedTriangle()
+	shared_ptr<Actor> Actor::PrefabTriangle()
 	{
 		vector<float> vertices = {
 			// positions // colors // texture coords
@@ -137,7 +74,7 @@ namespace Velvet
 		}
 		);
 
-		Mesh mesh(vertices, indices);
+		Mesh mesh(3, vertices, indices);
 		{
 			// position attribute
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
@@ -152,6 +89,86 @@ namespace Velvet
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 
 		shared_ptr<Actor> actor(new Actor("Fixed Triangle"));
+		actor->AddComponent(renderer);
+
+		return actor;
+	}
+
+	shared_ptr<Actor> Actor::PrefabQuad()
+	{
+		vector<float> vertices = DefaultAssets::quad_vertices;
+		vector<unsigned int> indices = DefaultAssets::quad_indices;
+
+		const char* vertexShaderSource =
+			DefaultAssets::quad_shader_vertex;
+
+		const char* fragmentShaderSource =
+			DefaultAssets::quad_shader_fragment;
+
+		stbi_set_flip_vertically_on_load(true);
+		unsigned int texture1 = LoadTexture("Assets/container.jpg", false);
+		unsigned int texture2 = LoadTexture("Assets/awesomeface.png", true);
+
+		Mesh mesh(6, vertices, indices);
+		{
+			// position attribute
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+				(void*)0);
+			glEnableVertexAttribArray(0);
+			// color attribute
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+				(void*)(3 * sizeof(float)));
+			glEnableVertexAttribArray(1);
+		}
+		Material material(vertexShaderSource, fragmentShaderSource);
+		material.texture1 = texture1;
+		material.texture2 = texture2;
+
+		shared_ptr<Actor> actor(new Actor("Fixed Quad"));
+
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
+		actor->AddComponent(renderer);
+
+		//shared_ptr<MaterialAnimator> animator(new MaterialAnimator(5.0f));
+		//actor->AddComponent(animator);
+
+		return actor;
+	}
+
+	shared_ptr<Actor> Actor::PrefabCube()
+	{
+		vector<float> vertices = DefaultAssets::cube_vertices;
+		//vector<unsigned int> indices = DefaultAssets::quad_indices;
+
+		const char* vertexShaderSource =
+			DefaultAssets::quad_shader_vertex;
+
+		const char* fragmentShaderSource =
+			DefaultAssets::quad_shader_fragment;
+
+		stbi_set_flip_vertically_on_load(true);
+
+		unsigned int texture1 = LoadTexture("Assets/container.jpg", false);
+		unsigned int texture2 = LoadTexture("Assets/awesomeface.png", true);
+
+		Mesh mesh(36, vertices);
+		{
+			// position attribute
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+				(void*)0);
+			glEnableVertexAttribArray(0);
+			// color attribute
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+				(void*)(3 * sizeof(float)));
+			glEnableVertexAttribArray(1);
+		}
+		Material material(vertexShaderSource, fragmentShaderSource);
+		material.texture1 = texture1;
+		material.texture2 = texture2;
+
+		shared_ptr<Actor> actor(new Actor("Prefab Cube"));
+
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 		actor->AddComponent(renderer);
 
 		return actor;

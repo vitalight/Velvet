@@ -24,9 +24,11 @@ namespace Velvet
 
 		Actor(string name);
 
-		static shared_ptr<Actor> FixedTriangle();
+		static shared_ptr<Actor> PrefabTriangle();
 
-		static shared_ptr<Actor> FixedQuad();
+		static shared_ptr<Actor> PrefabCube();
+
+		static shared_ptr<Actor> PrefabQuad();
 
 		void Start();
 

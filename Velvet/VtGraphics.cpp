@@ -41,6 +41,7 @@ int VtGraphics::Initialize()
 	glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
 		glViewport(0, 0, width, height);
 		});
+	glEnable(GL_DEPTH_TEST);
 
 	for (const auto& go : m_objects)
 	{
@@ -64,7 +65,6 @@ void VtGraphics::ProcessInput(GLFWwindow* window)
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
-	// TODO: ignore continuous calls
 	if (glfwGetKeyOnce(window, GLFW_KEY_L) == GLFW_PRESS)
 	{
 		static bool renderLine = true;
@@ -78,6 +78,10 @@ void VtGraphics::ProcessInput(GLFWwindow* window)
 		}
 		renderLine = !renderLine;
 	}
+	if (glfwGetKeyOnce(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		m_pause = !m_pause;
+	}
 }
 
 int VtGraphics::MainLoop()
@@ -89,16 +93,20 @@ int VtGraphics::MainLoop()
 		ProcessInput(m_window);
 
 		// rendering commands here
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		for (const auto& go : m_objects)
+		if (!m_pause)
 		{
-			go->Update();
+			glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			for (const auto& go : m_objects)
+			{
+				go->Update();
+			}
+
+			// check and call events and swap the buffers
+			glfwSwapBuffers(m_window);
 		}
 
-		// check and call events and swap the buffers
-		glfwSwapBuffers(m_window);
 		glfwPollEvents();
 	}
 	return 0;
