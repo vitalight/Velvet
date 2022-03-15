@@ -98,6 +98,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="DefaultAssets.h" />
+    <ClInclude Include="PlayerController.h" />
     <ClInclude Include="VtGraphics.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

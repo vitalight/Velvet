@@ -57,5 +57,8 @@
     <ClInclude Include="Global.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="PlayerController.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

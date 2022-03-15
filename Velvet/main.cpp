@@ -7,7 +7,6 @@ using namespace Velvet;
 int main()
 {
 	VtGraphics graphics;
-	graphics.Initialize();
 
 	graphics.AddActor(Actor::PrefabCamera());
 	graphics.AddActor(Actor::PrefabCube());

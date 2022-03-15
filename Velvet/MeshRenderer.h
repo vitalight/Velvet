@@ -44,7 +44,7 @@ namespace Velvet
 			glm::mat4 view = Global::mainCamera->view();
 
 			glm::mat4 projection;
-			projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f,
+			projection = glm::perspective(glm::radians(Global::mainCamera->zoom), 800.0f / 600.0f, 0.1f,
 				100.0f);
 
 			int modelLoc = glGetUniformLocation(m_material.shaderID(), "model");

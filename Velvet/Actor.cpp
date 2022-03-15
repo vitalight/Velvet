@@ -4,6 +4,7 @@
 
 #include "DefaultAssets.h"
 #include "Camera.h"
+#include "PlayerController.h"
 
 namespace Velvet
 {
@@ -181,7 +182,9 @@ namespace Velvet
 	{
 		shared_ptr<Actor> actor(new Actor("Camera"));
 		shared_ptr<Camera> camera(new Camera());
+		shared_ptr<PlayerController> controller(new PlayerController());
 		actor->AddComponent(camera);
+		actor->AddComponent(controller);
 		return actor;
 	}
 

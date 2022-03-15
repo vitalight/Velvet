@@ -1,5 +1,7 @@
 #include "VtGraphics.h"
 
+#include <functional>
+
 #include "Camera.h"
 
 using namespace Velvet;
@@ -10,77 +12,72 @@ char keyOnce[GLFW_KEY_LAST + 1];
 	 (keyOnce[KEY] ? false : (keyOnce[KEY] = true)) :	\
 	 (keyOnce[KEY] = false))
 
-void VtGraphics::AddActor(shared_ptr<Actor> gameObject)
+VtGraphics::VtGraphics()
 {
-	m_objects.push_back(gameObject);
-}
+	Global::graphics = this;
 
-
-void VtGraphics::ProcessMouse(GLFWwindow* window, double xpos, double ypos)
-{
-	static bool firstMouse = true;
-	static float lastX = 400, lastY = 300;
-	static float yaw = -90.0f, pitch = 0;
-	if (firstMouse)
-	{
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos;
-	lastX = xpos;
-	lastY = ypos;
-	float sensitivity = 0.1f;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-	yaw += xoffset;
-	pitch += yoffset;
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
-	glm::vec3 direction;
-	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	direction.y = sin(glm::radians(pitch));
-	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	Global::mainCamera->front = glm::normalize(direction);
-}
-
-
-void VtGraphics::Initialize()
-{
+	// setup glfw
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	m_window = glfwCreateWindow(800, 600, "Velvet", NULL, NULL);
+	window = glfwCreateWindow(800, 600, "Velvet", NULL, NULL);
 
-	if (m_window == NULL)
+	if (window == NULL)
 	{
 		fmt::print("Failed to create GLFW window\n");
 		glfwTerminate();
 		return;
 	}
 
-	glfwMakeContextCurrent(m_window);
+	glfwMakeContextCurrent(window);
 
+	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
+		glViewport(0, 0, width, height);
+		});
+
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
+		Global::graphics->ProcessMouse(window, xpos, ypos);
+		});
+	glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
+		Global::graphics->ProcessScroll(window, xoffset, yoffset);
+		});
+
+	// setup opengl
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		fmt::print("Failed to initialize GLAD\n");
 		return;
 	}
-
 	glViewport(0, 0, 800, 600);
-	glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
-		glViewport(0, 0, width, height);
-		});
 	glEnable(GL_DEPTH_TEST);
+}
 
-	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(m_window, ProcessMouse);
+void VtGraphics::AddActor(shared_ptr<Actor> gameObject)
+{
+	m_objects.push_back(gameObject);
+}
 
+void VtGraphics::ProcessMouse(GLFWwindow* window, double xpos, double ypos)
+{
+	for (auto foo : onMouseMove)
+	{
+		foo(xpos, ypos);
+	}
+}
+
+void VtGraphics::ProcessScroll(GLFWwindow* window, double xoffset, double yoffset)
+{
+	for (auto foo : onMouseScroll)
+	{
+		foo(xoffset, yoffset);
+	}
+}
+
+void VtGraphics::Initialize()
+{
 	for (const auto& go : m_objects)
 	{
 		go->Start();
@@ -91,6 +88,7 @@ int VtGraphics::Run()
 {
 	fmt::print("Hello Velvet!\n");
 
+	Initialize();
 	MainLoop();
 	Finalize();
 
@@ -121,39 +119,19 @@ void VtGraphics::ProcessInput(GLFWwindow* window)
 		m_pause = !m_pause;
 	}
 
-	const auto& camera = Global::mainCamera;
-
-	if (camera)
-	{
-		const float cameraSpeed = 2.5f * deltaTime; // adjust accordingly
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-			camera->position += cameraSpeed * camera->front;
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-			camera->position -= cameraSpeed * camera->front;
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-			camera->position -= glm::normalize(glm::cross(camera->front, camera->up)) *
-			cameraSpeed;
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-			camera->position += glm::normalize(glm::cross(camera->front, camera->up)) *
-			cameraSpeed;
-	}
-	else
-	{
-		fmt::print("Error: Camera not found.\n");
-	}
 }
 
 void VtGraphics::MainLoop()
 {
 	// render loop
-	while (!glfwWindowShouldClose(m_window))
+	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
 		// input
-		ProcessInput(m_window);
+		ProcessInput(window);
 
 		// rendering commands here
 		if (!m_pause)
@@ -167,7 +145,7 @@ void VtGraphics::MainLoop()
 			}
 
 			// check and call events and swap the buffers
-			glfwSwapBuffers(m_window);
+			glfwSwapBuffers(window);
 		}
 
 		glfwPollEvents();
