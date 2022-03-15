@@ -19,16 +19,16 @@ namespace Velvet
 	public:
 		void AddActor(shared_ptr<Actor> actor);
 
-		int Initialize();
+		void Initialize();
 
 		int Run();
 
 	private:
 		void ProcessInput(GLFWwindow* window);
 
-		int MainLoop();
+		void MainLoop();
 
-		int Finalize();
+		void Finalize();
 
 	private:
 		GLFWwindow* m_window;

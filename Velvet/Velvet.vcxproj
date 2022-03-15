@@ -88,9 +88,11 @@
     <ClCompile Include="VtGraphics.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="External\stb_image.h" />
     <ClInclude Include="Actor.h" />
     <ClInclude Include="Component.h" />
+    <ClInclude Include="Global.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialAnimator.h" />
     <ClInclude Include="Mesh.h" />

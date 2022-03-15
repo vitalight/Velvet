@@ -12,6 +12,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Global.h"
+#include "Camera.h"
+
 namespace Velvet
 {
 	class MeshRenderer : public Component
@@ -38,9 +41,22 @@ namespace Velvet
 			model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f),
 				glm::vec3(0.5f, 1.0f, 0.0f));
 
-			glm::mat4 view = glm::mat4(1.0f);
+			//glm::mat4 view = glm::mat4(1.0f);
 			// note that we¡¯re translating the scene in the reverse direction
-			view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+			//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+			//const float radius = 10.0f;
+			//float camX = sin(glfwGetTime()) * radius;
+			//float camZ = cos(glfwGetTime()) * radius;
+			//glm::mat4 view;
+			//view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0),
+			//	glm::vec3(0.0, 1.0, 0.0));
+
+			//glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+			//glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+			//glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+			//glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+			glm::mat4 view = Global::mainCamera->view();
 
 			glm::mat4 projection;
 			projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f,

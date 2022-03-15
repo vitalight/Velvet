@@ -1,5 +1,7 @@
 #include "VtGraphics.h"
 
+#include "Camera.h"
+
 using namespace Velvet;
 
 char keyOnce[GLFW_KEY_LAST + 1];
@@ -13,7 +15,7 @@ void VtGraphics::AddActor(shared_ptr<Actor> gameObject)
 	m_objects.push_back(gameObject);
 }
 
-int VtGraphics::Initialize()
+void VtGraphics::Initialize()
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -26,7 +28,7 @@ int VtGraphics::Initialize()
 	{
 		fmt::print("Failed to create GLFW window\n");
 		glfwTerminate();
-		return -1;
+		return;
 	}
 
 	glfwMakeContextCurrent(m_window);
@@ -34,7 +36,7 @@ int VtGraphics::Initialize()
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		fmt::print("Failed to initialize GLAD\n");
-		return -1;
+		return;
 	}
 
 	glViewport(0, 0, 800, 600);
@@ -82,9 +84,30 @@ void VtGraphics::ProcessInput(GLFWwindow* window)
 	{
 		m_pause = !m_pause;
 	}
+
+	const auto& camera = Global::mainCamera;
+
+	if (camera)
+	{
+		const float cameraSpeed = 0.05f; // adjust accordingly
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			camera->position += cameraSpeed * camera->front;
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			camera->position -= cameraSpeed * camera->front;
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			camera->position -= glm::normalize(glm::cross(camera->front, camera->up)) *
+			cameraSpeed;
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			camera->position += glm::normalize(glm::cross(camera->front, camera->up)) *
+			cameraSpeed;
+	}
+	else
+	{
+		fmt::print("Error: Camera not found.\n");
+	}
 }
 
-int VtGraphics::MainLoop()
+void VtGraphics::MainLoop()
 {
 	// render loop
 	while (!glfwWindowShouldClose(m_window))
@@ -109,16 +132,14 @@ int VtGraphics::MainLoop()
 
 		glfwPollEvents();
 	}
-	return 0;
 }
 
-int VtGraphics::Finalize()
+void VtGraphics::Finalize()
 {
 	for (const auto& go : m_objects)
 	{
 		go->OnDestroy();
 	}
 	glfwTerminate();
-	return 0;
 }
 

@@ -1,6 +1,9 @@
 #include "Actor.h"
+
 #include "External/stb_image.h"
+
 #include "DefaultAssets.h"
+#include "Camera.h"
 
 namespace Velvet
 {
@@ -171,6 +174,14 @@ namespace Velvet
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 		actor->AddComponent(renderer);
 
+		return actor;
+	}
+
+	shared_ptr<Actor> Actor::PrefabCamera()
+	{
+		shared_ptr<Actor> actor(new Actor("Camera"));
+		shared_ptr<Camera> camera(new Camera());
+		actor->AddComponent(camera);
 		return actor;
 	}
 

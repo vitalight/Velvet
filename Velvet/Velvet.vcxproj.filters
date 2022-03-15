@@ -51,5 +51,11 @@
     <ClInclude Include="DefaultAssets.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Global.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -30,6 +30,8 @@ namespace Velvet
 
 		static shared_ptr<Actor> PrefabQuad();
 
+		static shared_ptr<Actor> PrefabCamera();
+
 		void Start();
 
 		void Update();
