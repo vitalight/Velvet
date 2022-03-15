@@ -24,6 +24,8 @@ namespace Velvet
 		int Run();
 
 	private:
+		static void ProcessMouse(GLFWwindow* window, double xpos, double ypos);
+
 		void ProcessInput(GLFWwindow* window);
 
 		void MainLoop();
@@ -34,5 +36,8 @@ namespace Velvet
 		GLFWwindow* m_window;
 		vector<shared_ptr<Actor>> m_objects;
 		bool m_pause = false;
+
+		float deltaTime = 0.0f;
+		float lastFrame = 0.0f;
 	};
 }

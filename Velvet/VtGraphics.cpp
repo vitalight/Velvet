@@ -15,6 +15,39 @@ void VtGraphics::AddActor(shared_ptr<Actor> gameObject)
 	m_objects.push_back(gameObject);
 }
 
+
+void VtGraphics::ProcessMouse(GLFWwindow* window, double xpos, double ypos)
+{
+	static bool firstMouse = true;
+	static float lastX = 400, lastY = 300;
+	static float yaw = -90.0f, pitch = 0;
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
+	float sensitivity = 0.1f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+	yaw += xoffset;
+	pitch += yoffset;
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+	glm::vec3 direction;
+	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	direction.y = sin(glm::radians(pitch));
+	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	Global::mainCamera->front = glm::normalize(direction);
+}
+
+
 void VtGraphics::Initialize()
 {
 	glfwInit();
@@ -44,6 +77,9 @@ void VtGraphics::Initialize()
 		glViewport(0, 0, width, height);
 		});
 	glEnable(GL_DEPTH_TEST);
+
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(m_window, ProcessMouse);
 
 	for (const auto& go : m_objects)
 	{
@@ -89,7 +125,7 @@ void VtGraphics::ProcessInput(GLFWwindow* window)
 
 	if (camera)
 	{
-		const float cameraSpeed = 0.05f; // adjust accordingly
+		const float cameraSpeed = 2.5f * deltaTime; // adjust accordingly
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 			camera->position += cameraSpeed * camera->front;
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -112,6 +148,10 @@ void VtGraphics::MainLoop()
 	// render loop
 	while (!glfwWindowShouldClose(m_window))
 	{
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		// input
 		ProcessInput(m_window);
 
