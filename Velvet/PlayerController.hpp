@@ -28,19 +28,19 @@ namespace Velvet
 				auto window = Global::graphics->window;
 				const float cameraSpeed = 2.5f * Global::graphics->deltaTime; // adjust accordingly
 				if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-					transform->position += cameraSpeed * camera->front;
+					transform->position += cameraSpeed * camera->front();
 				if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-					transform->position -= cameraSpeed * camera->front;
+					transform->position -= cameraSpeed * camera->front();
 				if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-					transform->position -= glm::normalize(glm::cross(camera->front, camera->up)) *
+					transform->position -= glm::normalize(glm::cross(camera->front(), camera->up())) *
 					cameraSpeed;
 				if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-					transform->position += glm::normalize(glm::cross(camera->front, camera->up)) *
+					transform->position += glm::normalize(glm::cross(camera->front(), camera->up())) *
 					cameraSpeed;
 				if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-					transform->position += cameraSpeed * camera->up;
+					transform->position += cameraSpeed * camera->up();
 				if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-					transform->position -= cameraSpeed * camera->up;
+					transform->position -= cameraSpeed * camera->up();
 			}
 			else
 			{
@@ -62,7 +62,10 @@ namespace Velvet
 		{
 			static bool firstMouse = true;
 			static float lastX = 400, lastY = 300;
-			static float yaw = -90.0f, pitch = 0;
+
+			auto rot = Global::mainCamera->transform()->rotation;
+			float yaw = -rot.y, pitch = rot.x;
+
 			if (firstMouse)
 			{
 				lastX = xpos;
@@ -86,7 +89,10 @@ namespace Velvet
 			direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 			direction.y = sin(glm::radians(pitch));
 			direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-			Global::mainCamera->front = glm::normalize(direction);
+
+			Global::mainCamera->transform()->rotation = glm::vec3(pitch, -yaw, 0);
+			//fmt::print("CameraRotation: {}\n", Global::mainCamera->transform()->rotation);
+			//Global::mainCamera->front = glm::normalize(direction);
 		}
 	};
 }

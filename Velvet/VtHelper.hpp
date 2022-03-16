@@ -10,3 +10,13 @@ struct fmt::formatter<glm::vec3> : fmt::formatter<std::string> {
 			fmt::format("[{}, {}, {}]", p.x, p.y, p.z), ctx);
 	}
 };
+
+namespace Velvet
+{
+	namespace Helper
+	{
+		glm::mat4 RotateWithDegree(glm::mat4 result, const glm::vec3& rotation);
+
+		glm::vec3 RotateWithDegree(glm::vec3 result, const glm::vec3& rotation);
+	}
+}

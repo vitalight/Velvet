@@ -133,8 +133,25 @@ void VtGraphics::ProcessInput(GLFWwindow* window)
 	if (glfwGetKeyOnce(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
 		m_pause = !m_pause;
+		if (!m_pause)
+		{
+			lastUpdateTime = glfwGetTime();
+		}
 	}
 
+	if (glfwGetKeyOnce(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+	{
+		static bool showCursor = true;
+		if (showCursor)
+		{
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+		else
+		{
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+		showCursor = !showCursor;
+	}
 }
 
 void VtGraphics::MainLoop()
@@ -142,10 +159,6 @@ void VtGraphics::MainLoop()
 	// render loop
 	while (!glfwWindowShouldClose(window))
 	{
-		float currentFrame = glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
-
 		// input
 		ProcessInput(window);
 
@@ -155,9 +168,19 @@ void VtGraphics::MainLoop()
 			glClearColor(skyColor.x, skyColor.y, skyColor.z, skyColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+			// timing
+			float current = glfwGetTime();
+			deltaTime = current - lastUpdateTime;
+			lastUpdateTime = current;
+			elapsedTime += deltaTime;
+
 			for (const auto& go : m_actors)
 			{
 				go->Update();
+			}
+			for (const auto& callback : postUpdate)
+			{
+				callback();
 			}
 
 			// check and call events and swap the buffers
@@ -172,7 +195,8 @@ void VtGraphics::Finalize()
 {
 	if (Global::mainCamera)
 	{
-		fmt::print("Final camera position {}\n", Global::mainCamera->transform()->position);
+		fmt::print("Final camera state[position{}, rotation{}],\n", 
+			Global::mainCamera->transform()->position, Global::mainCamera->transform()->rotation);
 	}
 	for (const auto& go : m_actors)
 	{

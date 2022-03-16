@@ -1,12 +1,14 @@
 #include "MeshRenderer.hpp"
 
+#include "VtGraphics.hpp"
 #include "Global.hpp"
 #include "Camera.hpp"
 #include "Actor.hpp"
+#include "Light.hpp"
 
 namespace Velvet
 {
-	inline MeshRenderer::MeshRenderer()
+	MeshRenderer::MeshRenderer()
 	{
 		name = __func__;
 	}
@@ -23,7 +25,9 @@ namespace Velvet
 		m_material.SetInt("texture1", 0);
 		m_material.SetInt("texture2", 1);
 		m_material.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
-		m_material.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		
+		m_material.SetVec3("lightColor", Global::light->lightColor);
+		m_material.SetVec3("lightPos", Global::light->transform()->position);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_material.texture1);

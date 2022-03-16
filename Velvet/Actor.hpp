@@ -51,7 +51,7 @@ namespace Velvet
 			return result;
 		}
 
-		shared_ptr<Transform> transform = make_shared<Transform>(Transform());
+		shared_ptr<Transform> transform = make_shared<Transform>(Transform(this));
 		vector<shared_ptr<Component>> components;
 
 		string name;

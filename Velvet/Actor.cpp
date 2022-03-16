@@ -5,6 +5,7 @@
 #include "DefaultAssets.hpp"
 #include "Camera.hpp"
 #include "PlayerController.hpp"
+#include "Light.hpp"
 
 namespace Velvet
 {
@@ -100,20 +101,7 @@ namespace Velvet
 
 	shared_ptr<Actor> Actor::PrefabQuad()
 	{
-		vector<float> vertices = DefaultAssets::quad_vertices;
-		vector<unsigned int> indices = DefaultAssets::quad_indices;
-
-		const char* vertexShaderSource =
-			DefaultAssets::quad_shader_vertex;
-
-		const char* fragmentShaderSource =
-			DefaultAssets::quad_shader_fragment;
-
-		stbi_set_flip_vertically_on_load(true);
-		unsigned int texture1 = LoadTexture("Assets/container.jpg", false);
-		unsigned int texture2 = LoadTexture("Assets/awesomeface.png", true);
-
-		Mesh mesh(6, vertices, indices);
+		Mesh mesh(6, DefaultAssets::quad_vertices, DefaultAssets::quad_indices);
 		{
 			// position attribute
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
@@ -124,17 +112,15 @@ namespace Velvet
 				(void*)(3 * sizeof(float)));
 			glEnableVertexAttribArray(1);
 		}
-		Material material(vertexShaderSource, fragmentShaderSource);
-		material.texture1 = texture1;
-		material.texture2 = texture2;
 
-		shared_ptr<Actor> actor(new Actor("Fixed Quad"));
+		Material material(DefaultAssets::quad_shader_vertex, DefaultAssets::quad_shader_fragment);
+		material.texture1 = LoadTexture("Assets/container.jpg", false);
+		material.texture2 = LoadTexture("Assets/awesomeface.png", true);
 
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
-		actor->AddComponent(renderer);
 
-		//shared_ptr<MaterialAnimator> animator(new MaterialAnimator(5.0f));
-		//actor->AddComponent(animator);
+		shared_ptr<Actor> actor(new Actor("Prefab Quad"));
+		actor->AddComponent(renderer);
 
 		return actor;
 	}
@@ -145,13 +131,16 @@ namespace Velvet
 		// override attribute pointer
 		{
 			// position attribute
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
 				(void*)0);
 			glEnableVertexAttribArray(0);
 			// color attribute
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
 				(void*)(3 * sizeof(float)));
 			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+				(void*)0);
+			glEnableVertexAttribArray(2);
 		}
 
 		Material material(DefaultAssets::cube_shader_vertex, 
@@ -169,7 +158,7 @@ namespace Velvet
 
 	shared_ptr<Actor> Actor::PrefabCamera()
 	{
-		shared_ptr<Actor> actor(new Actor("Camera"));
+		shared_ptr<Actor> actor(new Actor("Prefab Camera"));
 		shared_ptr<Camera> camera(new Camera());
 		shared_ptr<PlayerController> controller(new PlayerController());
 		actor->AddComponent(camera);
@@ -179,24 +168,31 @@ namespace Velvet
 
 	shared_ptr<Actor> Actor::PrefabLight()
 	{
-		shared_ptr<Actor> actor(new Actor("Light"));
 		Mesh mesh(36, DefaultAssets::cube_vertices);
 		// override attribute pointer
 		{
 			// position attribute
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
 				(void*)0);
 			glEnableVertexAttribArray(0);
 			// color attribute
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
 				(void*)(3 * sizeof(float)));
 			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+				(void*)0);
+			glEnableVertexAttribArray(2);
 		}
 
 		Material material(DefaultAssets::light_shader_vertex, 
 			DefaultAssets::light_shader_fragment);
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
+
+		shared_ptr<Light> light(new Light());
+
+		shared_ptr<Actor> actor(new Actor("Prefab Light"));
 		actor->AddComponent(renderer);
+		actor->AddComponent(light);
 		return actor;
 	}
 

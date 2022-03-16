@@ -15,6 +15,8 @@ namespace Velvet
 {
 	using namespace std;
 
+	extern class Light;
+
 	class VtGraphics
 	{
 	public:
@@ -27,12 +29,13 @@ namespace Velvet
 		int Run();
 
 		vector<function<void(double, double)>> onMouseScroll;
-
 		vector<function<void(double, double)>> onMouseMove;
+		vector<function<void()>> postUpdate;
 
 		GLFWwindow* window = nullptr;
 		float deltaTime = 0.0f;
-		float lastFrame = 0.0f;
+		float elapsedTime = 0.0f;
+		float lastUpdateTime = 0.0f;
 		glm::vec4 skyColor = glm::vec4(0.0f);
 
 	private:

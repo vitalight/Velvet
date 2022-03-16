@@ -17,10 +17,7 @@ namespace Velvet
 	class Camera : public Component
 	{
 	public:
-		//glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f);
-		glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
-		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-		float zoom = 45;
+		float zoom = 45.0f;
 
 		Camera()
 		{
@@ -34,12 +31,27 @@ namespace Velvet
 			return actor->transform->position;
 		}
 
-		// TODO: use actor rotation
-		glm::mat4 view() const
+		glm::vec3 front() const
 		{
-			return glm::lookAt(position(), position() + front, up);
+			return Helper::RotateWithDegree(kFront, actor->transform->rotation);
 		}
 
-	//private:
+		glm::vec3 up() const
+		{
+			return Helper::RotateWithDegree(kUp, actor->transform->rotation);
+		}
+
+		glm::mat4 view() const
+		{
+			auto trans = actor->transform;
+			auto rotation = trans->rotation;
+			auto result = glm::lookAt(position(), position() + front(), up());
+			return result;
+		}
+
+	private:
+		//glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f);
+		glm::vec3 kFront = glm::vec3(0.0f, 0.0f, -1.0f);
+		glm::vec3 kUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	};
 }

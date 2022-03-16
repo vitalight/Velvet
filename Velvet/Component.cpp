@@ -12,6 +12,6 @@ shared_ptr<Transform> Component::transform()
 	}
 	else
 	{
-		return make_shared<Transform>(Transform());
+		return make_shared<Transform>(Transform(nullptr));
 	}
 }

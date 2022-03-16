@@ -88,6 +88,7 @@
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="VtGraphics.cpp" />
+    <ClCompile Include="VtHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.hpp" />
@@ -95,6 +96,7 @@
     <ClInclude Include="Actor.hpp" />
     <ClInclude Include="Component.hpp" />
     <ClInclude Include="Global.hpp" />
+    <ClInclude Include="Light.hpp" />
     <ClInclude Include="Material.hpp" />
     <ClInclude Include="MaterialAnimator.hpp" />
     <ClInclude Include="Mesh.hpp" />
