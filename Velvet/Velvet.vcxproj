@@ -82,6 +82,7 @@
     <CudaCompile Include="kernel.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Component.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="stb_image.cpp" />
@@ -89,18 +90,20 @@
     <ClCompile Include="VtGraphics.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Camera.hpp" />
     <ClInclude Include="External\stb_image.h" />
-    <ClInclude Include="Actor.h" />
-    <ClInclude Include="Component.h" />
-    <ClInclude Include="Global.h" />
-    <ClInclude Include="Material.h" />
-    <ClInclude Include="MaterialAnimator.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshRenderer.h" />
-    <ClInclude Include="DefaultAssets.h" />
-    <ClInclude Include="PlayerController.h" />
-    <ClInclude Include="VtGraphics.h" />
+    <ClInclude Include="Actor.hpp" />
+    <ClInclude Include="Component.hpp" />
+    <ClInclude Include="Global.hpp" />
+    <ClInclude Include="Material.hpp" />
+    <ClInclude Include="MaterialAnimator.hpp" />
+    <ClInclude Include="Mesh.hpp" />
+    <ClInclude Include="MeshRenderer.hpp" />
+    <ClInclude Include="DefaultAssets.hpp" />
+    <ClInclude Include="PlayerController.hpp" />
+    <ClInclude Include="Transform.hpp" />
+    <ClInclude Include="VtGraphics.hpp" />
+    <ClInclude Include="VtHelper.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

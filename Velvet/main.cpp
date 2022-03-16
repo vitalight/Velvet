@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "VtGraphics.h"
+#include "VtGraphics.hpp"
 
 using namespace Velvet;
 
@@ -12,12 +12,13 @@ int main()
 
 	// 2. Instantiate actors
 	auto camera = graphics.AddActor(Actor::PrefabCamera());
-	
+	camera->transform->position = glm::vec3(0.0f, 0.0f, 3.0f);
+
 	auto cube1 = graphics.AddActor(Actor::PrefabCube());
 	
 	auto light = graphics.AddActor(Actor::PrefabLight());
-	light->transform.position = glm::vec3(1.2f, 1.0f, 2.0f);
-	light->transform.scale = glm::vec3(0.2f);
+	light->transform->position = glm::vec3(1.2f, 1.0f, 2.0f);
+	light->transform->scale = glm::vec3(0.2f);
 
 	// 3. Run graphics
 	return graphics.Run();

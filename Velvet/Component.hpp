@@ -1,6 +1,9 @@
 #pragma once
 
+#include <iostream>
 #include <string>
+
+#include "Transform.hpp"
 
 namespace Velvet
 {
@@ -20,5 +23,7 @@ namespace Velvet
 		string name = "Component";
 
 		Actor* actor;
+
+		shared_ptr<Transform> transform();
 	};
 }

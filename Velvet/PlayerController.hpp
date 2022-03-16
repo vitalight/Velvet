@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Global.h"
+#include "Global.hpp"
 
 #include <functional>
 
-#include "VtGraphics.h"
-#include "Component.h"
+#include "VtGraphics.hpp"
+#include "Component.hpp"
 
 namespace Velvet
 {
@@ -24,22 +24,23 @@ namespace Velvet
 
 			if (camera)
 			{
+				const auto& transform = camera->transform();
 				auto window = Global::graphics->window;
 				const float cameraSpeed = 2.5f * Global::graphics->deltaTime; // adjust accordingly
 				if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-					camera->position += cameraSpeed * camera->front;
+					transform->position += cameraSpeed * camera->front;
 				if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-					camera->position -= cameraSpeed * camera->front;
+					transform->position -= cameraSpeed * camera->front;
 				if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-					camera->position -= glm::normalize(glm::cross(camera->front, camera->up)) *
+					transform->position -= glm::normalize(glm::cross(camera->front, camera->up)) *
 					cameraSpeed;
 				if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-					camera->position += glm::normalize(glm::cross(camera->front, camera->up)) *
+					transform->position += glm::normalize(glm::cross(camera->front, camera->up)) *
 					cameraSpeed;
 				if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-					camera->position += cameraSpeed * camera->up;
+					transform->position += cameraSpeed * camera->up;
 				if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-					camera->position -= cameraSpeed * camera->up;
+					transform->position -= cameraSpeed * camera->up;
 			}
 			else
 			{

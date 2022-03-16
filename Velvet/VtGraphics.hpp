@@ -9,7 +9,7 @@
 #include <GLFW/glfw3.h>
 #include <fmt/core.h>
 
-#include "Actor.h"
+#include "Actor.hpp"
 
 namespace Velvet
 {

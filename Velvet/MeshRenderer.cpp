@@ -1,8 +1,8 @@
-#include "MeshRenderer.h"
+#include "MeshRenderer.hpp"
 
-#include "Global.h"
-#include "Camera.h"
-#include "Actor.h"
+#include "Global.hpp"
+#include "Camera.hpp"
+#include "Actor.hpp"
 
 namespace Velvet
 {
@@ -30,7 +30,7 @@ namespace Velvet
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, m_material.texture2);
 
-		glm::mat4 model = actor->transform.matrix();
+		glm::mat4 model = actor->transform->matrix();
 		glm::mat4 view = Global::mainCamera->view();
 		glm::mat4 projection = glm::perspective(glm::radians(Global::mainCamera->zoom), 800.0f / 600.0f, 0.1f,
 			100.0f);

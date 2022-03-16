@@ -1,10 +1,11 @@
-#include "VtGraphics.h"
+#include "VtGraphics.hpp"
 
 #include <functional>
 
 #include "External/stb_image.h"
 
-#include "Camera.h"
+#include "VtHelper.hpp"
+#include "Camera.hpp"
 
 using namespace Velvet;
 
@@ -169,6 +170,10 @@ void VtGraphics::MainLoop()
 
 void VtGraphics::Finalize()
 {
+	if (Global::mainCamera)
+	{
+		fmt::print("Final camera position {}\n", Global::mainCamera->transform()->position);
+	}
 	for (const auto& go : m_actors)
 	{
 		go->OnDestroy();

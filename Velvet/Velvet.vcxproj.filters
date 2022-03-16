@@ -17,6 +17,9 @@
     <ClCompile Include="MeshRenderer.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="External">
@@ -30,37 +33,43 @@
     <ClInclude Include="External\stb_image.h">
       <Filter>External</Filter>
     </ClInclude>
-    <ClInclude Include="Component.h">
+    <ClInclude Include="Component.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Actor.h">
+    <ClInclude Include="Actor.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="VtGraphics.h">
+    <ClInclude Include="VtGraphics.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
+    <ClInclude Include="Mesh.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Material.h">
+    <ClInclude Include="Material.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="MeshRenderer.h">
+    <ClInclude Include="MeshRenderer.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="MaterialAnimator.h">
+    <ClInclude Include="MaterialAnimator.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="DefaultAssets.h">
+    <ClInclude Include="DefaultAssets.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="Camera.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Global.h">
+    <ClInclude Include="Global.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerController.h">
+    <ClInclude Include="PlayerController.hpp">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="VtHelper.hpp">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>

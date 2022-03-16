@@ -1,10 +1,10 @@
-#include "Actor.h"
+#include "Actor.hpp"
 
 #include "External/stb_image.h"
 
-#include "DefaultAssets.h"
-#include "Camera.h"
-#include "PlayerController.h"
+#include "DefaultAssets.hpp"
+#include "Camera.hpp"
+#include "PlayerController.hpp"
 
 namespace Velvet
 {
@@ -141,18 +141,7 @@ namespace Velvet
 
 	shared_ptr<Actor> Actor::PrefabCube()
 	{
-		vector<float> vertices = DefaultAssets::cube_vertices;
-
-		const char* vertexShaderSource =
-			DefaultAssets::quad_shader_vertex;
-
-		const char* fragmentShaderSource =
-			DefaultAssets::quad_shader_fragment;
-
-		unsigned int texture1 = LoadTexture("Assets/container.jpg", false);
-		unsigned int texture2 = LoadTexture("Assets/awesomeface.png", true);
-
-		Mesh mesh(36, vertices);
+		Mesh mesh(36, DefaultAssets::cube_vertices);
 		// override attribute pointer
 		{
 			// position attribute
@@ -164,13 +153,15 @@ namespace Velvet
 				(void*)(3 * sizeof(float)));
 			glEnableVertexAttribArray(1);
 		}
-		Material material(vertexShaderSource, fragmentShaderSource);
-		material.texture1 = texture1;
-		material.texture2 = texture2;
 
-		shared_ptr<Actor> actor(new Actor("Prefab Cube"));
+		Material material(DefaultAssets::cube_shader_vertex, 
+			DefaultAssets::cube_shader_fragment);
+		material.texture1 = LoadTexture("Assets/container.jpg", false);
+		material.texture2 = LoadTexture("Assets/awesomeface.png", true);
 
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
+
+		shared_ptr<Actor> actor(new Actor("Prefab Cube"));
 		actor->AddComponent(renderer);
 
 		return actor;

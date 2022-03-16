@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Component.h"
+#include "Component.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -10,8 +10,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Mesh.h"
-#include "Material.h"
+#include "Mesh.hpp"
+#include "Material.hpp"
 
 namespace Velvet
 {
