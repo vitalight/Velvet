@@ -17,7 +17,7 @@ namespace Velvet
 
 		virtual void OnDestroy() {}
 
-		string name = "BaseComponent";
+		string name = "Component";
 
 		Actor* actor;
 	};

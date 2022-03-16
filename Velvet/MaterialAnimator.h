@@ -10,7 +10,10 @@ namespace Velvet
 	class MaterialAnimator : public Component
 	{
 	public:
-		MaterialAnimator(float speed = 1.0f) : m_speed(speed) {};
+		MaterialAnimator(float speed = 1.0f) : m_speed(speed) 
+		{
+			name = __func__;
+		};
 
 		void Update() override
 		{

@@ -62,6 +62,46 @@ namespace Velvet
 		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f
 		};
 
+		const char* cube_shader_vertex = SHADER(
+			layout(location = 0) in vec3 aPos;
+		uniform mat4 model;
+		uniform mat4 view;
+		uniform mat4 projection;
+		void main()
+		{
+			gl_Position = projection * view * model * vec4(aPos, 1.0);
+		}
+		);
+
+		const char* cube_shader_fragment = SHADER(
+			out vec4 FragColor;
+		uniform vec3 objectColor;
+		uniform vec3 lightColor;
+		void main()
+		{
+			FragColor = vec4(lightColor * objectColor, 1.0);
+		}
+		);
+
+		const char* light_shader_vertex = SHADER(
+			layout(location = 0) in vec3 aPos;
+		uniform mat4 model;
+		uniform mat4 view;
+		uniform mat4 projection;
+		void main()
+		{
+			gl_Position = projection * view * model * vec4(aPos, 1.0);
+		}
+		);
+
+		const char* light_shader_fragment = SHADER(
+			out vec4 FragColor;
+		void main()
+		{
+			FragColor = vec4(1.0); // set all 4 vector values to 1.0
+		}
+		);
+
 		const char* quad_shader_vertex = SHADER(
 			layout(location = 0) in vec3 aPos;
 		layout(location = 1) in vec2 aTexCoord;

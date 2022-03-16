@@ -17,12 +17,30 @@ namespace Velvet
 {
 	using namespace std;
 
+	class Transform
+	{
+	public:
+
+		glm::mat4 matrix()
+		{
+			glm::mat4 result = glm::mat4(1.0f);
+			//glm::rotate(result, 
+			result = glm::translate(result, position);
+			result = glm::scale(result, scale);
+			return result;
+		}
+
+		glm::vec3 position = glm::vec3(0.0f);
+		glm::vec3 rotation = glm::vec3(0.0f);
+		glm::vec3 scale = glm::vec3(1.0f);
+	};
+
 	class Actor
 	{
 	public:
 		Actor();
 
-		Actor(string name);
+		Actor(string _name);
 
 		static shared_ptr<Actor> PrefabTriangle();
 
@@ -31,6 +49,8 @@ namespace Velvet
 		static shared_ptr<Actor> PrefabQuad();
 
 		static shared_ptr<Actor> PrefabCamera();
+
+		static shared_ptr<Actor> PrefabLight();
 
 		void Start();
 
@@ -44,7 +64,7 @@ namespace Velvet
 		T* GetComponent()
 		{
 			T* result = nullptr;
-			for (auto c : m_components)
+			for (auto c : components)
 			{
 				result = dynamic_cast<T*>(c.get());
 				if (result)
@@ -53,10 +73,11 @@ namespace Velvet
 			return result;
 		}
 
-	private:
-		string m_name;
+		Transform transform;
+		vector<shared_ptr<Component>> components;
 
-		vector<shared_ptr<Component>> m_components;
+		string name;
+
 	};
 
 }

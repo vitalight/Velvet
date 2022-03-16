@@ -78,24 +78,68 @@ namespace Velvet
 			glUseProgram(m_shaderID);
 		}
 
-		void SetBool(const string& name, bool value) const
+		GLint GetLocation(const string& name) const
 		{
-			glUniform1i(glGetUniformLocation(m_shaderID, name.c_str()), (int)value);
+			return glGetUniformLocation(m_shaderID, name.c_str());
 		}
 
-		void SetInt(const string& name, int value) const
+		// utility uniform functions
+		// ------------------------------------------------------------------------
+		void SetBool(const std::string& name, bool value) const
 		{
-			glUniform1i(glGetUniformLocation(m_shaderID, name.c_str()), value);
+			glUniform1i(GetLocation(name), (int)value);
 		}
-
-		void SetFloat(const string& name, float value) const
+		// ------------------------------------------------------------------------
+		void SetInt(const std::string& name, int value) const
 		{
-			glUniform1f(glGetUniformLocation(m_shaderID, name.c_str()), value);
+			glUniform1i(GetLocation(name), value);
 		}
-
-		void SetMat4(const string& name, glm::mat4 value) const
+		// ------------------------------------------------------------------------
+		void SetFloat(const std::string& name, float value) const
 		{
-			glUniformMatrix4fv(glGetUniformLocation(m_shaderID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+			glUniform1f(GetLocation(name), value);
+		}
+		// ------------------------------------------------------------------------
+		void SetVec2(const std::string& name, const glm::vec2& value) const
+		{
+			glUniform2fv(GetLocation(name), 1, &value[0]);
+		}
+		void SetVec2(const std::string& name, float x, float y) const
+		{
+			glUniform2f(GetLocation(name), x, y);
+		}
+		// ------------------------------------------------------------------------
+		void SetVec3(const std::string& name, const glm::vec3& value) const
+		{
+			glUniform3fv(GetLocation(name), 1, &value[0]);
+		}
+		void SetVec3(const std::string& name, float x, float y, float z) const
+		{
+			glUniform3f(GetLocation(name), x, y, z);
+		}
+		// ------------------------------------------------------------------------
+		void SetVec4(const std::string& name, const glm::vec4& value) const
+		{
+			glUniform4fv(GetLocation(name), 1, &value[0]);
+		}
+		void SetVec4(const std::string& name, float x, float y, float z, float w)
+		{
+			glUniform4f(GetLocation(name), x, y, z, w);
+		}
+		// ------------------------------------------------------------------------
+		void SetMat2(const std::string& name, const glm::mat2& mat) const
+		{
+			glUniformMatrix2fv(GetLocation(name), 1, GL_FALSE, &mat[0][0]);
+		}
+		// ------------------------------------------------------------------------
+		void SetMat3(const std::string& name, const glm::mat3& mat) const
+		{
+			glUniformMatrix3fv(GetLocation(name), 1, GL_FALSE, &mat[0][0]);
+		}
+		// ------------------------------------------------------------------------
+		void SetMat4(const std::string& name, const glm::mat4& mat) const
+		{
+			glUniformMatrix4fv(GetLocation(name), 1, GL_FALSE, &mat[0][0]);
 		}
 
 	private:

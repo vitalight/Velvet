@@ -36,9 +36,9 @@ namespace Velvet
 		return texture;
 	}
 
-	inline Velvet::Actor::Actor() {}
+	Velvet::Actor::Actor() {}
 
-	inline Velvet::Actor::Actor(string name) : m_name(name) {}
+	Velvet::Actor::Actor(string name) : name(name) {}
 
 	shared_ptr<Actor> Actor::PrefabTriangle()
 	{
@@ -142,7 +142,6 @@ namespace Velvet
 	shared_ptr<Actor> Actor::PrefabCube()
 	{
 		vector<float> vertices = DefaultAssets::cube_vertices;
-		//vector<unsigned int> indices = DefaultAssets::quad_indices;
 
 		const char* vertexShaderSource =
 			DefaultAssets::quad_shader_vertex;
@@ -150,12 +149,11 @@ namespace Velvet
 		const char* fragmentShaderSource =
 			DefaultAssets::quad_shader_fragment;
 
-		stbi_set_flip_vertically_on_load(true);
-
 		unsigned int texture1 = LoadTexture("Assets/container.jpg", false);
 		unsigned int texture2 = LoadTexture("Assets/awesomeface.png", true);
 
 		Mesh mesh(36, vertices);
+		// override attribute pointer
 		{
 			// position attribute
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
@@ -188,9 +186,32 @@ namespace Velvet
 		return actor;
 	}
 
+	shared_ptr<Actor> Actor::PrefabLight()
+	{
+		shared_ptr<Actor> actor(new Actor("Light"));
+		Mesh mesh(36, DefaultAssets::cube_vertices);
+		// override attribute pointer
+		{
+			// position attribute
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+				(void*)0);
+			glEnableVertexAttribArray(0);
+			// color attribute
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+				(void*)(3 * sizeof(float)));
+			glEnableVertexAttribArray(1);
+		}
+
+		Material material(DefaultAssets::light_shader_vertex, 
+			DefaultAssets::light_shader_fragment);
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
+		actor->AddComponent(renderer);
+		return actor;
+	}
+
 	void Actor::Start()
 	{
-		for (const auto& c : m_components)
+		for (const auto& c : components)
 		{
 			c->Start();
 		}
@@ -198,13 +219,13 @@ namespace Velvet
 
 	void Actor::AddComponent(shared_ptr<Component> component)
 	{
-		m_components.push_back(component);
 		component->actor = this;
+		components.push_back(component);
 	}
 
 	void Actor::OnDestroy()
 	{
-		for (const auto& c : m_components)
+		for (const auto& c : components)
 		{
 			c->OnDestroy();
 		}
@@ -212,7 +233,7 @@ namespace Velvet
 
 	void Actor::Update()
 	{
-		for (const auto& c : m_components)
+		for (const auto& c : components)
 		{
 			c->Update();
 		}

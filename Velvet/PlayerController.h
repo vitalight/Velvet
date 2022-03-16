@@ -36,6 +36,10 @@ namespace Velvet
 				if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 					camera->position += glm::normalize(glm::cross(camera->front, camera->up)) *
 					cameraSpeed;
+				if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+					camera->position += cameraSpeed * camera->up;
+				if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+					camera->position -= cameraSpeed * camera->up;
 			}
 			else
 			{

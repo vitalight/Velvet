@@ -18,9 +18,11 @@ namespace Velvet
 	public:
 		Camera()
 		{
+			name = __func__;
 			Global::mainCamera = this;
 		}
 
+		// TODO: use actor position
 		glm::mat4 view() const
 		{
 			return glm::lookAt(position, position + front, up);

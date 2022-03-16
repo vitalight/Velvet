@@ -2,6 +2,8 @@
 
 #include <functional>
 
+#include "External/stb_image.h"
+
 #include "Camera.h"
 
 using namespace Velvet;
@@ -53,11 +55,15 @@ VtGraphics::VtGraphics()
 	}
 	glViewport(0, 0, 800, 600);
 	glEnable(GL_DEPTH_TEST);
+
+	// setup stbi
+	stbi_set_flip_vertically_on_load(true);
 }
 
-void VtGraphics::AddActor(shared_ptr<Actor> gameObject)
+shared_ptr<Actor> VtGraphics::AddActor(shared_ptr<Actor> gameObject)
 {
-	m_objects.push_back(gameObject);
+	m_actors.push_back(gameObject);
+	return gameObject;
 }
 
 void VtGraphics::ProcessMouse(GLFWwindow* window, double xpos, double ypos)
@@ -78,7 +84,7 @@ void VtGraphics::ProcessScroll(GLFWwindow* window, double xoffset, double yoffse
 
 void VtGraphics::Initialize()
 {
-	for (const auto& go : m_objects)
+	for (const auto& go : m_actors)
 	{
 		go->Start();
 	}
@@ -87,6 +93,15 @@ void VtGraphics::Initialize()
 int VtGraphics::Run()
 {
 	fmt::print("Hello Velvet!\n");
+	fmt::print("# Total actors: {}\n", m_actors.size());
+	for (auto actor : m_actors)
+	{
+		fmt::print(" + {}\n", actor->name);
+		for (auto component : actor->components)
+		{
+			fmt::print(" |-- {}\n", component->name);
+		}
+	}
 
 	Initialize();
 	MainLoop();
@@ -136,10 +151,10 @@ void VtGraphics::MainLoop()
 		// rendering commands here
 		if (!m_pause)
 		{
-			glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
+			glClearColor(skyColor.x, skyColor.y, skyColor.z, skyColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			for (const auto& go : m_objects)
+			for (const auto& go : m_actors)
 			{
 				go->Update();
 			}
@@ -154,7 +169,7 @@ void VtGraphics::MainLoop()
 
 void VtGraphics::Finalize()
 {
-	for (const auto& go : m_objects)
+	for (const auto& go : m_actors)
 	{
 		go->OnDestroy();
 	}

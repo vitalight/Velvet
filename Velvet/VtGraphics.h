@@ -20,7 +20,7 @@ namespace Velvet
 	public:
 		VtGraphics();
 
-		void AddActor(shared_ptr<Actor> actor);
+		shared_ptr<Actor> AddActor(shared_ptr<Actor> actor);
 
 		void Initialize();
 
@@ -33,6 +33,7 @@ namespace Velvet
 		GLFWwindow* window = nullptr;
 		float deltaTime = 0.0f;
 		float lastFrame = 0.0f;
+		glm::vec4 skyColor = glm::vec4(0.0f);
 
 	private:
 		void ProcessMouse(GLFWwindow* window, double xpos, double ypos);
@@ -45,8 +46,7 @@ namespace Velvet
 
 		void Finalize();
 
-		vector<shared_ptr<Actor>> m_objects;
+		vector<shared_ptr<Actor>> m_actors;
 		bool m_pause = false;
-
 	};
 }

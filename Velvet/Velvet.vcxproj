@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="VtGraphics.cpp" />
