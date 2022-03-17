@@ -23,6 +23,9 @@
     <ClCompile Include="VtHelper.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="External">
@@ -79,6 +82,9 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Config.hpp">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>

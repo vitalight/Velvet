@@ -6,15 +6,9 @@
 
 #include "VtHelper.hpp"
 #include "Camera.hpp"
+#include "Input.hpp"
 
 using namespace Velvet;
-
-// TODO: input class
-char keyOnce[GLFW_KEY_LAST + 1];
-#define glfwGetKeyOnce(WINDOW, KEY)				\
-	(glfwGetKey(WINDOW, KEY) ?				\
-	 (keyOnce[KEY] ? false : (keyOnce[KEY] = true)) :	\
-	 (keyOnce[KEY] = false))
 
 VtGraphics::VtGraphics()
 {
@@ -26,27 +20,27 @@ VtGraphics::VtGraphics()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(800, 600, "Velvet", NULL, NULL);
+	m_window = glfwCreateWindow(800, 600, "Velvet", NULL, NULL);
 
-	if (window == NULL)
+	if (m_window == NULL)
 	{
 		fmt::print("Failed to create GLFW window\n");
 		glfwTerminate();
 		return;
 	}
 
-	glfwMakeContextCurrent(window);
+	glfwMakeContextCurrent(m_window);
 
-	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
+	glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* m_window, int width, int height) {
 		glViewport(0, 0, width, height);
 		});
 
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
-		Global::graphics->ProcessMouse(window, xpos, ypos);
+	glfwSetCursorPosCallback(m_window, [](GLFWwindow* m_window, double xpos, double ypos) {
+		Global::graphics->ProcessMouse(m_window, xpos, ypos);
 		});
-	glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
-		Global::graphics->ProcessScroll(window, xoffset, yoffset);
+	glfwSetScrollCallback(m_window, [](GLFWwindow* m_window, double xoffset, double yoffset) {
+		Global::graphics->ProcessScroll(m_window, xoffset, yoffset);
 		});
 
 	// setup opengl
@@ -60,15 +54,18 @@ VtGraphics::VtGraphics()
 
 	// setup stbi
 	stbi_set_flip_vertically_on_load(true);
+
+	// setup members
+	m_input = shared_ptr<Input>(new Input(m_window));
 }
 
-shared_ptr<Actor> VtGraphics::AddActor(shared_ptr<Actor> gameObject)
+shared_ptr<Actor> VtGraphics::AddActor(shared_ptr<Actor> actor)
 {
-	m_actors.push_back(gameObject);
-	return gameObject;
+	m_actors.push_back(actor);
+	return actor;
 }
 
-void VtGraphics::ProcessMouse(GLFWwindow* window, double xpos, double ypos)
+void VtGraphics::ProcessMouse(GLFWwindow* m_window, double xpos, double ypos)
 {
 	for (auto foo : onMouseMove)
 	{
@@ -76,7 +73,7 @@ void VtGraphics::ProcessMouse(GLFWwindow* window, double xpos, double ypos)
 	}
 }
 
-void VtGraphics::ProcessScroll(GLFWwindow* window, double xoffset, double yoffset)
+void VtGraphics::ProcessScroll(GLFWwindow* m_window, double xoffset, double yoffset)
 {
 	for (auto foo : onMouseScroll)
 	{
@@ -112,13 +109,13 @@ int VtGraphics::Run()
 	return 0;
 }
 
-void VtGraphics::ProcessInput(GLFWwindow* window)
+void VtGraphics::ProcessInput(GLFWwindow* m_window)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (Global::input->GetKey(GLFW_KEY_ESCAPE))
 	{
-		glfwSetWindowShouldClose(window, true);
+		glfwSetWindowShouldClose(m_window, true);
 	}
-	if (glfwGetKeyOnce(window, GLFW_KEY_L) == GLFW_PRESS)
+	if (Global::input->GetKeyDown(GLFW_KEY_L))
 	{
 		static bool renderLine = true;
 		if (renderLine)
@@ -131,7 +128,7 @@ void VtGraphics::ProcessInput(GLFWwindow* window)
 		}
 		renderLine = !renderLine;
 	}
-	if (glfwGetKeyOnce(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	if (Global::input->GetKeyDown(GLFW_KEY_SPACE))
 	{
 		m_pause = !m_pause;
 		if (!m_pause)
@@ -140,15 +137,15 @@ void VtGraphics::ProcessInput(GLFWwindow* window)
 		}
 	}
 
-	if (glfwGetKeyOnce(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+	if (Global::input->GetKeyDown(GLFW_KEY_ENTER))
 	{
-		if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL)
+		if (glfwGetInputMode(m_window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL)
 		{
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
 		else
 		{
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
 	}
 }
@@ -156,10 +153,10 @@ void VtGraphics::ProcessInput(GLFWwindow* window)
 void VtGraphics::MainLoop()
 {
 	// render loop
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(m_window))
 	{
 		// input
-		ProcessInput(window);
+		ProcessInput(m_window);
 
 		// rendering commands here
 		if (!m_pause)
@@ -183,7 +180,7 @@ void VtGraphics::MainLoop()
 			}
 
 			// check and call events and swap the buffers
-			glfwSwapBuffers(window);
+			glfwSwapBuffers(m_window);
 		}
 
 		glfwPollEvents();

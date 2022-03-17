@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="stb_image.cpp" />
@@ -97,6 +98,7 @@
     <ClInclude Include="Actor.hpp" />
     <ClInclude Include="Component.hpp" />
     <ClInclude Include="Global.hpp" />
+    <ClInclude Include="Input.hpp" />
     <ClInclude Include="Light.hpp" />
     <ClInclude Include="Material.hpp" />
     <ClInclude Include="MaterialAnimator.hpp" />

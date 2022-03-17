@@ -8,6 +8,7 @@
 #include "Component.hpp"
 #include "Config.hpp"
 #include "Light.hpp"
+#include "Input.hpp"
 
 namespace Velvet
 {
@@ -22,9 +23,9 @@ namespace Velvet
 
 		void Update() override
 		{
-			auto window = Global::graphics->window;
+			auto m_window = Global::graphics->m_window;
 
-			if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+			if (Global::input->GetKeyDown(GLFW_KEY_Z))
 			{
 				static bool test = (Global::light->type == LightType::Point);
 				if (test)
@@ -48,19 +49,19 @@ namespace Velvet
 				static glm::vec3 currentSpeed(0);
 				glm::vec3 targetSpeed(0);
 
-				if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+				if (Global::input->GetKey(GLFW_KEY_W))
 					targetSpeed += camera->front();
-				else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+				else if (Global::input->GetKey(GLFW_KEY_S))
 					targetSpeed -= camera->front();
 
-				if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+				if (Global::input->GetKey(GLFW_KEY_A))
 					targetSpeed -= glm::normalize(glm::cross(camera->front(), camera->up()));
-				else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+				else if (Global::input->GetKey(GLFW_KEY_D))
 					targetSpeed += glm::normalize(glm::cross(camera->front(), camera->up()));
 
-				if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+				if (Global::input->GetKey(GLFW_KEY_Q))
 					targetSpeed += camera->up();
-				else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+				else if (Global::input->GetKey(GLFW_KEY_E))
 					targetSpeed -= camera->up();
 
 				currentSpeed = Helper::Lerp(currentSpeed, targetSpeed, Global::graphics->deltaTime * 10);
@@ -88,8 +89,8 @@ namespace Velvet
 			static float lastX = 400, lastY = 300;
 			static bool shouldRotate = false;
 
-			auto window = Global::graphics->window;
-			int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+			auto m_window = Global::graphics->m_window;
+			int state = glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT);
 			if (state == GLFW_PRESS)
 			{
 				shouldRotate = true;
