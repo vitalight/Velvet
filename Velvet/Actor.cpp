@@ -130,12 +130,13 @@ namespace Velvet
 			DefaultAssets::cube_shader_fragment);
 		{
 			material.texture1 = LoadTexture("Assets/container2.png", true);
+			material.texture2 = LoadTexture("Assets/container2_specular.png", true);
 
 			material.Use();
 			material.SetInt("material.diffuse", 0);
+			material.SetInt("material.specular", 1);
 
 			material.SetVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-			//material.SetVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
 			material.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
 			material.SetFloat("material.shininess", 32.0f);
 		
