@@ -22,25 +22,33 @@ namespace Velvet
 		{
 			const auto& camera = Global::camera;
 
+
 			if (camera)
 			{
-				const auto& transform = camera->transform();
+				const auto& trans = camera->transform();
 				auto window = Global::graphics->window;
-				const float cameraSpeed = 2.5f * Global::graphics->deltaTime; // adjust accordingly
+				const float speedScalar = 3.0f; // adjust accordingly
+
+				static glm::vec3 currentSpeed(0);
+				glm::vec3 targetSpeed(0);
+
 				if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-					transform->position += cameraSpeed * camera->front();
-				if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-					transform->position -= cameraSpeed * camera->front();
+					targetSpeed += camera->front();
+				else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+					targetSpeed -= camera->front();
+
 				if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-					transform->position -= glm::normalize(glm::cross(camera->front(), camera->up())) *
-					cameraSpeed;
-				if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-					transform->position += glm::normalize(glm::cross(camera->front(), camera->up())) *
-					cameraSpeed;
+					targetSpeed -= glm::normalize(glm::cross(camera->front(), camera->up()));
+				else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+					targetSpeed += glm::normalize(glm::cross(camera->front(), camera->up()));
+
 				if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-					transform->position += cameraSpeed * camera->up();
-				if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-					transform->position -= cameraSpeed * camera->up();
+					targetSpeed += camera->up();
+				else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+					targetSpeed -= camera->up();
+
+				currentSpeed = Helper::Lerp(currentSpeed, targetSpeed, Global::graphics->deltaTime * 10);
+				trans->position += currentSpeed * speedScalar * Global::graphics->deltaTime;
 			}
 			else
 			{
