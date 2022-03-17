@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "VtGraphics.hpp"
+#include "Global.hpp"
 
 using namespace Velvet;
 
@@ -31,6 +32,16 @@ int main()
 	graphics.postUpdate.push_back([&]() {
 		//light->transform->position = glm::vec3(3.5*sin(graphics.elapsedTime), 1.26, 3.5 * cos(graphics.elapsedTime));
 		//cube->transform->rotation = glm::vec3(0, 90 * graphics.elapsedTime, 0);
+		glm::vec3 lightColor;
+		lightColor.x = sin(glfwGetTime() * 2.0f);
+		lightColor.y = sin(glfwGetTime() * 0.7f);
+		lightColor.z = sin(glfwGetTime() * 1.3f);
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+		auto renderer = cube->GetComponent<MeshRenderer>();
+		renderer->material().Use();
+		renderer->material().SetVec3("light.ambient", ambientColor);
+		renderer->material().SetVec3("light.diffuse", diffuseColor);
 		});
 	
 	// 3. Run graphics

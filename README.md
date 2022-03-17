@@ -4,7 +4,7 @@ Velvet is a physics engine dedicated for cloth simulation.
 
 ## Dependencies
 
-Velvet is built using `C++ 14` and `CUDA 11.1`. Dependencies can be installed using `vcpkg`
+Velvet is built using `C++ 17` and `CUDA 11.1`. Dependencies can be installed using `vcpkg`
 
 ```
 $ ./vcpkg.exe install glfw3:x64-windows

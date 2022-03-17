@@ -39,7 +39,7 @@ namespace Velvet
 		void AddComponent(shared_ptr<Component> component);
 
 		template <typename T>
-		T* GetComponent()
+		enable_if_t<is_base_of<Component, T>::value, T*> GetComponent()
 		{
 			T* result = nullptr;
 			for (auto c : components)
