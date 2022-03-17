@@ -28,6 +28,7 @@ namespace Velvet
 		
 		m_material.SetVec3("lightColor", Global::light->lightColor);
 		m_material.SetVec3("lightPos", Global::light->transform()->position);
+		m_material.SetVec3("viewPos", Global::camera->transform()->position);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_material.texture1);
@@ -35,8 +36,8 @@ namespace Velvet
 		glBindTexture(GL_TEXTURE_2D, m_material.texture2);
 
 		glm::mat4 model = actor->transform->matrix();
-		glm::mat4 view = Global::mainCamera->view();
-		glm::mat4 projection = glm::perspective(glm::radians(Global::mainCamera->zoom), 800.0f / 600.0f, 0.1f,
+		glm::mat4 view = Global::camera->view();
+		glm::mat4 projection = glm::perspective(glm::radians(Global::camera->zoom), 800.0f / 600.0f, 0.1f,
 			100.0f);
 
 		int modelLoc = glGetUniformLocation(m_material.shaderID(), "model");

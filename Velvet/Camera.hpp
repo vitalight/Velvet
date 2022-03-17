@@ -22,7 +22,7 @@ namespace Velvet
 		Camera()
 		{
 			name = __func__;
-			Global::mainCamera = this;
+			Global::camera = this;
 		}
 
 		glm::vec3 position() const

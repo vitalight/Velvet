@@ -10,6 +10,7 @@ namespace Velvet
 			result = glm::rotate(result, glm::radians(rotation.y), glm::vec3(0, 1, 0));
 			result = glm::rotate(result, glm::radians(rotation.z), glm::vec3(0, 0, 1));
 			result = glm::rotate(result, glm::radians(rotation.x), glm::vec3(1, 0, 0));
+
 			return result;
 		}
 

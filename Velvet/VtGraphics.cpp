@@ -193,10 +193,10 @@ void VtGraphics::MainLoop()
 
 void VtGraphics::Finalize()
 {
-	if (Global::mainCamera)
+	if (Global::camera)
 	{
 		fmt::print("Final camera state[position{}, rotation{}],\n", 
-			Global::mainCamera->transform()->position, Global::mainCamera->transform()->rotation);
+			Global::camera->transform()->position, Global::camera->transform()->rotation);
 	}
 	for (const auto& go : m_actors)
 	{

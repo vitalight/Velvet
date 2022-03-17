@@ -9,7 +9,7 @@ namespace Velvet
 	namespace Global
 	{
 		inline VtGraphics* graphics;
-		inline Camera* mainCamera;
+		inline Camera* camera;
 		inline Light* light;
 	}
 }

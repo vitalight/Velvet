@@ -20,7 +20,7 @@ namespace Velvet
 
 		void Update() override
 		{
-			const auto& camera = Global::mainCamera;
+			const auto& camera = Global::camera;
 
 			if (camera)
 			{
@@ -50,7 +50,7 @@ namespace Velvet
 
 		static void OnMouseScroll(double xoffset, double yoffset)
 		{
-			auto camera = Global::mainCamera;
+			auto camera = Global::camera;
 			camera->zoom -= (float)yoffset;
 			if (camera->zoom < 1.0f)
 				camera->zoom = 1.0f;
@@ -63,7 +63,7 @@ namespace Velvet
 			static bool firstMouse = true;
 			static float lastX = 400, lastY = 300;
 
-			auto rot = Global::mainCamera->transform()->rotation;
+			auto rot = Global::camera->transform()->rotation;
 			float yaw = -rot.y, pitch = rot.x;
 
 			if (firstMouse)
@@ -90,7 +90,7 @@ namespace Velvet
 			direction.y = sin(glm::radians(pitch));
 			direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 
-			Global::mainCamera->transform()->rotation = glm::vec3(pitch, -yaw, 0);
+			Global::camera->transform()->rotation = glm::vec3(pitch, -yaw, 0);
 			//fmt::print("CameraRotation: {}\n", Global::mainCamera->transform()->rotation);
 			//Global::mainCamera->front = glm::normalize(direction);
 		}
