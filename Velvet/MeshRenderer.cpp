@@ -22,9 +22,6 @@ namespace Velvet
 	{
 		// draw triangles
 		m_material.Use();
-		m_material.SetInt("texture1", 0);
-		m_material.SetInt("texture2", 1);
-		m_material.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
 		
 		m_material.SetVec3("lightColor", Global::light->lightColor);
 		m_material.SetVec3("lightPos", Global::light->transform()->position);

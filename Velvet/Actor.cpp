@@ -114,9 +114,14 @@ namespace Velvet
 		}
 
 		Material material(DefaultAssets::quad_shader_vertex, DefaultAssets::quad_shader_fragment);
-		material.texture1 = LoadTexture("Assets/container.jpg", false);
-		material.texture2 = LoadTexture("Assets/awesomeface.png", true);
+		{
+			material.texture1 = LoadTexture("Assets/container.jpg", false);
+			material.texture2 = LoadTexture("Assets/awesomeface.png", true);
 
+			material.Use();
+			material.SetInt("texture1", 0);
+			material.SetInt("texture2", 1);
+		}
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 
 		shared_ptr<Actor> actor(new Actor("Prefab Quad"));
@@ -145,9 +150,20 @@ namespace Velvet
 
 		Material material(DefaultAssets::cube_shader_vertex, 
 			DefaultAssets::cube_shader_fragment);
-		material.texture1 = LoadTexture("Assets/container.jpg", false);
-		material.texture2 = LoadTexture("Assets/awesomeface.png", true);
+		{
+			material.texture1 = LoadTexture("Assets/container.jpg", false);
+			material.texture2 = LoadTexture("Assets/awesomeface.png", true);
 
+			material.Use();
+			material.SetVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+			material.SetVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+			material.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
+			material.SetFloat("material.shininess", 32.0f);
+		
+			material.SetVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+			material.SetVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darkened
+			material.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
+		}
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 
 		shared_ptr<Actor> actor(new Actor("Prefab Cube"));

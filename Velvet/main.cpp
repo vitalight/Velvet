@@ -19,10 +19,10 @@ int main()
 
 	auto cube = graphics.AddActor(Actor::PrefabCube());
 
-	//auto quad = graphics.AddActor(Actor::PrefabQuad());
-	//quad->transform->position = glm::vec3(0, -0.5f, 0);
-	//quad->transform->scale = glm::vec3(5, 5, 1);
-	//quad->transform->rotation = glm::vec3(90, 0, 0);
+	auto quad = graphics.AddActor(Actor::PrefabQuad());
+	quad->transform->position = glm::vec3(0, -0.6f, 0);
+	quad->transform->scale = glm::vec3(5, 5, 1);
+	quad->transform->rotation = glm::vec3(90, 0, 0);
 	
 	auto light = graphics.AddActor(Actor::PrefabLight());
 	light->transform->position = glm::vec3(1.2f, 1.0f, 2.0f);
