@@ -6,6 +6,8 @@
 
 #include "VtGraphics.hpp"
 #include "Component.hpp"
+#include "Config.hpp"
+#include "Light.hpp"
 
 namespace Velvet
 {
@@ -20,13 +22,28 @@ namespace Velvet
 
 		void Update() override
 		{
+			auto window = Global::graphics->window;
+
+			if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+			{
+				static bool test = (Global::light->type == LightType::Point);
+				if (test)
+				{
+					Global::light->type = LightType::Directional;
+				}
+				else
+				{
+					Global::light->type = LightType::Point;
+				}
+				test = !test;
+			}
+
 			const auto& camera = Global::camera;
 
 			if (camera)
 			{
 				const auto& trans = camera->transform();
-				auto window = Global::graphics->window;
-				const float speedScalar = 3.0f; // adjust accordingly
+				const float speedScalar = Config::cameraSpeedScalar; // adjust accordingly
 
 				static glm::vec3 currentSpeed(0);
 				glm::vec3 targetSpeed(0);

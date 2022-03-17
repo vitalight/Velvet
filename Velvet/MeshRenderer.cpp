@@ -23,8 +23,7 @@ namespace Velvet
 		// draw triangles
 		m_material.Use();
 		
-		m_material.SetVec3("lightColor", Global::light->lightColor);
-		m_material.SetVec3("lightPos", Global::light->transform()->position);
+		m_material.SetVec4("light.position", Global::light->position());
 		m_material.SetVec3("viewPos", Global::camera->transform()->position);
 
 		glActiveTexture(GL_TEXTURE0);

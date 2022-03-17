@@ -9,6 +9,7 @@
 
 using namespace Velvet;
 
+// TODO: input class
 char keyOnce[GLFW_KEY_LAST + 1];
 #define glfwGetKeyOnce(WINDOW, KEY)				\
 	(glfwGetKey(WINDOW, KEY) ?				\

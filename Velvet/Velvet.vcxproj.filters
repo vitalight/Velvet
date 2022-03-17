@@ -78,5 +78,8 @@
     <ClInclude Include="Light.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Config.hpp">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
