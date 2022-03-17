@@ -40,7 +40,7 @@ VtGraphics::VtGraphics()
 		glViewport(0, 0, width, height);
 		});
 
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
 		Global::graphics->ProcessMouse(window, xpos, ypos);
 		});
@@ -141,16 +141,14 @@ void VtGraphics::ProcessInput(GLFWwindow* window)
 
 	if (glfwGetKeyOnce(window, GLFW_KEY_ENTER) == GLFW_PRESS)
 	{
-		static bool showCursor = true;
-		if (showCursor)
-		{
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		}
-		else
+		if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL)
 		{
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
-		showCursor = !showCursor;
+		else
+		{
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
 	}
 }
 

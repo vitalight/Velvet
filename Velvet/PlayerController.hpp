@@ -22,7 +22,6 @@ namespace Velvet
 		{
 			const auto& camera = Global::camera;
 
-
 			if (camera)
 			{
 				const auto& trans = camera->transform();
@@ -70,37 +69,54 @@ namespace Velvet
 		{
 			static bool firstMouse = true;
 			static float lastX = 400, lastY = 300;
+			static bool shouldRotate = false;
 
-			auto rot = Global::camera->transform()->rotation;
-			float yaw = -rot.y, pitch = rot.x;
-
-			if (firstMouse)
+			auto window = Global::graphics->window;
+			int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+			if (state == GLFW_PRESS)
 			{
+				shouldRotate = true;
+			}
+			else
+			{
+				shouldRotate = false;
 				lastX = xpos;
 				lastY = ypos;
-				firstMouse = false;
 			}
-			float xoffset = xpos - lastX;
-			float yoffset = lastY - ypos;
-			lastX = xpos;
-			lastY = ypos;
-			float sensitivity = 0.1f;
-			xoffset *= sensitivity;
-			yoffset *= sensitivity;
-			yaw += xoffset;
-			pitch += yoffset;
-			if (pitch > 89.0f)
-				pitch = 89.0f;
-			if (pitch < -89.0f)
-				pitch = -89.0f;
-			glm::vec3 direction;
-			direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-			direction.y = sin(glm::radians(pitch));
-			direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 
-			Global::camera->transform()->rotation = glm::vec3(pitch, -yaw, 0);
-			//fmt::print("CameraRotation: {}\n", Global::mainCamera->transform()->rotation);
-			//Global::mainCamera->front = glm::normalize(direction);
+			if (shouldRotate)
+			{
+				auto rot = Global::camera->transform()->rotation;
+				float yaw = -rot.y, pitch = rot.x;
+
+				if (firstMouse)
+				{
+					lastX = xpos;
+					lastY = ypos;
+					firstMouse = false;
+				}
+				float xoffset = xpos - lastX;
+				float yoffset = lastY - ypos;
+				lastX = xpos;
+				lastY = ypos;
+				float sensitivity = 0.15f;
+				xoffset *= sensitivity;
+				yoffset *= sensitivity;
+				yaw += xoffset;
+				pitch += yoffset;
+				if (pitch > 89.0f)
+					pitch = 89.0f;
+				if (pitch < -89.0f)
+					pitch = -89.0f;
+				glm::vec3 direction;
+				direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+				direction.y = sin(glm::radians(pitch));
+				direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+				Global::camera->transform()->rotation = glm::vec3(pitch, -yaw, 0);
+				//fmt::print("CameraRotation: {}\n", Global::mainCamera->transform()->rotation);
+				//Global::mainCamera->front = glm::normalize(direction);
+			}
 		}
 	};
 }
