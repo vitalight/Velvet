@@ -59,6 +59,24 @@ namespace Velvet
 			glEnableVertexAttribArray(0);
 		}
 
+		void SetupAttributes(vector<int> attributeSizes)
+		{
+			int total = 0;
+			for (int i = 0; i < attributeSizes.size(); i++)
+			{
+				total += attributeSizes[i];
+			}
+			int current = 0;
+			for (int i = 0; i < attributeSizes.size(); i++)
+			{
+				int size = attributeSizes[i];
+				glVertexAttribPointer(i, size, GL_FLOAT, GL_FALSE, total * sizeof(float),
+					(void*)(current * sizeof(float)));
+				glEnableVertexAttribArray(i);
+				current += size;
+			}
+		}
+
 		unsigned int VAO() const
 		{
 			return m_VAO;

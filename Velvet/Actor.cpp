@@ -102,16 +102,7 @@ namespace Velvet
 	shared_ptr<Actor> Actor::PrefabQuad()
 	{
 		Mesh mesh(6, DefaultAssets::quad_vertices, DefaultAssets::quad_indices);
-		{
-			// position attribute
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-				(void*)0);
-			glEnableVertexAttribArray(0);
-			// color attribute
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-				(void*)(3 * sizeof(float)));
-			glEnableVertexAttribArray(1);
-		}
+		mesh.SetupAttributes({3, 2});
 
 		Material material(DefaultAssets::quad_shader_vertex, DefaultAssets::quad_shader_fragment);
 		{
@@ -132,31 +123,19 @@ namespace Velvet
 
 	shared_ptr<Actor> Actor::PrefabCube()
 	{
-		Mesh mesh(36, DefaultAssets::cube_vertices_lite);
-		// override attribute pointer
-		{
-			// position attribute
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-				(void*)0);
-			glEnableVertexAttribArray(0);
-			// normal attribute
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-				(void*)(3 * sizeof(float)));
-			glEnableVertexAttribArray(1);
-			//glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-			//	(void*)0);
-			//glEnableVertexAttribArray(2);
-		}
+		Mesh mesh(36, DefaultAssets::cube_vertices);
+		mesh.SetupAttributes(DefaultAssets::cube_attributes);
 
 		Material material(DefaultAssets::cube_shader_vertex, 
 			DefaultAssets::cube_shader_fragment);
 		{
-			material.texture1 = LoadTexture("Assets/container.jpg", false);
-			material.texture2 = LoadTexture("Assets/awesomeface.png", true);
+			material.texture1 = LoadTexture("Assets/container2.png", true);
 
 			material.Use();
+			material.SetInt("material.diffuse", 0);
+
 			material.SetVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-			material.SetVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+			//material.SetVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
 			material.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
 			material.SetFloat("material.shininess", 32.0f);
 		
@@ -185,20 +164,7 @@ namespace Velvet
 	shared_ptr<Actor> Actor::PrefabLight()
 	{
 		Mesh mesh(36, DefaultAssets::cube_vertices);
-		// override attribute pointer
-		{
-			// position attribute
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-				(void*)0);
-			glEnableVertexAttribArray(0);
-			// color attribute
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-				(void*)(3 * sizeof(float)));
-			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-				(void*)0);
-			glEnableVertexAttribArray(2);
-		}
+		mesh.SetupAttributes(DefaultAssets::cube_attributes);
 
 		Material material(DefaultAssets::light_shader_vertex, 
 			DefaultAssets::light_shader_fragment);
