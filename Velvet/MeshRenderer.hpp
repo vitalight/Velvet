@@ -26,6 +26,8 @@ namespace Velvet
 
 		Material material() const;
 
+		bool hidden = false;
+
 	private:
 		Mesh m_mesh;
 		Material m_material;

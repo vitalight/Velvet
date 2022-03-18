@@ -34,6 +34,9 @@
     <Filter Include="Graphics">
       <UniqueIdentifier>{c647f013-7c6b-4ca7-a6a7-615ec1a7ba80}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphics\Shader">
+      <UniqueIdentifier>{eb97d10c-213f-4430-bad0-dd5f5d16b600}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External\stb_image.h">
@@ -87,5 +90,25 @@
     <ClInclude Include="Input.hpp">
       <Filter>Graphics</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Shader\Cube.frag">
+      <Filter>Graphics\Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\Cube.vert">
+      <Filter>Graphics\Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\Light.frag">
+      <Filter>Graphics\Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\Light.vert">
+      <Filter>Graphics\Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\Quad.frag">
+      <Filter>Graphics\Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\Quad.vert">
+      <Filter>Graphics\Shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

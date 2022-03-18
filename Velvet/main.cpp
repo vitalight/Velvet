@@ -26,6 +26,65 @@ glm::vec3 pointLightPositions[] = {
 	glm::vec3(0.0f, 0.0f, -3.0f)
 };
 
+void CreateScene_Plane(VtGraphics& graphics)
+{
+	auto camera = graphics.AddActor(Actor::PrefabCamera());
+	camera->transform->position = glm::vec3(1.5, 1.5, 5.0);
+	camera->transform->rotation = glm::vec3(-8.5, 9.0, 0);
+
+	auto quad = graphics.AddActor(Actor::PrefabQuad());
+	quad->transform->position = glm::vec3(0, -0.6f, 0);
+	quad->transform->scale = glm::vec3(5, 5, 1);
+	quad->transform->rotation = glm::vec3(90, 0, 0);
+}
+
+void CreateScene_Tutorial(VtGraphics& graphics)
+{
+	//=====================================
+	// 1. Camera
+	//=====================================
+	auto camera = graphics.AddActor(Actor::PrefabCamera());
+	camera->transform->position = glm::vec3(1.5, 1.5, 5.0);
+	camera->transform->rotation = glm::vec3(-8.5, 9.0, 0);
+
+	//=====================================
+	// 2. Light
+	//=====================================
+
+	//auto light = graphics.AddActor(Actor::PrefabLight(LightType::Directional));
+	//light->transform->position = glm::vec3(1.2f, 1.0f, 2.0f);
+	//light->transform->scale = glm::vec3(0.2f);
+	//shared_ptr<Light> light(new Light());
+	//light->type = LightType::SpotLight;
+	//camera->AddComponent(light);
+
+	auto light = graphics.AddActor(Actor::PrefabLight(LightType::Directional));
+	light->GetComponent<MeshRenderer>()->hidden = true;
+
+	for (int i = 0; i < 4; i++)
+	{
+	    light = graphics.AddActor(Actor::PrefabLight(LightType::Point));
+		light->transform->position = pointLightPositions[i];
+		light->transform->scale = glm::vec3(0.2f);
+	}
+
+	light = graphics.AddActor(Actor::PrefabLight(LightType::SpotLight));
+	light->GetComponent<MeshRenderer>()->hidden = true;
+
+	//=====================================
+	// 3. Objects
+	//=====================================
+	for (int i = 0; i < 10; i++)
+	{
+		auto cube = graphics.AddActor(Actor::PrefabCube());
+		cube->transform->position = cubePositions[i];
+		cube->transform->rotation = glm::vec3(1.0f, 0.3f, 0.5f) * (20.0f * i);
+	}
+
+}
+
+// TODO: remove warnings
+
 int main()
 {
 	//=====================================
@@ -37,43 +96,15 @@ int main()
 	//=====================================
 	// 2. Instantiate actors
 	//=====================================
-	auto camera = graphics.AddActor(Actor::PrefabCamera());
-	//camera->transform->position = glm::vec3(0.0f, 0.0f, 3.0f);
-	camera->transform->position = glm::vec3(1.5, 1.5, 5.0);
-	camera->transform->rotation = glm::vec3(-8.5, 9.0, 0);
-
-	for (int i = 0; i < 10; i++)
-	{
-		auto cube = graphics.AddActor(Actor::PrefabCube());
-		cube->transform->position = cubePositions[i];
-		cube->transform->rotation = glm::vec3(1.0f, 0.3f, 0.5f) * (20.0f * i);
-	}
-
-	//auto quad = graphics.AddActor(Actor::PrefabQuad());
-	//quad->transform->position = glm::vec3(0, -0.6f, 0);
-	//quad->transform->scale = glm::vec3(5, 5, 1);
-	//quad->transform->rotation = glm::vec3(90, 0, 0);
 	
-	//auto light = graphics.AddActor(Actor::PrefabLight(LightType::Directional));
-	//light->transform->position = glm::vec3(1.2f, 1.0f, 2.0f);
-	//light->transform->scale = glm::vec3(0.2f);
-	//shared_ptr<Light> light(new Light());
-	//light->type = LightType::SpotLight;
-	//camera->AddComponent(light);
-	graphics.AddActor(Actor::PrefabLight(LightType::Directional));
-
-	for (int i = 0; i < 4; i++)
-	{
-		auto light = graphics.AddActor(Actor::PrefabLight(LightType::Point));
-		light->transform->position = pointLightPositions[i];
-		light->transform->scale = glm::vec3(0.2f);
-	}
-
-	auto light = graphics.AddActor(Actor::PrefabLight(LightType::SpotLight));
-
+	CreateScene_Tutorial(graphics);
+	//CreateScene_Plane(graphics);
+	
 	//graphics.postUpdate.push_back([&]() {
 	//	});
-
+	
+	// TODO: add onDestroy callback
+	
 	//=====================================
 	// 3. Run graphics
 	//=====================================

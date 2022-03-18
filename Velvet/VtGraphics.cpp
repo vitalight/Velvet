@@ -133,7 +133,7 @@ void VtGraphics::ProcessInput(GLFWwindow* m_window)
 		m_pause = !m_pause;
 		if (!m_pause)
 		{
-			lastUpdateTime = glfwGetTime();
+			lastUpdateTime = (float)glfwGetTime();
 		}
 	}
 
@@ -165,7 +165,7 @@ void VtGraphics::MainLoop()
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			// timing
-			float current = glfwGetTime();
+			float current = (float)glfwGetTime();
 			deltaTime = current - lastUpdateTime;
 			lastUpdateTime = current;
 			elapsedTime += deltaTime;

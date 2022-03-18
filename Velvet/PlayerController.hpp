@@ -90,8 +90,8 @@ namespace Velvet
 			else
 			{
 				shouldRotate = false;
-				lastX = xpos;
-				lastY = ypos;
+				lastX = (float)xpos;
+				lastY = (float)ypos;
 			}
 
 			if (shouldRotate)
@@ -101,8 +101,8 @@ namespace Velvet
 
 				if (firstMouse)
 				{
-					lastX = xpos;
-					lastY = ypos;
+					lastX = (float)xpos;
+					lastY = (float)ypos;
 					firstMouse = false;
 				}
 				float xoffset = xpos - lastX;

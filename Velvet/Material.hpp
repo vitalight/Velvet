@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
+#include <sstream>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -19,56 +21,74 @@ namespace Velvet
 
 		Material() {}
 
-		Material(const char* vertexShaderSource, const char* fragmentShaderSource)
+		// constructor generates the shader on the fly
+		// ------------------------------------------------------------------------
+		Material(const string vertexPath, const string fragmentPath)
 		{
-			unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-			{
-				glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-				glCompileShader(vertexShader);
-				int success;
-				char infoLog[512];
-				glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-				if (!success)
-				{
-					glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-					fmt::print("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n{}\n", infoLog);
-					exit(-1);
-				}
-			}
+			string vertexCode = ReadFromFile(vertexPath);
+			string fragmentCode = ReadFromFile(fragmentPath);
+			const char* vShaderCode = vertexCode.c_str();
+			const char* fShaderCode = fragmentCode.c_str();
 
-			unsigned int fragmentShader;
-			{
-				fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-				glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-				glCompileShader(fragmentShader);
-				int success;
-				char infoLog[512];
-				glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-				if (!success)
-				{
-					glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-					fmt::print("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n{}\n", infoLog);
-					exit(-1);
-				}
-			}
+			// 2. compile shaders
+			CompileShader(vShaderCode, fShaderCode);
 
+			return;
+		}
+
+		Material(const string path)
+			: Material(path + ".vert", path + ".frag")
+		{
+		}
+
+		static string ReadFromFile(const string path)
+		{
+			// 1. retrieve the vertex/fragment source code from filePath
+			std::string code;
+			std::ifstream file;
+			// ensure ifstream objects can throw exceptions:
+			file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+			try
+			{
+				// open files
+				file.open(path);
+				std::stringstream vShaderStream;
+				// read file's buffer contents into streams
+				vShaderStream << file.rdbuf();
+				// close file handlers
+				file.close();
+				// convert stream into string
+				code = vShaderStream.str();
+			}
+			catch (std::ifstream::failure& e)
+			{
+				std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
+			}
+			return code;
+		}
+
+		void CompileShader(const char* vShaderCode, const char* fShaderCode)
+		{
+			unsigned int vertex, fragment;
+			// vertex shader
+			vertex = glCreateShader(GL_VERTEX_SHADER);
+			glShaderSource(vertex, 1, &vShaderCode, NULL);
+			glCompileShader(vertex);
+			CheckCompileErrors(vertex, "VERTEX");
+			// fragment Shader
+			fragment = glCreateShader(GL_FRAGMENT_SHADER);
+			glShaderSource(fragment, 1, &fShaderCode, NULL);
+			glCompileShader(fragment);
+			CheckCompileErrors(fragment, "FRAGMENT");
+			// shader Program
 			m_shaderID = glCreateProgram();
-			{
-				glAttachShader(m_shaderID, vertexShader);
-				glAttachShader(m_shaderID, fragmentShader);
-				glLinkProgram(m_shaderID);
-				int success;
-				char infoLog[512];
-				glGetProgramiv(m_shaderID, GL_LINK_STATUS, &success);
-				if (!success)
-				{
-					glGetProgramInfoLog(m_shaderID, 512, NULL, infoLog);
-					fmt::print("ERROR:SHADER::PROGRAM::LINKING_FAILED\n{}\n", infoLog);
-					exit(-1);
-				}
-			}
-			glDeleteShader(vertexShader);
-			glDeleteShader(fragmentShader);
+			glAttachShader(m_shaderID, vertex);
+			glAttachShader(m_shaderID, fragment);
+			glLinkProgram(m_shaderID);
+			CheckCompileErrors(m_shaderID, "PROGRAM");
+			// delete the shaders as they're linked into our program now and no longer necessary
+			glDeleteShader(vertex);
+			glDeleteShader(fragment);
 		}
 
 		unsigned int shaderID() const
@@ -147,6 +167,32 @@ namespace Velvet
 
 	private:
 		unsigned int m_shaderID = 0;
+
+		void CheckCompileErrors(unsigned int shader, std::string type)
+		{
+			int success;
+			char infoLog[1024];
+			if (type != "PROGRAM")
+			{
+				glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+				if (!success)
+				{
+					glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+					std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+					exit(-1);
+				}
+			}
+			else
+			{
+				glGetProgramiv(shader, GL_LINK_STATUS, &success);
+				if (!success)
+				{
+					glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+					std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+					exit(-1);
+				}
+			}
+		}
 	};
 
 }

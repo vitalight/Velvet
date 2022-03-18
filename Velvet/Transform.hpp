@@ -8,7 +8,7 @@
 
 namespace Velvet
 {
-	extern class Actor;
+	class Actor;
 
 	class Transform
 	{

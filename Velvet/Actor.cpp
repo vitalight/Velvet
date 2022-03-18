@@ -99,12 +99,25 @@ namespace Velvet
 		return actor;
 	}
 
+	void Compare(string s1, string s2)
+	{
+		for (int i = 0; i < s1.length() && i < s2.length(); i++)
+		{
+			if (s1[i] != s2[i])
+			{
+				fmt::print("s1[{}]({}) != s2[{}]({})\n", i, s1[i], i, s2[i]);
+				return;
+			}
+		}
+		fmt::print("s1 == s2\n");
+	}
+
 	shared_ptr<Actor> Actor::PrefabQuad()
 	{
 		Mesh mesh(6, DefaultAssets::quad_vertices, DefaultAssets::quad_indices);
 		mesh.SetupAttributes({3, 2});
 
-		Material material(DefaultAssets::quad_shader_vertex, DefaultAssets::quad_shader_fragment);
+		Material material("Assets/Shader/Quad");
 		{
 			material.texture1 = LoadTexture("Assets/container.jpg", false);
 			material.texture2 = LoadTexture("Assets/awesomeface.png", true);
@@ -126,8 +139,7 @@ namespace Velvet
 		Mesh mesh(36, DefaultAssets::cube_vertices);
 		mesh.SetupAttributes(DefaultAssets::cube_attributes);
 
-		Material material(DefaultAssets::cube_shader_vertex, 
-			DefaultAssets::cube_shader_fragment);
+		Material material("Assets/Shader/Cube");
 		{
 			material.texture1 = LoadTexture("Assets/container2.png", true);
 			material.texture2 = LoadTexture("Assets/container2_specular.png", true);
@@ -171,8 +183,7 @@ namespace Velvet
 		Mesh mesh(36, DefaultAssets::cube_vertices);
 		mesh.SetupAttributes(DefaultAssets::cube_attributes);
 
-		Material material(DefaultAssets::light_shader_vertex, 
-			DefaultAssets::light_shader_fragment);
+		Material material("Assets/Shader/Light");
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 
 		shared_ptr<Light> light(new Light());

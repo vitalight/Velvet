@@ -4,10 +4,10 @@
 
 namespace Velvet
 {
-	extern class VtGraphics;
-	extern class Camera;
-	extern class Light;
-	extern class Input;
+	class VtGraphics;
+	class Camera;
+	class Light;
+	class Input;
 
 	namespace Global
 	{

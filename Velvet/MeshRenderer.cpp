@@ -20,6 +20,9 @@ namespace Velvet
 
 	void MeshRenderer::Update()
 	{
+		if (hidden)
+			return;
+
 		m_material.Use();
 
 		int numPointLight = 0;

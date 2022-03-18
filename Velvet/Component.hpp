@@ -22,7 +22,7 @@ namespace Velvet
 
 		string name = "Component";
 
-		Actor* actor;
+		Actor* actor = nullptr;
 
 		shared_ptr<Transform> transform();
 	};

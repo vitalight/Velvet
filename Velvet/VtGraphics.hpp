@@ -15,8 +15,8 @@ namespace Velvet
 {
 	using namespace std;
 
-	extern class Light;
-	extern class Input;
+	class Light;
+	class Input;
 
 	class VtGraphics
 	{

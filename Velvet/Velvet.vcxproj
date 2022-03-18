@@ -110,6 +110,14 @@
     <ClInclude Include="VtGraphics.hpp" />
     <ClInclude Include="VtHelper.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Shader\Cube.frag" />
+    <None Include="Assets\Shader\Cube.vert" />
+    <None Include="Assets\Shader\Light.frag" />
+    <None Include="Assets\Shader\Light.vert" />
+    <None Include="Assets\Shader\Quad.frag" />
+    <None Include="Assets\Shader\Quad.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.1.targets" />
