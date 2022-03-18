@@ -18,7 +18,7 @@ namespace Velvet
 	public:
 		Light()
 		{
-			Global::light = this;
+			Global::light.push_back(this);
 			name = __func__;
 		}
 

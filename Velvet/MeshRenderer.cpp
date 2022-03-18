@@ -20,13 +20,49 @@ namespace Velvet
 
 	void MeshRenderer::Update()
 	{
-		// draw triangles
 		m_material.Use();
-		
-		m_material.SetVec4("light.position", Global::light->position());
-		m_material.SetVec3("light.direction", Global::camera->front());
-		m_material.SetFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-		m_material.SetFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+
+		int numPointLight = 0;
+		// lighting
+		for (int i = 0; i < Global::light.size(); i++)
+		{
+			auto light = Global::light[i];
+
+			if (light->type == LightType::Point)
+			{
+				auto prefix = fmt::format("pointLights[{}].", numPointLight);
+				m_material.SetVec3(prefix + "position", light->position());
+				m_material.SetVec3(prefix + "ambient", 0.05f, 0.05f, 0.05f);
+				m_material.SetVec3(prefix + "diffuse", 0.8f, 0.8f, 0.8f);
+				m_material.SetVec3(prefix + "specular", 1.0f, 1.0f, 1.0f);
+				m_material.SetFloat(prefix + "constant", 1.0f);
+				m_material.SetFloat(prefix + "linear", 0.09f);
+				m_material.SetFloat(prefix + "quadratic", 0.032f);
+				numPointLight++;
+			}
+			else if (light->type == LightType::Directional)
+			{
+				m_material.SetVec3("dirLight.direction", -0.2f, -1.0f, -0.3f); // light->position()
+				m_material.SetVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+				m_material.SetVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+				m_material.SetVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+			}
+			else
+			{
+				m_material.SetVec3("spotLight.position", Global::camera->position());
+				m_material.SetVec3("spotLight.direction", Global::camera->front());
+				m_material.SetVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+				m_material.SetVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+				m_material.SetVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+				m_material.SetFloat("spotLight.constant", 1.0f);
+				m_material.SetFloat("spotLight.linear", 0.09f);
+				m_material.SetFloat("spotLight.quadratic", 0.032f);
+				m_material.SetFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+				m_material.SetFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+			}
+		}
+
+		// camera
 		m_material.SetVec3("viewPos", Global::camera->transform()->position);
 
 		glActiveTexture(GL_TEXTURE0);

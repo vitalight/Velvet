@@ -31,20 +31,6 @@ namespace Velvet
 		{
 			auto m_window = Global::graphics->m_window;
 
-			if (Global::input->GetKeyDown(GLFW_KEY_Z))
-			{
-				static bool test = (Global::light->type == LightType::Point);
-				if (test)
-				{
-					Global::light->type = LightType::Directional;
-				}
-				else
-				{
-					Global::light->type = LightType::Point;
-				}
-				test = !test;
-			}
-
 			const auto& camera = Global::camera;
 
 			if (camera)

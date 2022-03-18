@@ -19,13 +19,24 @@ glm::vec3 cubePositions[] = {
 	glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
+glm::vec3 pointLightPositions[] = {
+	glm::vec3(0.7f, 0.2f, 2.0f),
+	glm::vec3(2.3f, -3.3f, -4.0f),
+	glm::vec3(-4.0f, 2.0f, -12.0f),
+	glm::vec3(0.0f, 0.0f, -3.0f)
+};
+
 int main()
 {
+	//=====================================
 	// 1. Create graphics
+	//=====================================
 	VtGraphics graphics;
-	//graphics.skyColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
+	graphics.skyColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
 
+	//=====================================
 	// 2. Instantiate actors
+	//=====================================
 	auto camera = graphics.AddActor(Actor::PrefabCamera());
 	//camera->transform->position = glm::vec3(0.0f, 0.0f, 3.0f);
 	camera->transform->position = glm::vec3(1.5, 1.5, 5.0);
@@ -46,13 +57,25 @@ int main()
 	//auto light = graphics.AddActor(Actor::PrefabLight(LightType::Directional));
 	//light->transform->position = glm::vec3(1.2f, 1.0f, 2.0f);
 	//light->transform->scale = glm::vec3(0.2f);
-	shared_ptr<Light> light(new Light());
-	light->type = LightType::SpotLight;
-	camera->AddComponent(light);
+	//shared_ptr<Light> light(new Light());
+	//light->type = LightType::SpotLight;
+	//camera->AddComponent(light);
+	graphics.AddActor(Actor::PrefabLight(LightType::Directional));
+
+	for (int i = 0; i < 4; i++)
+	{
+		auto light = graphics.AddActor(Actor::PrefabLight(LightType::Point));
+		light->transform->position = pointLightPositions[i];
+		light->transform->scale = glm::vec3(0.2f);
+	}
+
+	auto light = graphics.AddActor(Actor::PrefabLight(LightType::SpotLight));
 
 	//graphics.postUpdate.push_back([&]() {
 	//	});
-	
+
+	//=====================================
 	// 3. Run graphics
+	//=====================================
 	return graphics.Run();
 }

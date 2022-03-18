@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace Velvet
 {
 	extern class VtGraphics;
@@ -11,7 +13,7 @@ namespace Velvet
 	{
 		inline VtGraphics* graphics;
 		inline Camera* camera;
-		inline Light* light;
+		inline std::vector<Light*> light;
 		inline Input* input;
 	}
 }
