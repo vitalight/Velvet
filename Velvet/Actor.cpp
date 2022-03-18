@@ -143,6 +143,10 @@ namespace Velvet
 			material.SetVec3("light.ambient", 0.2f, 0.2f, 0.2f);
 			material.SetVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darkened
 			material.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
+			
+			material.SetFloat("light.constant", 1.0f);
+			material.SetFloat("light.linear", 0.09f);
+			material.SetFloat("light.quadratic", 0.032f);
 		}
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 
@@ -162,7 +166,7 @@ namespace Velvet
 		return actor;
 	}
 
-	shared_ptr<Actor> Actor::PrefabLight()
+	shared_ptr<Actor> Actor::PrefabLight(LightType type)
 	{
 		Mesh mesh(36, DefaultAssets::cube_vertices);
 		mesh.SetupAttributes(DefaultAssets::cube_attributes);
@@ -172,6 +176,7 @@ namespace Velvet
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 
 		shared_ptr<Light> light(new Light());
+		light->type = type;
 
 		shared_ptr<Actor> actor(new Actor("Prefab Light"));
 		actor->AddComponent(renderer);

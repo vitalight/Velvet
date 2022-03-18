@@ -8,6 +8,7 @@
 #include <fmt/core.h>
 
 #include "MeshRenderer.hpp"
+#include "Light.hpp"
 
 namespace Velvet
 {
@@ -28,7 +29,7 @@ namespace Velvet
 
 		static shared_ptr<Actor> PrefabCamera();
 
-		static shared_ptr<Actor> PrefabLight();
+		static shared_ptr<Actor> PrefabLight(LightType type = LightType::Point);
 
 		void Start();
 

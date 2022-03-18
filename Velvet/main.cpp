@@ -2,6 +2,7 @@
 
 #include "VtGraphics.hpp"
 #include "Global.hpp"
+#include "Light.hpp"
 
 using namespace Velvet;
 
@@ -42,7 +43,7 @@ int main()
 	//quad->transform->scale = glm::vec3(5, 5, 1);
 	//quad->transform->rotation = glm::vec3(90, 0, 0);
 	
-	auto light = graphics.AddActor(Actor::PrefabLight());
+	auto light = graphics.AddActor(Actor::PrefabLight(LightType::Directional));
 	light->transform->position = glm::vec3(1.2f, 1.0f, 2.0f);
 	light->transform->scale = glm::vec3(0.2f);
 

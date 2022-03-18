@@ -102,9 +102,14 @@ namespace Velvet
 
 			struct Light {
 				vec4 position;
+
 				vec3 ambient;
 				vec3 diffuse;
 				vec3 specular;
+
+				float constant;
+				float linear;
+				float quadratic;
 			};
 
 			in vec3 Normal;
@@ -119,11 +124,21 @@ namespace Velvet
 
 			void main()
 			{
+				bool isPointLight = light.position.w > 0.5f;
+
+				float attenuation = 1.0;//
+				if (isPointLight)
+				{
+					float distance = length(light.position.xyz - FragPos);
+					attenuation = 1.0 / (light.constant + light.linear * distance +
+						light.quadratic * (distance * distance));
+				}
+
 				// ambient
 				vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
 				// diffuse
 				vec3 norm = normalize(Normal);
-				vec3 lightDir = light.position.w > 0.5f ? normalize(light.position.xyz - FragPos) : normalize(light.position.xyz);
+				vec3 lightDir = isPointLight ? normalize(light.position.xyz - FragPos) : normalize(light.position.xyz);
 				float diff = max(dot(norm, lightDir), 0.0);
 				vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse,
 					TexCoords));
@@ -135,7 +150,7 @@ namespace Velvet
 				vec3 specular = light.specular * spec * vec3(texture(material.specular,
 					TexCoords));
 
-				FragColor = vec4(ambient + diffuse + specular, 1.0);
+				FragColor = vec4((ambient + diffuse + specular) * attenuation, 1.0);
 			}
 		);
 

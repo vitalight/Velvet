@@ -32,7 +32,7 @@ namespace Velvet
 			}
 		}
 
-		LightType type = LightType::Directional;
+		LightType type = LightType::Point;
 		glm::vec3 lightColor = glm::vec3(1.0f);
 	};
 }
