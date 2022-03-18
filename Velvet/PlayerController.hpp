@@ -14,6 +14,12 @@ namespace Velvet
 {
 	class PlayerController : public Component
 	{
+	public:
+		PlayerController()
+		{
+			name = __func__;
+		}
+
 		void Start() override
 		{
 			Global::graphics->onMouseScroll.push_back(OnMouseScroll);

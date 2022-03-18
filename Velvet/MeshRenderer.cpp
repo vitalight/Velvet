@@ -24,6 +24,9 @@ namespace Velvet
 		m_material.Use();
 		
 		m_material.SetVec4("light.position", Global::light->position());
+		m_material.SetVec3("light.direction", Global::camera->front());
+		m_material.SetFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+		m_material.SetFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 		m_material.SetVec3("viewPos", Global::camera->transform()->position);
 
 		glActiveTexture(GL_TEXTURE0);

@@ -32,6 +32,7 @@ namespace Velvet
 				{
 					glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
 					fmt::print("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n{}\n", infoLog);
+					exit(-1);
 				}
 			}
 
@@ -47,6 +48,7 @@ namespace Velvet
 				{
 					glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
 					fmt::print("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n{}\n", infoLog);
+					exit(-1);
 				}
 			}
 
@@ -62,6 +64,7 @@ namespace Velvet
 				{
 					glGetProgramInfoLog(m_shaderID, 512, NULL, infoLog);
 					fmt::print("ERROR:SHADER::PROGRAM::LINKING_FAILED\n{}\n", infoLog);
+					exit(-1);
 				}
 			}
 			glDeleteShader(vertexShader);

@@ -10,6 +10,7 @@ namespace Velvet
 	{
 		Point,
 		Directional,
+		SpotLight,
 	};
 
 	class Light : public Component
@@ -18,11 +19,12 @@ namespace Velvet
 		Light()
 		{
 			Global::light = this;
+			name = __func__;
 		}
 
 		glm::vec4 position()
 		{
-			if (type == LightType::Point)
+			if (type == LightType::Point || type == LightType::SpotLight)
 			{
 				return glm::vec4(transform()->position, 1.0);
 			}
