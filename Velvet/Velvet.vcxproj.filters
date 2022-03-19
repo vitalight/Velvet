@@ -9,22 +9,22 @@
       <Filter>External</Filter>
     </ClCompile>
     <ClCompile Include="Actor.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="VtGraphics.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshRenderer.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>Graphics\Source</Filter>
     </ClCompile>
     <ClCompile Include="Component.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="VtHelper.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>Graphics\Source</Filter>
     </ClCompile>
     <ClCompile Include="Input.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>Graphics\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="VtHelper.cpp">
+      <Filter>Graphics\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="VtGraphics.cpp">
+      <Filter>Graphics\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRenderer.cpp">
+      <Filter>Graphics\Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -37,58 +37,64 @@
     <Filter Include="Graphics\Shader">
       <UniqueIdentifier>{eb97d10c-213f-4430-bad0-dd5f5d16b600}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphics\Source">
+      <UniqueIdentifier>{1bf7cf9b-4757-428f-92c1-1ed329ef391c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Include">
+      <UniqueIdentifier>{f7d33691-738f-4978-a722-b8e7ec4af743}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External\stb_image.h">
       <Filter>External</Filter>
     </ClInclude>
-    <ClInclude Include="Component.hpp">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="Camera.hpp">
+      <Filter>Graphics\Include</Filter>
     </ClInclude>
     <ClInclude Include="Actor.hpp">
-      <Filter>Graphics</Filter>
+      <Filter>Graphics\Include</Filter>
     </ClInclude>
-    <ClInclude Include="VtGraphics.hpp">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh.hpp">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Material.hpp">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshRenderer.hpp">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="MaterialAnimator.hpp">
-      <Filter>Graphics</Filter>
+    <ClInclude Include="Component.hpp">
+      <Filter>Graphics\Include</Filter>
     </ClInclude>
     <ClInclude Include="DefaultAssets.hpp">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.hpp">
-      <Filter>Graphics</Filter>
+      <Filter>Graphics\Include</Filter>
     </ClInclude>
     <ClInclude Include="Global.hpp">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerController.hpp">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="VtHelper.hpp">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.hpp">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Light.hpp">
-      <Filter>Graphics</Filter>
+      <Filter>Graphics\Include</Filter>
     </ClInclude>
     <ClInclude Include="Config.hpp">
-      <Filter>Graphics</Filter>
+      <Filter>Graphics\Include</Filter>
     </ClInclude>
     <ClInclude Include="Input.hpp">
-      <Filter>Graphics</Filter>
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.hpp">
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.hpp">
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.hpp">
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRenderer.hpp">
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.hpp">
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerController.hpp">
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.hpp">
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="VtGraphics.hpp">
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="VtHelper.hpp">
+      <Filter>Graphics\Include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -108,6 +114,12 @@
       <Filter>Graphics\Shader</Filter>
     </None>
     <None Include="Assets\Shader\Quad.vert">
+      <Filter>Graphics\Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\Model.vert">
+      <Filter>Graphics\Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\Model.frag">
       <Filter>Graphics\Shader</Filter>
     </None>
   </ItemGroup>

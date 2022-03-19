@@ -8,12 +8,13 @@
 
 namespace Velvet
 {
-	MeshRenderer::MeshRenderer()
-	{
-		name = __func__;
-	}
-	MeshRenderer::MeshRenderer(Mesh mesh, Material material)
-		: m_mesh(mesh), m_material(material) 
+	//MeshRenderer::MeshRenderer()
+	//{
+	//	name = __func__;
+	//}
+
+	MeshRenderer::MeshRenderer(Model model, Material material)
+		: m_model(model), m_material(material) 
 	{
 		name = __func__;
 	}
@@ -78,25 +79,11 @@ namespace Velvet
 		glm::mat4 projection = glm::perspective(glm::radians(Global::camera->zoom), 800.0f / 600.0f, 0.1f,
 			100.0f);
 
-		int modelLoc = glGetUniformLocation(m_material.shaderID(), "model");
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		m_material.SetMat4("model", model);
+		m_material.SetMat4("view", view);
+		m_material.SetMat4("projection", projection);
 
-		int viewLoc = glGetUniformLocation(m_material.shaderID(), "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-		int projectionLoc = glGetUniformLocation(m_material.shaderID(), "projection");
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-		glBindVertexArray(m_mesh.VAO());
-
-		if (m_mesh.useIndices())
-		{
-			glDrawElements(GL_TRIANGLES, m_mesh.numVertices(), GL_UNSIGNED_INT, 0);
-		}
-		else
-		{
-			glDrawArrays(GL_TRIANGLES, 0, m_mesh.numVertices());
-		}
+		m_model.Draw(m_material);
 	}
 
 	Material MeshRenderer::material() const

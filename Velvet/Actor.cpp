@@ -40,7 +40,8 @@ namespace Velvet
 	Velvet::Actor::Actor() {}
 
 	Velvet::Actor::Actor(string name) : name(name) {}
-
+	
+	/*
 	shared_ptr<Actor> Actor::PrefabTriangle()
 	{
 		vector<float> vertices = {
@@ -168,16 +169,6 @@ namespace Velvet
 		return actor;
 	}
 
-	shared_ptr<Actor> Actor::PrefabCamera()
-	{
-		shared_ptr<Actor> actor(new Actor("Prefab Camera"));
-		shared_ptr<Camera> camera(new Camera());
-		shared_ptr<PlayerController> controller(new PlayerController());
-		actor->AddComponent(camera);
-		actor->AddComponent(controller);
-		return actor;
-	}
-
 	shared_ptr<Actor> Actor::PrefabLight(LightType type)
 	{
 		Mesh mesh(36, DefaultAssets::cube_vertices);
@@ -192,6 +183,17 @@ namespace Velvet
 		shared_ptr<Actor> actor(new Actor("Prefab Light"));
 		actor->AddComponent(renderer);
 		actor->AddComponent(light);
+		return actor;
+	}
+	*/
+
+	shared_ptr<Actor> Actor::PrefabCamera()
+	{
+		shared_ptr<Actor> actor(new Actor("Prefab Camera"));
+		shared_ptr<Camera> camera(new Camera());
+		shared_ptr<PlayerController> controller(new PlayerController());
+		actor->AddComponent(camera);
+		actor->AddComponent(controller);
 		return actor;
 	}
 

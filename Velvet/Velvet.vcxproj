@@ -101,10 +101,10 @@
     <ClInclude Include="Input.hpp" />
     <ClInclude Include="Light.hpp" />
     <ClInclude Include="Material.hpp" />
-    <ClInclude Include="MaterialAnimator.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="MeshRenderer.hpp" />
     <ClInclude Include="DefaultAssets.hpp" />
+    <ClInclude Include="Model.hpp" />
     <ClInclude Include="PlayerController.hpp" />
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="VtGraphics.hpp" />
@@ -115,6 +115,8 @@
     <None Include="Assets\Shader\Cube.vert" />
     <None Include="Assets\Shader\Light.frag" />
     <None Include="Assets\Shader\Light.vert" />
+    <None Include="Assets\Shader\Model.frag" />
+    <None Include="Assets\Shader\Model.vert" />
     <None Include="Assets\Shader\Quad.frag" />
     <None Include="Assets\Shader\Quad.vert" />
   </ItemGroup>
