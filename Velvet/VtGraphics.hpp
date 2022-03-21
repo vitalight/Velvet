@@ -25,8 +25,6 @@ namespace Velvet
 
 		shared_ptr<Actor> AddActor(shared_ptr<Actor> actor);
 
-		void Initialize();
-
 		int Run();
 
 		vector<function<void(double, double)>> onMouseScroll;
@@ -45,6 +43,8 @@ namespace Velvet
 		void ProcessScroll(GLFWwindow* m_window, double xoffset, double yoffset);
 
 		void ProcessInput(GLFWwindow* m_window);
+
+		void Initialize();
 
 		void MainLoop();
 
