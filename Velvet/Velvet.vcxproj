@@ -104,13 +104,14 @@
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="MeshRenderer.hpp" />
     <ClInclude Include="DefaultAssets.hpp" />
-    <ClInclude Include="Model.hpp" />
     <ClInclude Include="PlayerController.hpp" />
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="VtGraphics.hpp" />
     <ClInclude Include="VtHelper.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Shader\BlinnPhong.frag" />
+    <None Include="Assets\Shader\BlinnPhong.vert" />
     <None Include="Assets\Shader\Cube.frag" />
     <None Include="Assets\Shader\Cube.vert" />
     <None Include="Assets\Shader\Light.frag" />

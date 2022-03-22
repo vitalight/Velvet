@@ -27,20 +27,6 @@ glm::vec3 pointLightPositions[] = {
 	glm::vec3(0.0f, 0.0f, -3.0f)
 };
 
-void CreateScene_Model(VtGraphics& graphics)
-{
-	auto camera = graphics.AddActor(Actor::PrefabCamera());
-	camera->transform->position = glm::vec3(1.5, 1.5, 5.0);
-	camera->transform->rotation = glm::vec3(-8.5, 9.0, 0);
-
-	shared_ptr<Actor> actor(new Actor("Backpack"));
-	Model backpack("Assets/Model/backpack.obj");
-	Material material("Assets/Shader/model");
-	shared_ptr<MeshRenderer> renderer(new MeshRenderer(backpack, material));
-	actor->AddComponent(renderer);
-	graphics.AddActor(actor);
-}
-
 void CreateScene_Plane(VtGraphics& graphics)
 {
 	auto camera = graphics.AddActor(Actor::PrefabCamera());
@@ -98,7 +84,33 @@ void CreateScene_Tutorial(VtGraphics& graphics)
 
 }
 
-// TODO: remove warnings
+void CreateScene_BlinnPhong(VtGraphics& graphics)
+{
+	//=====================================
+	// 1. Camera
+	//=====================================
+	auto camera = graphics.AddActor(Actor::PrefabCamera());
+	camera->transform->position = glm::vec3(1.5, 1.5, 5.0);
+	camera->transform->rotation = glm::vec3(-8.5, 9.0, 0);
+
+	//=====================================
+	// 2. Light
+	//=====================================
+
+	auto light = graphics.AddActor(Actor::PrefabLight(LightType::Point));
+	light->GetComponent<MeshRenderer>()->hidden = true;
+
+	//=====================================
+	// 3. Objects
+	//=====================================
+	//shared_ptr<Actor> actor(new Actor("Plane"));
+	//ModelViewer model("");
+	//Material material("Assets/Shader/BlinnPhong");
+	//shared_ptr<MeshRenderer> renderer(new MeshRenderer(model, material));
+	//actor->AddComponent(renderer);
+	//graphics.AddActor(actor);
+}
+
 
 int main()
 {
@@ -112,10 +124,10 @@ int main()
 	// 2. Instantiate actors
 	//=====================================
 	
-	//CreateScene_Tutorial(graphics);
+	CreateScene_Tutorial(graphics);
 	//CreateScene_Plane(graphics);
-	CreateScene_Model(graphics);
-	
+	//CreateScene_BlinnPhong(graphics);
+
 	//graphics.postUpdate.push_back([&]() {
 	//	});
 	

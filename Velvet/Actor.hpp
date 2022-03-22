@@ -21,15 +21,15 @@ namespace Velvet
 
 		Actor(string _name);
 
-		static shared_ptr<Actor> PrefabTriangle() { return shared_ptr<Actor>(); }
+		static shared_ptr<Actor> PrefabTriangle();
 
-		static shared_ptr<Actor> PrefabCube() { return shared_ptr<Actor>(); }
+		static shared_ptr<Actor> PrefabCube();
 
-		static shared_ptr<Actor> PrefabQuad() { return shared_ptr<Actor>(); }
+		static shared_ptr<Actor> PrefabQuad();
 
 		static shared_ptr<Actor> PrefabCamera();
 
-		static shared_ptr<Actor> PrefabLight(LightType type = LightType::Point) { return shared_ptr<Actor>(); }
+		static shared_ptr<Actor> PrefabLight(LightType type = LightType::Point);
 
 		void Start();
 

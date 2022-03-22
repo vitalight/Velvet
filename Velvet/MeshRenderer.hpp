@@ -10,7 +10,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Model.hpp"
 #include "Mesh.hpp"
 #include "Material.hpp"
 
@@ -19,9 +18,7 @@ namespace Velvet
 	class MeshRenderer : public Component
 	{
 	public:
-		//MeshRenderer();
-
-		MeshRenderer(Model model, Material material);
+		MeshRenderer(Mesh mesh, Material material);
 
 		void Update() override;
 
@@ -30,7 +27,7 @@ namespace Velvet
 		bool hidden = false;
 
 	private:
-		Model m_model;
+		Mesh m_mesh;
 		Material m_material;
 	};
 }

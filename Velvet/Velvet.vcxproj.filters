@@ -34,14 +34,14 @@
     <Filter Include="Graphics">
       <UniqueIdentifier>{c647f013-7c6b-4ca7-a6a7-615ec1a7ba80}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphics\Shader">
-      <UniqueIdentifier>{eb97d10c-213f-4430-bad0-dd5f5d16b600}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Graphics\Source">
       <UniqueIdentifier>{1bf7cf9b-4757-428f-92c1-1ed329ef391c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Graphics\Include">
       <UniqueIdentifier>{f7d33691-738f-4978-a722-b8e7ec4af743}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{eb97d10c-213f-4430-bad0-dd5f5d16b600}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -81,9 +81,6 @@
     <ClInclude Include="MeshRenderer.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
-    <ClInclude Include="Model.hpp">
-      <Filter>Graphics\Include</Filter>
-    </ClInclude>
     <ClInclude Include="PlayerController.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
@@ -99,28 +96,34 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shader\Cube.frag">
-      <Filter>Graphics\Shader</Filter>
+      <Filter>Shader</Filter>
     </None>
     <None Include="Assets\Shader\Cube.vert">
-      <Filter>Graphics\Shader</Filter>
+      <Filter>Shader</Filter>
     </None>
     <None Include="Assets\Shader\Light.frag">
-      <Filter>Graphics\Shader</Filter>
+      <Filter>Shader</Filter>
     </None>
     <None Include="Assets\Shader\Light.vert">
-      <Filter>Graphics\Shader</Filter>
+      <Filter>Shader</Filter>
     </None>
     <None Include="Assets\Shader\Quad.frag">
-      <Filter>Graphics\Shader</Filter>
+      <Filter>Shader</Filter>
     </None>
     <None Include="Assets\Shader\Quad.vert">
-      <Filter>Graphics\Shader</Filter>
+      <Filter>Shader</Filter>
     </None>
     <None Include="Assets\Shader\Model.vert">
-      <Filter>Graphics\Shader</Filter>
+      <Filter>Shader</Filter>
     </None>
     <None Include="Assets\Shader\Model.frag">
-      <Filter>Graphics\Shader</Filter>
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\BlinnPhong.frag">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\BlinnPhong.vert">
+      <Filter>Shader</Filter>
     </None>
   </ItemGroup>
 </Project>

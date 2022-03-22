@@ -8,13 +8,8 @@
 
 namespace Velvet
 {
-	//MeshRenderer::MeshRenderer()
-	//{
-	//	name = __func__;
-	//}
-
-	MeshRenderer::MeshRenderer(Model model, Material material)
-		: m_model(model), m_material(material) 
+	MeshRenderer::MeshRenderer(Mesh mesh, Material material)
+		: m_mesh(mesh), m_material(material) 
 	{
 		name = __func__;
 	}
@@ -83,8 +78,17 @@ namespace Velvet
 		m_material.SetMat4("view", view);
 		m_material.SetMat4("projection", projection);
 
-		m_model.Draw(m_material);
-	}
+		glBindVertexArray(m_mesh.VAO());
+
+		if (m_mesh.useIndices())
+		{
+			glDrawElements(GL_TRIANGLES, m_mesh.numVertices(), GL_UNSIGNED_INT, 0);
+		}
+		else
+		{
+			glDrawArrays(GL_TRIANGLES, 0, m_mesh.numVertices());
+		}
+	}	
 
 	Material MeshRenderer::material() const
 	{

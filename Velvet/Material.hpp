@@ -96,7 +96,7 @@ namespace Velvet
 			return m_shaderID;
 		}
 
-		void Use()
+		void Use() const
 		{
 			glUseProgram(m_shaderID);
 		}
@@ -110,58 +110,70 @@ namespace Velvet
 		// ------------------------------------------------------------------------
 		void SetBool(const std::string& name, bool value) const
 		{
+			Use();
 			glUniform1i(GetLocation(name), (int)value);
 		}
 		// ------------------------------------------------------------------------
 		void SetInt(const std::string& name, int value) const
 		{
+			Use();
 			glUniform1i(GetLocation(name), value);
 		}
 		// ------------------------------------------------------------------------
 		void SetFloat(const std::string& name, float value) const
 		{
+			Use();
 			glUniform1f(GetLocation(name), value);
 		}
 		// ------------------------------------------------------------------------
 		void SetVec2(const std::string& name, const glm::vec2& value) const
 		{
+			Use();
 			glUniform2fv(GetLocation(name), 1, &value[0]);
 		}
 		void SetVec2(const std::string& name, float x, float y) const
 		{
+			Use();
 			glUniform2f(GetLocation(name), x, y);
 		}
 		// ------------------------------------------------------------------------
 		void SetVec3(const std::string& name, const glm::vec3& value) const
 		{
+			Use();
 			glUniform3fv(GetLocation(name), 1, &value[0]);
 		}
 		void SetVec3(const std::string& name, float x, float y, float z) const
 		{
+			Use();
 			glUniform3f(GetLocation(name), x, y, z);
 		}
 		// ------------------------------------------------------------------------
 		void SetVec4(const std::string& name, const glm::vec4& value) const
 		{
+			Use();
 			glUniform4fv(GetLocation(name), 1, &value[0]);
 		}
 		void SetVec4(const std::string& name, float x, float y, float z, float w)
 		{
+			Use();
 			glUniform4f(GetLocation(name), x, y, z, w);
 		}
 		// ------------------------------------------------------------------------
 		void SetMat2(const std::string& name, const glm::mat2& mat) const
 		{
+			Use();
 			glUniformMatrix2fv(GetLocation(name), 1, GL_FALSE, &mat[0][0]);
 		}
 		// ------------------------------------------------------------------------
 		void SetMat3(const std::string& name, const glm::mat3& mat) const
 		{
+			Use();
 			glUniformMatrix3fv(GetLocation(name), 1, GL_FALSE, &mat[0][0]);
 		}
 		// ------------------------------------------------------------------------
 		void SetMat4(const std::string& name, const glm::mat4& mat) const
 		{
+			Use();
 			glUniformMatrix4fv(GetLocation(name), 1, GL_FALSE, &mat[0][0]);
 		}
 

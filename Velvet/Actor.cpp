@@ -41,7 +41,6 @@ namespace Velvet
 
 	Velvet::Actor::Actor(string name) : name(name) {}
 	
-	/*
 	shared_ptr<Actor> Actor::PrefabTriangle()
 	{
 		vector<float> vertices = {
@@ -142,8 +141,8 @@ namespace Velvet
 
 		Material material("Assets/Shader/Cube");
 		{
-			material.texture1 = LoadTexture("Assets/container2.png", true);
-			material.texture2 = LoadTexture("Assets/container2_specular.png", true);
+			material.texture1 = LoadTexture("Assets/Texture/container2.png", true);
+			material.texture2 = LoadTexture("Assets/Texture/container2_specular.png", true);
 
 			material.Use();
 			material.SetInt("material.diffuse", 0);
@@ -185,7 +184,6 @@ namespace Velvet
 		actor->AddComponent(light);
 		return actor;
 	}
-	*/
 
 	shared_ptr<Actor> Actor::PrefabCamera()
 	{
