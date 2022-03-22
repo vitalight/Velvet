@@ -6,37 +6,10 @@
 #include "Camera.hpp"
 #include "PlayerController.hpp"
 #include "Light.hpp"
+#include "Resource.hpp"
 
 namespace Velvet
 {
-	unsigned int LoadTexture(const char* path, bool isPNG)
-	{
-		unsigned int texture;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		// set the texture wrapping/filtering options (on currently bound texture)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// load and generate the texture
-		int width, height, nrChannels;
-		unsigned char* data = stbi_load(path, &width, &height,
-			&nrChannels, 0);
-		if (data)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, isPNG? GL_RGBA : GL_RGB,
-				GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-		}
-		else
-		{
-			std::cout << "Failed to load texture" << std::endl;
-		}
-		stbi_image_free(data);
-		return texture;
-	}
-
 	Velvet::Actor::Actor() {}
 
 	Velvet::Actor::Actor(string name) : name(name) {}
@@ -119,8 +92,8 @@ namespace Velvet
 
 		Material material("Assets/Shader/Quad");
 		{
-			material.texture1 = LoadTexture("Assets/container.jpg", false);
-			material.texture2 = LoadTexture("Assets/awesomeface.png", true);
+			material.texture1 = Resource::LoadTexture("Assets/Texture/container.jpg");
+			material.texture2 = Resource::LoadTexture("Assets/Texture/awesomeface.png");
 
 			material.Use();
 			material.SetInt("texture1", 0);
@@ -141,8 +114,8 @@ namespace Velvet
 
 		Material material("Assets/Shader/Cube");
 		{
-			material.texture1 = LoadTexture("Assets/Texture/container2.png", true);
-			material.texture2 = LoadTexture("Assets/Texture/container2_specular.png", true);
+			material.texture1 = Resource::LoadTexture("Assets/Texture/container2.png");
+			material.texture2 = Resource::LoadTexture("Assets/Texture/container2_specular.png");
 
 			material.Use();
 			material.SetInt("material.diffuse", 0);

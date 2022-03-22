@@ -4,6 +4,8 @@
 #include "Global.hpp"
 #include "Light.hpp"
 #include "Camera.hpp"
+#include "DefaultAssets.hpp"
+#include "Resource.hpp"
 
 using namespace Velvet;
 
@@ -98,17 +100,42 @@ void CreateScene_BlinnPhong(VtGraphics& graphics)
 	//=====================================
 
 	auto light = graphics.AddActor(Actor::PrefabLight(LightType::Point));
-	light->GetComponent<MeshRenderer>()->hidden = true;
+	//light->GetComponent<MeshRenderer>()->hidden = true;
+	light->transform->position = glm::vec3(-2.0, 4.0, -1.0f);
+
+	graphics.postUpdate.push_back([light]() {
+		light->transform->rotation += glm::vec3(1, 0, 0);
+		});
 
 	//=====================================
 	// 3. Objects
 	//=====================================
-	//shared_ptr<Actor> actor(new Actor("Plane"));
-	//ModelViewer model("");
-	//Material material("Assets/Shader/BlinnPhong");
-	//shared_ptr<MeshRenderer> renderer(new MeshRenderer(model, material));
-	//actor->AddComponent(renderer);
-	//graphics.AddActor(actor);
+	shared_ptr<Actor> actor(new Actor("Plane"));
+	vector<float> planeVertices = {
+		// positions            // normals         // texcoords
+		 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+		-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+		-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+
+		 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+		-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+		 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
+	};
+	Mesh mesh(6, planeVertices);
+	mesh.SetupAttributes({ 3, 3, 2 });
+
+	Material material("Assets/Shader/BlinnPhong");
+	{
+		material.texture1 = Resource::LoadTexture("Assets/Texture/wood.png");
+
+		material.Use();
+		material.SetInt("floorTexture", 0);
+		material.SetInt("blinn", 1);
+	}
+
+	shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
+	actor->AddComponent(renderer);
+	graphics.AddActor(actor);
 }
 
 
@@ -124,9 +151,9 @@ int main()
 	// 2. Instantiate actors
 	//=====================================
 	
-	CreateScene_Tutorial(graphics);
+	//CreateScene_Tutorial(graphics);
 	//CreateScene_Plane(graphics);
-	//CreateScene_BlinnPhong(graphics);
+	CreateScene_BlinnPhong(graphics);
 
 	//graphics.postUpdate.push_back([&]() {
 	//	});

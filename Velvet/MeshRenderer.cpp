@@ -63,6 +63,10 @@ namespace Velvet
 
 		// camera
 		m_material.SetVec3("viewPos", Global::camera->transform()->position);
+		if (Global::light.size() > 0)
+		{
+			m_material.SetVec3("lightPos", Global::light[0]->position());
+		}
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_material.texture1);

@@ -105,6 +105,7 @@
     <ClInclude Include="MeshRenderer.hpp" />
     <ClInclude Include="DefaultAssets.hpp" />
     <ClInclude Include="PlayerController.hpp" />
+    <ClInclude Include="Resource.hpp" />
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="VtGraphics.hpp" />
     <ClInclude Include="VtHelper.hpp" />

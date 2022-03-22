@@ -38,4 +38,5 @@ void main()
     }
     vec3 specular = vec3(0.3) * spec; // assuming bright white light color
     FragColor = vec4(ambient + diffuse + specular, 1.0);
+//    FragColor = vec4(color, 1.0);
 }
