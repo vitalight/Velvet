@@ -7,6 +7,7 @@
 #include "VtHelper.hpp"
 #include "Camera.hpp"
 #include "Input.hpp"
+#include "RenderPipeline.hpp"
 
 using namespace Velvet;
 
@@ -20,7 +21,7 @@ VtGraphics::VtGraphics()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	// Multi-sample Anti-aliasing
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	//glfwWindowHint(GLFW_SAMPLES, 4);
 
 	m_window = glfwCreateWindow(800, 600, "Velvet", NULL, NULL);
 
@@ -59,6 +60,7 @@ VtGraphics::VtGraphics()
 
 	// setup members
 	m_input = shared_ptr<Input>(new Input(m_window));
+	m_pipeline = shared_ptr<RenderPipeline>(new RenderPipeline());
 }
 
 shared_ptr<Actor> VtGraphics::AddActor(shared_ptr<Actor> actor)
@@ -180,6 +182,8 @@ void VtGraphics::MainLoop()
 			{
 				callback();
 			}
+
+			m_pipeline->Render();
 
 			// check and call events and swap the buffers
 			glfwSwapBuffers(m_window);

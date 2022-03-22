@@ -96,6 +96,9 @@
     <ClInclude Include="Resource.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
+    <ClInclude Include="RenderPipeline.hpp">
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shader\Cube.frag">
@@ -126,6 +129,24 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="Assets\Shader\BlinnPhong.vert">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\Shadow.frag">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\Shadow.vert">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\ShadowDepth.frag">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\ShadowDepth.vert">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\ShadowDebug.frag">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\ShadowDebug.vert">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

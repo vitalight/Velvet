@@ -14,13 +14,14 @@ namespace Velvet
 		name = __func__;
 	}
 
-	void MeshRenderer::Update()
+	MeshRenderer::MeshRenderer(Mesh mesh, Material material, Material shadowMaterial)
+		: m_mesh(mesh), m_material(material), m_shadowMaterial(shadowMaterial)
 	{
-		if (hidden)
-			return;
+		name = __func__;
+	}
 
-		m_material.Use();
-
+	void SetupLighting(Material m_material)
+	{
 		int numPointLight = 0;
 		// lighting
 		for (int i = 0; i < Global::light.size(); i++)
@@ -60,6 +61,15 @@ namespace Velvet
 				m_material.SetFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 			}
 		}
+	}
+
+	void MeshRenderer::Render(glm::mat4 lightMatrix)
+	{
+		if (hidden)
+			return;
+
+		m_material.Use();
+		SetupLighting(m_material);
 
 		// camera
 		m_material.SetVec3("viewPos", Global::camera->transform()->position);
@@ -81,9 +91,9 @@ namespace Velvet
 		m_material.SetMat4("model", model);
 		m_material.SetMat4("view", view);
 		m_material.SetMat4("projection", projection);
+		m_material.SetMat4("lightSpaceMatrix", lightMatrix);
 
 		glBindVertexArray(m_mesh.VAO());
-
 		if (m_mesh.useIndices())
 		{
 			glDrawElements(GL_TRIANGLES, m_mesh.numVertices(), GL_UNSIGNED_INT, 0);
@@ -93,6 +103,30 @@ namespace Velvet
 			glDrawArrays(GL_TRIANGLES, 0, m_mesh.numVertices());
 		}
 	}	
+
+	void MeshRenderer::RenderShadow(glm::mat4 lightMatrix)
+	{
+		if (m_shadowMaterial.shaderID() == -1)
+		{
+			return;
+		}
+
+		m_shadowMaterial.Use();
+		m_shadowMaterial.SetMat4("lightSpaceMatrix", lightMatrix);
+
+		glm::mat4 model = actor->transform->matrix();
+		m_shadowMaterial.SetMat4("model", model);
+
+		glBindVertexArray(m_mesh.VAO());
+		if (m_mesh.useIndices())
+		{
+			glDrawElements(GL_TRIANGLES, m_mesh.numVertices(), GL_UNSIGNED_INT, 0);
+		}
+		else
+		{
+			glDrawArrays(GL_TRIANGLES, 0, m_mesh.numVertices());
+		}
+	}
 
 	Material MeshRenderer::material() const
 	{

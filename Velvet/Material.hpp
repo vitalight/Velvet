@@ -21,24 +21,14 @@ namespace Velvet
 
 		Material() {}
 
-		// constructor generates the shader on the fly
-		// ------------------------------------------------------------------------
-		Material(const string vertexPath, const string fragmentPath)
+		Material(const string path)
 		{
-			string vertexCode = ReadFromFile(vertexPath);
-			string fragmentCode = ReadFromFile(fragmentPath);
+			string vertexCode = ReadFromFile(path + ".vert");
+			string fragmentCode = ReadFromFile(path + ".frag");
 			const char* vShaderCode = vertexCode.c_str();
 			const char* fShaderCode = fragmentCode.c_str();
 
-			// 2. compile shaders
-			CompileShader(vShaderCode, fShaderCode);
-
-			return;
-		}
-
-		Material(const string path)
-			: Material(path + ".vert", path + ".frag")
-		{
+			m_shaderID = CompileShader(vShaderCode, fShaderCode);
 		}
 
 		static string ReadFromFile(const string path)
@@ -67,7 +57,7 @@ namespace Velvet
 			return code;
 		}
 
-		void CompileShader(const char* vShaderCode, const char* fShaderCode)
+		unsigned int CompileShader(const char* vShaderCode, const char* fShaderCode) const
 		{
 			unsigned int vertex, fragment;
 			// vertex shader
@@ -81,14 +71,15 @@ namespace Velvet
 			glCompileShader(fragment);
 			CheckCompileErrors(fragment, "FRAGMENT");
 			// shader Program
-			m_shaderID = glCreateProgram();
-			glAttachShader(m_shaderID, vertex);
-			glAttachShader(m_shaderID, fragment);
-			glLinkProgram(m_shaderID);
-			CheckCompileErrors(m_shaderID, "PROGRAM");
+			unsigned int shader = glCreateProgram();
+			glAttachShader(shader, vertex);
+			glAttachShader(shader, fragment);
+			glLinkProgram(shader);
+			CheckCompileErrors(shader, "PROGRAM");
 			// delete the shaders as they're linked into our program now and no longer necessary
 			glDeleteShader(vertex);
 			glDeleteShader(fragment);
+			return shader;
 		}
 
 		unsigned int shaderID() const
@@ -178,9 +169,9 @@ namespace Velvet
 		}
 
 	private:
-		unsigned int m_shaderID = 0;
+		unsigned int m_shaderID = -1;
 
-		void CheckCompileErrors(unsigned int shader, std::string type)
+		void CheckCompileErrors(unsigned int shader, std::string type) const
 		{
 			int success;
 			char infoLog[1024];
@@ -206,5 +197,4 @@ namespace Velvet
 			}
 		}
 	};
-
 }

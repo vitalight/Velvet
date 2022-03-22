@@ -6,6 +6,8 @@
 #include "Camera.hpp"
 #include "DefaultAssets.hpp"
 #include "Resource.hpp"
+#include "RenderPipeline.hpp"
+#include "Input.hpp"
 
 using namespace Velvet;
 
@@ -99,7 +101,7 @@ void CreateScene_BlinnPhong(VtGraphics& graphics)
 	// 2. Light
 	//=====================================
 
-	auto light = graphics.AddActor(Actor::PrefabLight(LightType::Point));
+	auto light = graphics.AddActor(Actor::PrefabLight(LightType::Directional));
 	//light->GetComponent<MeshRenderer>()->hidden = true;
 	light->transform->position = glm::vec3(-2.0, 4.0, -1.0f);
 
@@ -110,20 +112,6 @@ void CreateScene_BlinnPhong(VtGraphics& graphics)
 	//=====================================
 	// 3. Objects
 	//=====================================
-	shared_ptr<Actor> actor(new Actor("Plane"));
-	vector<float> planeVertices = {
-		// positions            // normals         // texcoords
-		 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-		-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-		-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-
-		 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-		-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-		 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
-	};
-	Mesh mesh(6, planeVertices);
-	mesh.SetupAttributes({ 3, 3, 2 });
-
 	Material material("Assets/Shader/BlinnPhong");
 	{
 		material.texture1 = Resource::LoadTexture("Assets/Texture/wood.png");
@@ -133,11 +121,167 @@ void CreateScene_BlinnPhong(VtGraphics& graphics)
 		material.SetInt("blinn", 1);
 	}
 
-	shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
-	actor->AddComponent(renderer);
-	graphics.AddActor(actor);
+	shared_ptr<Actor> plane(new Actor("Plane"));
+	{
+		vector<float> planeVertices = {
+			// positions            // normals         // texcoords
+			 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+			-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+			-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+
+			 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+			-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+			 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
+		};
+		Mesh mesh(6, planeVertices);
+		mesh.SetupAttributes({ 3, 3, 2 });
+
+
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
+		plane->AddComponent(renderer);
+		plane->transform->position = glm::vec3(0, -0.1f, 0);
+	}
+	graphics.AddActor(plane);
+
+	shared_ptr<Actor> cube(new Actor("Cube"));
+	{
+		Mesh mesh(36, DefaultAssets::cube_vertices);
+		mesh.SetupAttributes(DefaultAssets::cube_attributes);
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
+		cube->AddComponent(renderer);
+	}
+	graphics.AddActor(cube);
+
 }
 
+void CreateScene_Shadow(VtGraphics& graphics)
+{
+	//=====================================
+	// 1. Camera
+	//=====================================
+	auto camera = graphics.AddActor(Actor::PrefabCamera());
+	camera->transform->position = glm::vec3(1.5, 1.5, 5.0);
+	camera->transform->rotation = glm::vec3(-8.5, 9.0, 0);
+
+	//=====================================
+	// 2. Light
+	//=====================================
+
+	auto light = graphics.AddActor(Actor::PrefabLight(LightType::Directional));
+	//light->GetComponent<MeshRenderer>()->hidden = true;
+	light->transform->position = glm::vec3(-2.0, 4.0, -1.0f);
+	light->transform->scale = glm::vec3(0.2);
+
+	graphics.postUpdate.push_back([light]() {
+		light->transform->rotation += glm::vec3(1, 0, 0);
+		});
+
+	//=====================================
+	// 3. Objects
+	//=====================================
+	Material material("Assets/Shader/Shadow");
+	{
+		material.texture1 = Resource::LoadTexture("Assets/Texture/wood.png");
+		material.texture2 = graphics.m_pipeline->depthMapFBO;
+		material.Use();
+		material.SetInt("diffuseTexture", 0);
+		material.SetInt("shadowMap", 1);
+	}
+
+	Material shadowMaterial("Assets/Shader/ShadowDepth");
+
+	shared_ptr<Actor> plane(new Actor("Plane"));
+	{
+		vector<float> planeVertices = {
+			// positions            // normals         // texcoords
+			 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+			-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+			-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+
+			 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+			-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+			 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
+		};
+		Mesh mesh(6, planeVertices);
+		mesh.SetupAttributes({ 3, 3, 2 });
+
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
+		plane->AddComponent(renderer);
+		//plane->transform->position = glm::vec3(0, -0.1f, 0);
+		graphics.AddActor(plane);
+	}
+
+	shared_ptr<Actor> cube1(new Actor("Cube1"));
+	{
+		Mesh mesh(36, DefaultAssets::cube_vertices);
+		mesh.SetupAttributes(DefaultAssets::cube_attributes);
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
+		cube1->AddComponent(renderer);
+		cube1->transform->position = glm::vec3(0.0f, 1.5f, 0.0);
+		cube1->transform->scale = glm::vec3(0.5f);
+		graphics.AddActor(cube1);
+	}
+
+	shared_ptr<Actor> cube2(new Actor("Cube2"));
+	{
+		Mesh mesh(36, DefaultAssets::cube_vertices);
+		mesh.SetupAttributes(DefaultAssets::cube_attributes);
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
+		cube2->AddComponent(renderer);
+		cube2->transform->position = glm::vec3(2.0f, 0.0f, 1.0);
+		cube2->transform->scale = glm::vec3(0.5f);
+		graphics.AddActor(cube2);
+	}
+
+	shared_ptr<Actor> cube3(new Actor("Cube3"));
+	{
+		Mesh mesh(36, DefaultAssets::cube_vertices);
+		mesh.SetupAttributes(DefaultAssets::cube_attributes);
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
+		cube3->AddComponent(renderer);
+		cube3->transform->position = glm::vec3(-1.0f, 0.0f, 2.0);
+		cube3->transform->scale = glm::vec3(0.25f);
+		cube3->transform->rotation = glm::vec3(60, 0, 60);
+		graphics.AddActor(cube3);
+	}
+
+	shared_ptr<Actor> quad(new Actor("Debug Quad"));
+	{
+		Material debugMat("Assets/Shader/ShadowDebug");
+		{
+			float near_plane = 1.0f, far_plane = 7.5f;
+			debugMat.SetFloat("near_plane", near_plane);
+			debugMat.SetFloat("far_plane", far_plane);
+			debugMat.SetInt("depthMap", 0);
+			debugMat.texture1 = graphics.m_pipeline->depthMapFBO;
+			//debugMat.texture1 = Resource::LoadTexture("Assets/Texture/wood.png");
+		}
+		vector<float> quadVertices = {
+			// positions        // texture Coords
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		};
+		vector<unsigned int> quadIndices = {
+			0,1,2,
+			1,2,3,
+		};
+		Mesh quadMesh(6, quadVertices, quadIndices);
+		quadMesh.SetupAttributes({ 3, 2 });
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(quadMesh, debugMat));
+		quad->AddComponent(renderer);
+		renderer->hidden = true;
+		graphics.AddActor(quad);
+
+		graphics.postUpdate.push_back([renderer]() {
+			if (Global::input->GetKeyDown(GLFW_KEY_1))
+			{
+				renderer->hidden = !renderer->hidden;
+			}
+		});
+	}
+}
 
 int main()
 {
@@ -153,7 +297,8 @@ int main()
 	
 	//CreateScene_Tutorial(graphics);
 	//CreateScene_Plane(graphics);
-	CreateScene_BlinnPhong(graphics);
+	//CreateScene_BlinnPhong(graphics);
+	CreateScene_Shadow(graphics);
 
 	//graphics.postUpdate.push_back([&]() {
 	//	});

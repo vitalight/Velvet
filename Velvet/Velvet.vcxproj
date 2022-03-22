@@ -105,6 +105,7 @@
     <ClInclude Include="MeshRenderer.hpp" />
     <ClInclude Include="DefaultAssets.hpp" />
     <ClInclude Include="PlayerController.hpp" />
+    <ClInclude Include="RenderPipeline.hpp" />
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="VtGraphics.hpp" />
@@ -121,6 +122,12 @@
     <None Include="Assets\Shader\Model.vert" />
     <None Include="Assets\Shader\Quad.frag" />
     <None Include="Assets\Shader\Quad.vert" />
+    <None Include="Assets\Shader\Shadow.frag" />
+    <None Include="Assets\Shader\Shadow.vert" />
+    <None Include="Assets\Shader\ShadowDebug.frag" />
+    <None Include="Assets\Shader\ShadowDebug.vert" />
+    <None Include="Assets\Shader\ShadowDepth.frag" />
+    <None Include="Assets\Shader\ShadowDepth.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

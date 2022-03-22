@@ -17,6 +17,7 @@ namespace Velvet
 
 	class Light;
 	class Input;
+	class RenderPipeline;
 
 	class VtGraphics
 	{
@@ -27,10 +28,26 @@ namespace Velvet
 
 		int Run();
 
+		template <typename T>
+		enable_if_t<is_base_of<Component, T>::value, vector<T*>> FindComponents()
+		{
+			vector<T*> result;
+			for (auto actor : m_actors)
+			{
+				auto component = actor->GetComponent<T>();
+				if (component != nullptr)
+				{
+					result.push_back(component);
+				}
+			}
+			return result;
+		}
+
 		vector<function<void(double, double)>> onMouseScroll;
 		vector<function<void(double, double)>> onMouseMove;
 		vector<function<void()>> postUpdate;
 
+		shared_ptr<RenderPipeline> m_pipeline;
 		GLFWwindow* m_window = nullptr;
 		float deltaTime = 0.0f;
 		float elapsedTime = 0.0f;

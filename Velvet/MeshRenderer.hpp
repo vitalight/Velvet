@@ -20,7 +20,12 @@ namespace Velvet
 	public:
 		MeshRenderer(Mesh mesh, Material material);
 
-		void Update() override;
+		MeshRenderer(Mesh mesh, Material material, Material shadowMaterial);
+
+
+		void Render(glm::mat4 lightMatrix);
+
+		void RenderShadow(glm::mat4 lightMatrix);
 
 		Material material() const;
 
@@ -29,5 +34,6 @@ namespace Velvet
 	private:
 		Mesh m_mesh;
 		Material m_material;
+		Material m_shadowMaterial;
 	};
 }
