@@ -167,7 +167,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 	// 2. Light
 	//=====================================
 
-	auto light = graphics.AddActor(Actor::PrefabLight(LightType::Directional));
+	auto light = graphics.AddActor(Actor::PrefabLight(LightType::SpotLight));
 	light->transform->position = glm::vec3(-2.0, 4.0, -1.0f);
 	//light->transform->position = glm::vec3(0, 4.0, -1.0f);
 	//light->GetComponent<MeshRenderer>()->hidden = true;
@@ -175,7 +175,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 
 	graphics.postUpdate.push_back([light]() {
 		//light->transform->rotation += glm::vec3(1, 0, 0);
-		//light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
+		light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
 		});
 
 	//=====================================
@@ -238,6 +238,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 	shared_ptr<Actor> cube1(new Actor("Cube1"));
 	{
 		Mesh mesh(36, DefaultAssets::cube_vertices);
+		//Mesh mesh("Assets/Model/cube.obj");
 		mesh.SetupAttributes(DefaultAssets::cube_attributes);
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		cube1->AddComponent(renderer);

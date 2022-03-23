@@ -90,6 +90,7 @@ void main()
 	    result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
 
 	FragColor = vec4(result, 1.0);
+//FragColor = vec4(norm, 1.0);
 }
 
 // calculates the color when using a directional light.

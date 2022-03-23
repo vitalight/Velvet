@@ -33,6 +33,10 @@ namespace Velvet
 
 		glm::mat4 ComputeLightMatrix()
 		{
+			if (Global::light.size() == 0)
+			{
+				return glm::mat4(1);
+			}
 			// 1. render depth of scene to texture (from light's perspective)
 			// --------------------------------------------------------------
 			glm::mat4 lightProjection, lightView;
