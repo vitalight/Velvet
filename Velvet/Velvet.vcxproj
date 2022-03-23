@@ -114,8 +114,8 @@
   <ItemGroup>
     <None Include="Assets\Shader\BlinnPhong.frag" />
     <None Include="Assets\Shader\BlinnPhong.vert" />
-    <None Include="Assets\Shader\Cube.frag" />
-    <None Include="Assets\Shader\Cube.vert" />
+    <None Include="Assets\Shader\_Default.frag" />
+    <None Include="Assets\Shader\_Default.vert" />
     <None Include="Assets\Shader\Light.frag" />
     <None Include="Assets\Shader\Light.vert" />
     <None Include="Assets\Shader\Model.frag" />

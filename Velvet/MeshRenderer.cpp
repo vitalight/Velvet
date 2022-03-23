@@ -23,6 +23,9 @@ namespace Velvet
 	void SetupLighting(Material m_material)
 	{
 		int numPointLight = 0;
+		int numDirLight = 0;
+		int numSpotLight = 0;
+		const int maxLightPerType = 3;
 		// lighting
 		for (int i = 0; i < Global::light.size(); i++)
 		{
@@ -30,6 +33,11 @@ namespace Velvet
 
 			if (light->type == LightType::Point)
 			{
+				if (numPointLight > maxLightPerType)
+				{
+					fmt::print("Max light per type is [{}]. Ignore extra point light\n", maxLightPerType);
+					continue;
+				}
 				auto prefix = fmt::format("pointLights[{}].", numPointLight);
 				m_material.SetVec3(prefix + "position", light->position());
 				m_material.SetVec3(prefix + "ambient", 0.05f, 0.05f, 0.05f);
@@ -42,25 +50,43 @@ namespace Velvet
 			}
 			else if (light->type == LightType::Directional)
 			{
-				m_material.SetVec3("dirLight.direction", -0.2f, -1.0f, -0.3f); // light->position()
-				m_material.SetVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-				m_material.SetVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-				m_material.SetVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+				if (numDirLight > maxLightPerType)
+				{
+					fmt::print("Max light per type is [{}]. Ignore extra dir light\n", maxLightPerType);
+					continue;
+				}
+				auto prefix = fmt::format("dirLights[{}].", numDirLight);
+				m_material.SetVec3(prefix + "direction", -light->position());
+				m_material.SetVec3(prefix + "ambient", 0.05f, 0.05f, 0.05f);
+				m_material.SetVec3(prefix + "diffuse", 0.4f, 0.4f, 0.4f);
+				m_material.SetVec3(prefix + "specular", 0.5f, 0.5f, 0.5f);
+				numDirLight++;
 			}
 			else
 			{
-				m_material.SetVec3("spotLight.position", Global::camera->position());
-				m_material.SetVec3("spotLight.direction", Global::camera->front());
-				m_material.SetVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-				m_material.SetVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-				m_material.SetVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-				m_material.SetFloat("spotLight.constant", 1.0f);
-				m_material.SetFloat("spotLight.linear", 0.09f);
-				m_material.SetFloat("spotLight.quadratic", 0.032f);
-				m_material.SetFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-				m_material.SetFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+				if (numSpotLight > maxLightPerType)
+				{
+					fmt::print("Max light per type is [{}]. Ignore extra point light\n", maxLightPerType);
+					continue;
+				}
+				auto prefix = fmt::format("spotLights[{}].", numSpotLight);
+				auto front = Helper::RotateWithDegree(glm::vec3(0,-1,0), light->transform()->rotation);
+				m_material.SetVec3(prefix+"position", light->position());
+				m_material.SetVec3(prefix+"direction", front);
+				m_material.SetVec3(prefix+"ambient", 0.5f, 0.5f, 0.5f);
+				m_material.SetVec3(prefix+"diffuse", 1.0f, 1.0f, 1.0f);
+				m_material.SetVec3(prefix+"specular", 1.0f, 1.0f, 1.0f);
+				m_material.SetFloat(prefix+"constant", 1.0f);
+				m_material.SetFloat(prefix+"linear", 0.09f);
+				m_material.SetFloat(prefix+"quadratic", 0.032f);
+				m_material.SetFloat(prefix+"cutOff", glm::cos(glm::radians(45.0f)));
+				m_material.SetFloat(prefix+"outerCutOff", glm::cos(glm::radians(60.0f)));
+				numSpotLight++;
 			}
 		}
+		m_material.SetInt("numSpotLight", numSpotLight);
+		m_material.SetInt("numDirLight", numDirLight);
+		m_material.SetInt("numPointLight", numPointLight);
 	}
 
 	void MeshRenderer::Render(glm::mat4 lightMatrix)

@@ -41,7 +41,7 @@ namespace Velvet
 		Mesh mesh(36, DefaultAssets::cube_vertices);
 		mesh.SetupAttributes(DefaultAssets::cube_attributes);
 
-		Material material("Assets/Shader/Cube");
+		Material material("Assets/Shader/_Default");
 		{
 			material.texture1 = Resource::LoadTexture("Assets/Texture/container2.png");
 			material.texture2 = Resource::LoadTexture("Assets/Texture/container2_specular.png");

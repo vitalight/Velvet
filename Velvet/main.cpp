@@ -168,24 +168,48 @@ void CreateScene_Shadow(VtGraphics& graphics)
 	//=====================================
 
 	auto light = graphics.AddActor(Actor::PrefabLight(LightType::Directional));
-	//light->GetComponent<MeshRenderer>()->hidden = true;
 	light->transform->position = glm::vec3(-2.0, 4.0, -1.0f);
+	//light->transform->position = glm::vec3(0, 4.0, -1.0f);
+	//light->GetComponent<MeshRenderer>()->hidden = true;
 	light->transform->scale = glm::vec3(0.2);
 
 	graphics.postUpdate.push_back([light]() {
-		light->transform->rotation += glm::vec3(1, 0, 0);
+		//light->transform->rotation += glm::vec3(1, 0, 0);
+		//light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
 		});
 
 	//=====================================
 	// 3. Objects
 	//=====================================
-	Material material("Assets/Shader/Shadow");
+	//Material material("Assets/Shader/Shadow");
+	//{
+	//	material.texture1 = Resource::LoadTexture("Assets/Texture/wood.png");
+	//	material.texture2 = graphics.m_pipeline->depthMapFBO;
+	//	material.Use();
+	//	material.SetInt("diffuseTexture", 0);
+	//	material.SetInt("shadowMap", 1);
+	//}
+
+	Material material("Assets/Shader/_Default");
 	{
 		material.texture1 = Resource::LoadTexture("Assets/Texture/wood.png");
 		material.texture2 = graphics.m_pipeline->depthMapFBO;
+
 		material.Use();
-		material.SetInt("diffuseTexture", 0);
+		material.SetInt("material.diffuse", 0);
 		material.SetInt("shadowMap", 1);
+
+		material.SetVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+		material.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
+		material.SetFloat("material.shininess", 32.0f);
+
+		material.SetVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+		material.SetVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darkened
+		material.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+		material.SetFloat("light.constant", 1.0f);
+		material.SetFloat("light.linear", 0.09f);
+		material.SetFloat("light.quadratic", 0.032f);
 	}
 
 	Material shadowMaterial("Assets/Shader/ShadowDepth");
