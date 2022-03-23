@@ -167,7 +167,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 	// 2. Light
 	//=====================================
 
-	auto light = graphics.AddActor(Actor::PrefabLight(LightType::SpotLight));
+	auto light = graphics.AddActor(Actor::PrefabLight(LightType::Directional));
 	light->transform->position = glm::vec3(-2.0, 4.0, -1.0f);
 	//light->transform->position = glm::vec3(0, 4.0, -1.0f);
 	//light->GetComponent<MeshRenderer>()->hidden = true;
@@ -175,7 +175,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 
 	graphics.postUpdate.push_back([light]() {
 		//light->transform->rotation += glm::vec3(1, 0, 0);
-		light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
+		//light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
 		});
 
 	//=====================================
@@ -283,17 +283,18 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		}
 		vector<float> quadVertices = {
 			// positions        // texture Coords
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+			-1.0f,  1.0f, 0.0f, 0,0,0, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0,0,0, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 0,0,0, 1.0f, 1.0f,
+			 1.0f, -1.0f, 0.0f, 0,0,0, 1.0f, 0.0f,
 		};
 		vector<unsigned int> quadIndices = {
 			0,1,2,
 			1,2,3,
 		};
 		Mesh quadMesh(6, quadVertices, quadIndices);
-		quadMesh.SetupAttributes({ 3, 2 });
+		//Mesh quadMesh(6, DefaultAssets::quad_vertices, DefaultAssets::quad_indices);
+		//quadMesh.SetupAttributes({ 3, 2 });
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(quadMesh, debugMat));
 		quad->AddComponent(renderer);
 		renderer->hidden = true;

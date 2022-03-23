@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <algorithm> 
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -23,12 +24,26 @@ namespace Velvet
 
 		Mesh(int numVertices, vector<float> vertices, vector<unsigned int> indices = vector<unsigned int>())
 		{
-			int stride = vertices.size() / numVertices;
-			for (int i = 0; i < numVertices; i++)
+			// HACK
+			unsigned int actualNumVertices = 1;
+			if (indices.size() > 0)
 			{
-				int baseV = stride * i;
-				int baseN = (stride >= 6) ? baseV + 3 : baseV;
-				int baseT = baseN + 3;
+				for (int i = 0; i < indices.size(); i++)
+				{
+					actualNumVertices = max(actualNumVertices, indices[i] + 1);
+				}
+			}
+			else
+			{
+				actualNumVertices = numVertices;
+			}
+
+			unsigned int stride = vertices.size() / actualNumVertices;
+			for (int i = 0; i < actualNumVertices; i++)
+			{
+				unsigned int baseV = stride * i;
+				unsigned int baseN = (stride >= 6) ? baseV + 3 : baseV;
+				unsigned int baseT = baseN + 3;
 
 				m_vertices.push_back(glm::vec3(vertices[baseV + 0], vertices[baseV + 1], vertices[baseV + 2]));
 				if (stride >= 6)
@@ -116,7 +131,8 @@ namespace Velvet
 			m_normals = normals;
 			m_texCoords = texCoords;
 			m_indices = indices;
-			m_numVertices = vertices.size();
+			m_numVertices = indices.size() > 0 ? indices.size() : vertices.size();
+
 			// 1. bind Vertex Array Object
 			glGenVertexArrays(1, &m_VAO);
 			glBindVertexArray(m_VAO);
@@ -158,8 +174,8 @@ namespace Velvet
 				int size = attributeSizes[i];
 				glVertexAttribPointer(i, size, GL_FLOAT, GL_FALSE, size * sizeof(float),
 					(void*)(current));
-				fmt::print("glVertexAttribPointer({}, {}, GL_FLOAT, GL_FALSE, size * sizeof(float), {}\n",
-					i, size, current);
+				//fmt::print("glVertexAttribPointer({}, {}, GL_FLOAT, GL_FALSE, size * sizeof(float), {}\n",
+				//	i, size, current);
 				glEnableVertexAttribArray(i);
 				current += size * sizeof(float) * m_numVertices;
 			}
