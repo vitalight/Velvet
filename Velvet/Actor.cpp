@@ -16,8 +16,7 @@ namespace Velvet
 	
 	shared_ptr<Actor> Actor::PrefabQuad()
 	{
-		Mesh mesh(6, DefaultAssets::quad_vertices, DefaultAssets::quad_indices);
-		mesh.SetupAttributes({3, 2});
+		Mesh mesh({ 3,2 }, DefaultAssets::quad_vertices, DefaultAssets::quad_indices);
 
 		Material material("Assets/Shader/Quad");
 		{
@@ -38,8 +37,7 @@ namespace Velvet
 
 	shared_ptr<Actor> Actor::PrefabCube()
 	{
-		Mesh mesh(36, DefaultAssets::cube_vertices);
-		mesh.SetupAttributes(DefaultAssets::cube_attributes);
+		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 
 		Material material("Assets/Shader/_Default");
 		{
@@ -72,8 +70,7 @@ namespace Velvet
 
 	shared_ptr<Actor> Actor::PrefabLight(LightType type)
 	{
-		Mesh mesh(36, DefaultAssets::cube_vertices);
-		mesh.SetupAttributes(DefaultAssets::cube_attributes);
+		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 
 		Material material("Assets/Shader/Light");
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));

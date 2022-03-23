@@ -68,6 +68,6 @@ namespace Velvet
             -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left   
 		};
 
-		const vector<int> cube_attributes = { 3, 3, 2 };
+		const vector<unsigned int> cube_attributes = { 3, 3, 2 };
 	}
 }

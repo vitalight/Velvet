@@ -16,28 +16,23 @@ using namespace std;
 
 namespace Velvet
 {
-	
+	/// <summary>
+	/// A class that allows you to create or modify meshes.
+	/// </summary>
 	class Mesh
 	{
 	public:
-		Mesh() {}
+		//Mesh() {}
 
-		Mesh(int drawCount, vector<float> vertices, vector<unsigned int> indices = vector<unsigned int>())
+		Mesh(vector<unsigned int> attributeSizes, vector<float> vertices, vector<unsigned int> indices = vector<unsigned int>())
 		{
-			unsigned int numVertices = 1;
-			if (indices.size() > 0)
+			unsigned int stride = 0;
+			for (int i = 0; i < attributeSizes.size(); i++)
 			{
-				for (int i = 0; i < indices.size(); i++)
-				{
-					numVertices = max(numVertices, indices[i] + 1);
-				}
+				stride += attributeSizes[i];
 			}
-			else
-			{
-				numVertices = drawCount;
-			}
+			unsigned int numVertices = vertices.size() / stride;
 
-			unsigned int stride = vertices.size() / numVertices;
 			for (int i = 0; i < numVertices; i++)
 			{
 				unsigned int baseV = stride * i;
@@ -51,80 +46,57 @@ namespace Velvet
 				}
 				m_texCoords.push_back(glm::vec2(vertices[baseT + 0], vertices[baseT + 1]));
 			}
-			SetupVAO(m_vertices, m_normals, m_texCoords, indices);
+			Initialize(m_vertices, m_normals, m_texCoords, indices, attributeSizes);
 		}
 
-		Mesh(vector<glm::vec3> &vertices, vector<glm::vec3> &normals, vector<glm::vec2> &texCoords, vector<unsigned int> &indices = vector<unsigned int>())
+		Mesh(vector<glm::vec3>& vertices, vector<glm::vec3>& normals, vector<glm::vec2>& texCoords, vector<unsigned int>& indices = vector<unsigned int>())
 		{
-			SetupVAO(vertices, normals, texCoords, indices);
+			Initialize(vertices, normals, texCoords, indices);
 		}
 
-		Mesh(const string& modelPath)
+		Mesh(const string& filePath)
 		{
-			Assimp::Importer importer;
-			const aiScene* scene = importer.ReadFile(modelPath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-			// check for errors
-			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
-			{
-				cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
-				return;
-			}
-			aiMesh* mesh = scene->mMeshes[0];
-
-			int drawCount = mesh->mNumVertices;
 			vector<glm::vec3> vertices;
 			vector<glm::vec3> normals;
 			vector<glm::vec2> texCoords;
 			vector<unsigned int> indices;
+			LoadMeshFromFile(filePath, vertices, normals, texCoords, indices);
 
-			// walk through each of the mesh's vertices
-			for (unsigned int i = 0; i < mesh->mNumVertices; i++)
-			{
-				// positions
-				vertices.push_back(AdaptVec(mesh->mVertices[i]));
-				// normals
-				if (mesh->HasNormals())
-				{
-					normals.push_back(AdaptVec(mesh->mNormals[i]));
-				}
-				else
-				{
-					fmt::print("Normals not found\n");
-					exit(-1);
-				}
-				// texture coordinates
-				if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
-				{
-					texCoords.push_back(AdaptVec(mesh->mTextureCoords[0][i]));
-				}
-				else
-				{
-					texCoords.push_back(glm::vec2(0.0f, 0.0f));
-				}
-			}
-			// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
-			for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-			{
-				aiFace face = mesh->mFaces[i];
-				// retrieve all indices of the face and store them in the indices vector
-				for (unsigned int j = 0; j < face.mNumIndices; j++)
-					indices.push_back(face.mIndices[j]);
-			}
-
-			SetupVAO(vertices, normals, texCoords, indices);
+			Initialize(vertices, normals, texCoords, indices);
 		}
 
-		inline glm::vec3 AdaptVec(aiVector3D input)
+		unsigned int VAO() const
 		{
-			return glm::vec3(input.x, input.y, input.z);
+			return m_VAO;
 		}
 
-		inline glm::vec2 AdaptVec(aiVector2D input)
+		bool useIndices() const
 		{
-			return glm::vec2(input.x, input.y);
+			return m_indices.size() > 0;
 		}
 
-		void SetupVAO(vector<glm::vec3>& vertices, vector<glm::vec3>& normals, vector<glm::vec2>& texCoords, vector<unsigned int>& indices = vector<unsigned int>())
+		unsigned int drawCount() const
+		{
+			if (useIndices())
+			{
+				return m_indices.size();
+			}
+			else
+			{
+				return m_vertices.size();
+			}
+		}
+
+	private:
+		vector<glm::vec3> m_vertices;
+		vector<glm::vec3> m_normals;
+		vector<glm::vec2> m_texCoords;
+		vector<unsigned int> m_indices;
+
+		unsigned int m_VAO = 0;
+
+		void Initialize(const vector<glm::vec3>& vertices, const vector<glm::vec3>& normals, const vector<glm::vec2>& texCoords,
+			const vector<unsigned int>& indices, const vector<unsigned int> attributeSizes = { 3,3,2 })
 		{
 			m_vertices = vertices;
 			m_normals = normals;
@@ -160,10 +132,10 @@ namespace Velvet
 			}
 
 			// 4. then set the vertex attributes pointers
-			SetupAttributes({ 3,3,2 });
+			SetupAttributes(attributeSizes);
 		}
 
-		void SetupAttributes(vector<int> attributeSizes)
+		void SetupAttributes(const vector<unsigned int>& attributeSizes) const
 		{
 			int current = 0;
 			for (int i = 0; i < attributeSizes.size(); i++)
@@ -178,35 +150,63 @@ namespace Velvet
 			}
 		}
 
-		unsigned int VAO() const
+		static void LoadMeshFromFile(const string& filePath, vector<glm::vec3>& vertices, vector<glm::vec3>& normals, vector<glm::vec2>& texCoords, vector<unsigned int>& indices)
 		{
-			return m_VAO;
-		}
-
-		bool useIndices() const
-		{
-			return m_indices.size() > 0;
-		}
-
-		unsigned int drawCount() const
-		{
-			if (useIndices())
+			Assimp::Importer importer;
+			const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+			// check for errors
+			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
 			{
-				return m_indices.size();
+				cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
+				return;
 			}
-			else
+			aiMesh* mesh = scene->mMeshes[0];
+
+			int drawCount = mesh->mNumVertices;
+
+			// walk through each of the mesh's vertices
+			for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 			{
-				return m_vertices.size();
+				// positions
+				vertices.push_back(AdaptVector(mesh->mVertices[i]));
+				// normals
+				if (mesh->HasNormals())
+				{
+					normals.push_back(AdaptVector(mesh->mNormals[i]));
+				}
+				else
+				{
+					fmt::print("Normals not found\n");
+					exit(-1);
+				}
+				// texture coordinates
+				if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
+				{
+					texCoords.push_back(AdaptVector(mesh->mTextureCoords[0][i]));
+				}
+				else
+				{
+					texCoords.push_back(glm::vec2(0.0f, 0.0f));
+				}
+			}
+			// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
+			for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+			{
+				aiFace face = mesh->mFaces[i];
+				// retrieve all indices of the face and store them in the indices vector
+				for (unsigned int j = 0; j < face.mNumIndices; j++)
+					indices.push_back(face.mIndices[j]);
 			}
 		}
+		
+		static inline glm::vec3 AdaptVector(const aiVector3D& input)
+		{
+			return glm::vec3(input.x, input.y, input.z);
+		}
 
-	private:
-		vector<glm::vec3> m_vertices;
-		vector<glm::vec3> m_normals;
-		vector<glm::vec2> m_texCoords;
-		vector<unsigned int> m_indices;
-
-		unsigned int m_VAO = 0;
+		static inline glm::vec2 AdaptVector(const aiVector2D& input)
+		{
+			return glm::vec2(input.x, input.y);
+		}
 	};
-	
 }

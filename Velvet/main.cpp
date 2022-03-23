@@ -56,9 +56,7 @@ void CreateScene_BlinnPhong(VtGraphics& graphics)
 			-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
 			 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
 		};
-		Mesh mesh(6, planeVertices);
-		mesh.SetupAttributes({ 3, 3, 2 });
-
+		Mesh mesh({ 3, 3, 2 }, planeVertices);
 
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 		plane->AddComponent(renderer);
@@ -68,8 +66,7 @@ void CreateScene_BlinnPhong(VtGraphics& graphics)
 
 	shared_ptr<Actor> cube(new Actor("Cube"));
 	{
-		Mesh mesh(36, DefaultAssets::cube_vertices);
-		mesh.SetupAttributes(DefaultAssets::cube_attributes);
+		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 		cube->AddComponent(renderer);
 	}
@@ -139,8 +136,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 			-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
 			 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
 		};
-		Mesh mesh(6, planeVertices);
-		mesh.SetupAttributes({ 3, 3, 2 });
+		Mesh mesh({ 3, 3, 2 }, planeVertices);
 
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		plane->AddComponent(renderer);
@@ -148,9 +144,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 
 	auto cube1 = graphics.CreateActor("Cube1");
 	{
-		//Mesh mesh(36, DefaultAssets::cube_vertices);
 		Mesh mesh("Assets/Model/sphere.obj");
-		mesh.SetupAttributes(DefaultAssets::cube_attributes);
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		cube1->AddComponent(renderer);
 		cube1->transform->position = glm::vec3(0.0f, 1.5f, 0.0);
@@ -159,8 +153,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 
 	auto cube2 = graphics.CreateActor("Cube2");
 	{
-		Mesh mesh(36, DefaultAssets::cube_vertices);
-		mesh.SetupAttributes(DefaultAssets::cube_attributes);
+		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		cube2->AddComponent(renderer);
 		cube2->transform->position = glm::vec3(2.0f, 0.0f, 1.0);
@@ -169,8 +162,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 
 	auto cube3 = graphics.CreateActor("Cube3");
 	{
-		Mesh mesh(36, DefaultAssets::cube_vertices);
-		mesh.SetupAttributes(DefaultAssets::cube_attributes);
+		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		cube3->AddComponent(renderer);
 		cube3->transform->position = glm::vec3(-1.0f, 0.0f, 2.0);
@@ -200,22 +192,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 		};
 
-		vector<float> quadVertices_lite = {
-			// positions        // texture Coords
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-
-			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-		};
-		vector<unsigned int> quadIndices = {
-			0,1,2,
-			1,2,3,
-		};
-		Mesh quadMesh(6, quadVertices);
-		//Mesh quadMesh(6, quadVertices_lite, quadIndices);
-		//Mesh quadMesh(6, DefaultAssets::quad_vertices, DefaultAssets::quad_indices);
-		quadMesh.SetupAttributes({ 3, 2 });
+		Mesh quadMesh({ 3,2 }, quadVertices);
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(quadMesh, debugMat));
 		quad->AddComponent(renderer);
 		renderer->hidden = true;
