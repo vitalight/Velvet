@@ -8,6 +8,7 @@
 #include "Camera.hpp"
 #include "Input.hpp"
 #include "RenderPipeline.hpp"
+#include "Config.hpp"
 
 using namespace Velvet;
 
@@ -23,7 +24,7 @@ VtGraphics::VtGraphics()
 	// Multi-sample Anti-aliasing
 	//glfwWindowHint(GLFW_SAMPLES, 4);
 
-	m_window = glfwCreateWindow(800, 600, "Velvet", NULL, NULL);
+	m_window = glfwCreateWindow(Config::screenWidth, Config::screenHeight, "Velvet", NULL, NULL);
 
 	if (m_window == NULL)
 	{
@@ -52,7 +53,7 @@ VtGraphics::VtGraphics()
 		fmt::print("Failed to initialize GLAD\n");
 		return;
 	}
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, Config::screenWidth, Config::screenHeight);
 	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
 	//glCullFace(GL_BACK);

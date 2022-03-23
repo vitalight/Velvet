@@ -36,7 +36,7 @@ namespace Velvet
 			if (camera)
 			{
 				const auto& trans = camera->transform();
-				const float speedScalar = Config::cameraSpeedScalar; // adjust accordingly
+				const float speedScalar = Config::cameraTranslateSpeed; // adjust accordingly
 
 				static glm::vec3 currentSpeed(0);
 				glm::vec3 targetSpeed(0);

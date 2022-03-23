@@ -22,6 +22,7 @@ namespace Velvet
 
 		MeshRenderer(Mesh mesh, Material material, Material shadowMaterial);
 
+		void SetupLighting(Material m_material);
 
 		void Render(glm::mat4 lightMatrix);
 

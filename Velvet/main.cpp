@@ -88,12 +88,13 @@ void CreateScene_Shadow(VtGraphics& graphics)
 	//=====================================
 
 	auto light = graphics.AddActor(Actor::PrefabLight(LightType::SpotLight));
-	light->transform->position = glm::vec3(-2.0, 4.0, -1.0f);
-	//light->transform->position = glm::vec3(0, 4.0, -1.0f);
+	//light->transform->position = glm::vec3(-2.0, 4.0, -1.0f);
+	light->transform->position = glm::vec3(0, 4.0, -1.0f);
 	light->transform->scale = glm::vec3(0.2);
 
 	graphics.postUpdate.push_back([light]() {
-		light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
+		//light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
+		//light->transform->rotation = glm::vec3(30 * sin(glfwGetTime()), 0, 0);
 		});
 
 	//=====================================

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VtGraphics.hpp"
+#include "Config.hpp"
 
 namespace Velvet
 {
@@ -22,9 +23,6 @@ namespace Velvet
 
 		unsigned int depthMapFBO;
 	private:
-		const unsigned int SCR_WIDTH = 800;
-		const unsigned int SCR_HEIGHT = 600;
-		const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
 		vector<MeshRenderer*> Cull(vector<MeshRenderer*> renderers)
 		{
@@ -42,12 +40,14 @@ namespace Velvet
 			glm::mat4 lightProjection, lightView;
 			glm::mat4 lightSpaceMatrix;
 			float near_plane = 1.0f, far_plane = 7.5f;
-			glm::vec3 lightPos = Global::light[0]->position();
-			//if (Global::light[0]->type == LightType::SpotLight)
-			//{
-			//	lightProjection = glm::perspective(glm::radians(45.0f), (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane); // note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
-			//}
-			//else
+			auto light = Global::light[0];
+			glm::vec3 lightPos = light->position();
+			if (light->type == LightType::SpotLight)
+			{
+				// note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
+				lightProjection = glm::perspective(glm::radians(90.0f), (GLfloat)Config::shadowWidth / (GLfloat)Config::shadowHeight, near_plane, far_plane);
+			}
+			else
 			{
 				lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
 			}
@@ -61,7 +61,7 @@ namespace Velvet
 			if (Global::light.size() == 0)
 				return;
 
-			glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+			glViewport(0, 0, Config::shadowWidth, Config::shadowHeight);
 			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 			glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -78,7 +78,7 @@ namespace Velvet
 		void RenderObjects(vector<MeshRenderer*> renderers)
 		{        
 			// reset viewport
-			glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+			glViewport(0, 0, Config::screenWidth, Config::screenHeight);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			auto lightSpaceMatrix = ComputeLightMatrix();

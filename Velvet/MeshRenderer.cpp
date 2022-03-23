@@ -5,6 +5,7 @@
 #include "Camera.hpp"
 #include "Actor.hpp"
 #include "Light.hpp"
+#include "Config.hpp"
 
 namespace Velvet
 {
@@ -20,7 +21,7 @@ namespace Velvet
 		name = __func__;
 	}
 
-	void SetupLighting(Material m_material)
+	void MeshRenderer::SetupLighting(Material m_material)
 	{
 		int numPointLight = 0;
 		int numDirLight = 0;
@@ -111,7 +112,7 @@ namespace Velvet
 
 		glm::mat4 model = actor->transform->matrix();
 		glm::mat4 view = Global::camera->view();
-		glm::mat4 projection = glm::perspective(glm::radians(Global::camera->zoom), 800.0f / 600.0f, 0.1f,
+		glm::mat4 projection = glm::perspective(glm::radians(Global::camera->zoom), Config::screenAspect, 0.1f,
 			100.0f);
 
 		m_material.SetMat4("model", model);
