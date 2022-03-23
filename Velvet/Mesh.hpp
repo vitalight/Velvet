@@ -22,24 +22,23 @@ namespace Velvet
 	public:
 		Mesh() {}
 
-		Mesh(int numVertices, vector<float> vertices, vector<unsigned int> indices = vector<unsigned int>())
+		Mesh(int drawCount, vector<float> vertices, vector<unsigned int> indices = vector<unsigned int>())
 		{
-			// HACK
-			unsigned int actualNumVertices = 1;
+			unsigned int numVertices = 1;
 			if (indices.size() > 0)
 			{
 				for (int i = 0; i < indices.size(); i++)
 				{
-					actualNumVertices = max(actualNumVertices, indices[i] + 1);
+					numVertices = max(numVertices, indices[i] + 1);
 				}
 			}
 			else
 			{
-				actualNumVertices = numVertices;
+				numVertices = drawCount;
 			}
 
-			unsigned int stride = vertices.size() / actualNumVertices;
-			for (int i = 0; i < actualNumVertices; i++)
+			unsigned int stride = vertices.size() / numVertices;
+			for (int i = 0; i < numVertices; i++)
 			{
 				unsigned int baseV = stride * i;
 				unsigned int baseN = (stride >= 6) ? baseV + 3 : baseV;
@@ -72,7 +71,7 @@ namespace Velvet
 			}
 			aiMesh* mesh = scene->mMeshes[0];
 
-			int numVertices = mesh->mNumVertices;
+			int drawCount = mesh->mNumVertices;
 			vector<glm::vec3> vertices;
 			vector<glm::vec3> normals;
 			vector<glm::vec2> texCoords;
@@ -131,7 +130,6 @@ namespace Velvet
 			m_normals = normals;
 			m_texCoords = texCoords;
 			m_indices = indices;
-			m_numVertices = indices.size() > 0 ? indices.size() : vertices.size();
 
 			// 1. bind Vertex Array Object
 			glGenVertexArrays(1, &m_VAO);
@@ -153,8 +151,7 @@ namespace Velvet
 			glBufferSubData(GL_ARRAY_BUFFER, size[0] + size[1], size[2], texCoords.data());
 
 			// 3. copy our index array in a element buffer for OpenGL to use
-			m_useIndices = (indices.size() > 0);
-			if (m_useIndices)
+			if (useIndices())
 			{
 				unsigned int EBO;
 				glGenBuffers(1, &EBO);
@@ -177,7 +174,7 @@ namespace Velvet
 				//fmt::print("glVertexAttribPointer({}, {}, GL_FLOAT, GL_FALSE, size * sizeof(float), {}\n",
 				//	i, size, current);
 				glEnableVertexAttribArray(i);
-				current += size * sizeof(float) * m_numVertices;
+				current += size * sizeof(float) * m_vertices.size();
 			}
 		}
 
@@ -188,12 +185,19 @@ namespace Velvet
 
 		bool useIndices() const
 		{
-			return m_useIndices;
+			return m_indices.size() > 0;
 		}
 
-		unsigned int numVertices() const
+		unsigned int drawCount() const
 		{
-			return m_numVertices;
+			if (useIndices())
+			{
+				return m_indices.size();
+			}
+			else
+			{
+				return m_vertices.size();
+			}
 		}
 
 	private:
@@ -203,8 +207,6 @@ namespace Velvet
 		vector<unsigned int> m_indices;
 
 		unsigned int m_VAO = 0;
-		bool m_useIndices = true;
-		unsigned int m_numVertices = 0;
 	};
 	
 }

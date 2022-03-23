@@ -122,11 +122,11 @@ namespace Velvet
 		glBindVertexArray(m_mesh.VAO());
 		if (m_mesh.useIndices())
 		{
-			glDrawElements(GL_TRIANGLES, m_mesh.numVertices(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, m_mesh.drawCount(), GL_UNSIGNED_INT, 0);
 		}
 		else
 		{
-			glDrawArrays(GL_TRIANGLES, 0, m_mesh.numVertices());
+			glDrawArrays(GL_TRIANGLES, 0, m_mesh.drawCount());
 		}
 	}	
 
@@ -146,11 +146,11 @@ namespace Velvet
 		glBindVertexArray(m_mesh.VAO());
 		if (m_mesh.useIndices())
 		{
-			glDrawElements(GL_TRIANGLES, m_mesh.numVertices(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, m_mesh.drawCount(), GL_UNSIGNED_INT, 0);
 		}
 		else
 		{
-			glDrawArrays(GL_TRIANGLES, 0, m_mesh.numVertices());
+			glDrawArrays(GL_TRIANGLES, 0, m_mesh.drawCount());
 		}
 	}
 

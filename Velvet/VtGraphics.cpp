@@ -71,6 +71,12 @@ shared_ptr<Actor> VtGraphics::AddActor(shared_ptr<Actor> actor)
 	return actor;
 }
 
+shared_ptr<Actor> VtGraphics::CreateActor(const string& name)
+{
+	auto actor = shared_ptr<Actor>(new Actor(name));
+	return AddActor(actor);
+}
+
 void VtGraphics::ProcessMouse(GLFWwindow* m_window, double xpos, double ypos)
 {
 	for (auto foo : onMouseMove)

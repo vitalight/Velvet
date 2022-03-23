@@ -26,6 +26,8 @@ namespace Velvet
 
 		shared_ptr<Actor> AddActor(shared_ptr<Actor> actor);
 
+		shared_ptr<Actor> CreateActor(const string& name);
+
 		int Run();
 
 		template <typename T>
