@@ -237,8 +237,8 @@ void CreateScene_Shadow(VtGraphics& graphics)
 
 	shared_ptr<Actor> cube1(new Actor("Cube1"));
 	{
-		Mesh mesh(36, DefaultAssets::cube_vertices);
-		//Mesh mesh("Assets/Model/cube.obj");
+		//Mesh mesh(36, DefaultAssets::cube_vertices);
+		Mesh mesh("Assets/Model/sphere.obj");
 		mesh.SetupAttributes(DefaultAssets::cube_attributes);
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		cube1->AddComponent(renderer);
@@ -283,18 +283,21 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		}
 		vector<float> quadVertices = {
 			// positions        // texture Coords
-			-1.0f,  1.0f, 0.0f, 0,0,0, 0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f, 0,0,0, 0.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f, 0,0,0, 1.0f, 1.0f,
-			 1.0f, -1.0f, 0.0f, 0,0,0, 1.0f, 0.0f,
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 		};
 		vector<unsigned int> quadIndices = {
 			0,1,2,
 			1,2,3,
 		};
-		Mesh quadMesh(6, quadVertices, quadIndices);
+		Mesh quadMesh(6, quadVertices);
 		//Mesh quadMesh(6, DefaultAssets::quad_vertices, DefaultAssets::quad_indices);
-		//quadMesh.SetupAttributes({ 3, 2 });
+		quadMesh.SetupAttributes({ 3, 2 });
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(quadMesh, debugMat));
 		quad->AddComponent(renderer);
 		renderer->hidden = true;
