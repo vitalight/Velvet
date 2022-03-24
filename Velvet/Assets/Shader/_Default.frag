@@ -97,6 +97,11 @@ vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, 
     return light.color * (ambient + (1.0 - shadow) * (diffuse + specular));
 }
 
+vec3 GammaCorrection(vec3 color)
+{
+    return pow(color, vec3(1.0/2.2));
+}
+
 void main()
 {
 	vec3 norm = normalize(vs.normal);
@@ -105,6 +110,6 @@ void main()
 	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, vs.worldPos, vs.lightSpaceFragPos, material);
     vec3 diffuseColor = vec3(texture(material.diffuse, vs.uv));
 
-	FragColor = vec4(lighting * diffuseColor, 1.0);
+	FragColor = vec4(GammaCorrection(lighting * diffuseColor), 1.0);
 }
 

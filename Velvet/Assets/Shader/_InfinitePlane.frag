@@ -125,7 +125,12 @@ vec3 ComputeDiffuseColor(vec3 worldPos)
 {
     float checkerboard = checker(vec2(worldPos.x, worldPos.z), 1.0);
 
-    return vec3(0.95 - checkerboard * 0.2);
+    return vec3(1.0 - checkerboard * 0.25);
+}
+
+vec3 GammaCorrection(vec3 color)
+{
+    return pow(color, vec3(1.0/2.2));
 }
 
 void main()
@@ -148,5 +153,5 @@ void main()
 
 	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, worldPos, lightSpaceFragPos, material);
 
-	FragColor = vec4(diffuseColor * lighting, 1.0);
+	FragColor = vec4(GammaCorrection(diffuseColor * lighting), 1.0);
 }
