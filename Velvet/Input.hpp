@@ -22,6 +22,8 @@ namespace Velvet
 		// Returns true during the frame the user releases the key.
 		bool GetKeyUp(int key);
 
+		bool GetMouse(int button);
+
 		bool GetMouseDown();
 
 	private:

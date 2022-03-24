@@ -19,7 +19,6 @@ bool Input::GetKey(int key)
 // Returns true during the frame the user starts pressing down the key.
 bool Input::GetKeyDown(int key)
 {
-	//return GetKey(key);
 	return	(GetKey(key) ?
 		(m_keyOnce[key] ? false : (m_keyOnce[key] = true)) :
 		(m_keyOnce[key] = false));
@@ -30,6 +29,12 @@ bool Input::GetKeyDown(int key)
 bool Input::GetKeyUp(int key)
 {
 	return true;
+}
+
+bool Velvet::Input::GetMouse(int button)
+{
+	int state = glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT);
+	return state == GLFW_PRESS;
 }
 
 bool Input::GetMouseDown()

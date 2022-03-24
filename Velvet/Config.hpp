@@ -6,6 +6,7 @@ namespace Velvet
 	{
 		// Controls how fast the camera moves
 		const float cameraTranslateSpeed = 5.0f;
+		const float cameraRotateSensitivity = 0.15f;
 
 		const unsigned int screenWidth = 1280;
 		const unsigned int screenHeight = 720;

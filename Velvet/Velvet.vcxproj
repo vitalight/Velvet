@@ -116,18 +116,12 @@
     <None Include="Assets\Shader\BlinnPhong.vert" />
     <None Include="Assets\Shader\_Default.frag" />
     <None Include="Assets\Shader\_Default.vert" />
-    <None Include="Assets\Shader\Light.frag" />
-    <None Include="Assets\Shader\Light.vert" />
-    <None Include="Assets\Shader\Model.frag" />
-    <None Include="Assets\Shader\Model.vert" />
-    <None Include="Assets\Shader\Quad.frag" />
-    <None Include="Assets\Shader\Quad.vert" />
-    <None Include="Assets\Shader\Shadow.frag" />
-    <None Include="Assets\Shader\Shadow.vert" />
-    <None Include="Assets\Shader\ShadowDebug.frag" />
-    <None Include="Assets\Shader\ShadowDebug.vert" />
-    <None Include="Assets\Shader\ShadowDepth.frag" />
-    <None Include="Assets\Shader\ShadowDepth.vert" />
+    <None Include="Assets\Shader\_Light.frag" />
+    <None Include="Assets\Shader\_Light.vert" />
+    <None Include="Assets\Shader\_ShadowDebug.frag" />
+    <None Include="Assets\Shader\_ShadowDebug.vert" />
+    <None Include="Assets\Shader\_ShadowDepth.frag" />
+    <None Include="Assets\Shader\_ShadowDepth.vert" />
     <None Include="Assets\Shader\_InfinitePlane.frag" />
     <None Include="Assets\Shader\_InfinitePlane.vert" />
   </ItemGroup>

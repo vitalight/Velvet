@@ -29,8 +29,6 @@ namespace Velvet
 
 		void Update() override
 		{
-			auto m_window = Global::graphics->m_window;
-
 			const auto& camera = Global::camera;
 
 			if (camera)
@@ -77,56 +75,26 @@ namespace Velvet
 
 		static void OnMouseMove(double xpos, double ypos)
 		{
-			static bool firstMouse = true;
-			static float lastX = 400, lastY = 300;
-			static bool shouldRotate = false;
+			static float lastX = Config::screenWidth / 2, lastY = Config::screenHeight / 2;
 
-			auto m_window = Global::graphics->m_window;
-			int state = glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT);
-			if (state == GLFW_PRESS)
-			{
-				shouldRotate = true;
-			}
-			else
-			{
-				shouldRotate = false;
-				lastX = (float)xpos;
-				lastY = (float)ypos;
-			}
+			bool shouldRotate = Global::input->GetMouse(GLFW_MOUSE_BUTTON_LEFT);
 
 			if (shouldRotate)
 			{
 				auto rot = Global::camera->transform()->rotation;
 				float yaw = -rot.y, pitch = rot.x;
 
-				if (firstMouse)
-				{
-					lastX = (float)xpos;
-					lastY = (float)ypos;
-					firstMouse = false;
-				}
-				float xoffset = xpos - lastX;
-				float yoffset = lastY - ypos;
-				lastX = xpos;
-				lastY = ypos;
-				float sensitivity = 0.15f;
-				xoffset *= sensitivity;
-				yoffset *= sensitivity;
+				float xoffset = (float)xpos - lastX;
+				float yoffset = lastY - (float)ypos;
+				xoffset *= Config::cameraRotateSensitivity;
+				yoffset *= Config::cameraRotateSensitivity;
 				yaw += xoffset;
-				pitch += yoffset;
-				if (pitch > 89.0f)
-					pitch = 89.0f;
-				if (pitch < -89.0f)
-					pitch = -89.0f;
-				glm::vec3 direction;
-				direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-				direction.y = sin(glm::radians(pitch));
-				direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+				pitch = clamp(pitch + yoffset, -89.0f, 89.0f);
 
 				Global::camera->transform()->rotation = glm::vec3(pitch, -yaw, 0);
-				//fmt::print("CameraRotation: {}\n", Global::mainCamera->transform()->rotation);
-				//Global::mainCamera->front = glm::normalize(direction);
 			}
+			lastX = (float)xpos;
+			lastY = (float)ypos;
 		}
 	};
 }

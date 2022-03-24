@@ -17,17 +17,14 @@ namespace Velvet
 	class Actor
 	{
 	public:
-		Actor();
-
-		Actor(string _name);
-
-		static shared_ptr<Actor> PrefabCube();
-
-		static shared_ptr<Actor> PrefabQuad();
-
 		static shared_ptr<Actor> PrefabCamera();
 
 		static shared_ptr<Actor> PrefabLight(LightType type = LightType::Point);
+
+	public:
+		Actor();
+
+		Actor(string _name);
 
 		void Start();
 
@@ -50,11 +47,10 @@ namespace Velvet
 			return result;
 		}
 
+	public:
 		shared_ptr<Transform> transform = make_shared<Transform>(Transform(this));
 		vector<shared_ptr<Component>> components;
-
 		string name;
-
 	};
 
 }

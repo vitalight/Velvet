@@ -45,12 +45,13 @@ namespace Velvet
 			return result;
 		}
 
+	public:
+		unsigned int depthMapFBO();
+
 		vector<function<void(double, double)>> onMouseScroll;
 		vector<function<void(double, double)>> onMouseMove;
 		vector<function<void()>> postUpdate;
 
-		shared_ptr<RenderPipeline> m_pipeline;
-		GLFWwindow* m_window = nullptr;
 		float deltaTime = 0.0f;
 		float elapsedTime = 0.0f;
 		float lastUpdateTime = 0.0f;
@@ -69,8 +70,11 @@ namespace Velvet
 
 		void Finalize();
 
+	private:
 		vector<shared_ptr<Actor>> m_actors;
 		shared_ptr<Input> m_input;
 		bool m_pause = false;
+		shared_ptr<RenderPipeline> m_renderPipeline;
+		GLFWwindow* m_window = nullptr;
 	};
 }

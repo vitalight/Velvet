@@ -1,25 +1,27 @@
 #version 330
 
-layout(location = 0) in vec3 aPos;
-layout(location = 1) in vec3 aNormal;
-layout(location = 2) in vec2 aTexCoords;
+layout(location = 0) in vec3 Pos;
+layout(location = 1) in vec3 Normal;
+layout(location = 2) in vec2 UV;
 
-out vec3 FragPos;
-out vec3 Normal;
-out vec2 TexCoords;
-out vec4 FragPosLightSpace;
+out VS {
+	vec3 worldPos;
+	vec3 normal;
+	vec2 uv;
+	vec4 lightSpacePos;
+} vs;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-uniform mat4 lightSpaceMatrix;
+uniform mat4 _Model;
+uniform mat4 _View;
+uniform mat4 _Projection;
+uniform mat4 _WorldToLight;
 
 void main()
 {
-	gl_Position = projection * view * model * vec4(aPos, 1.0);
-	FragPos = vec3(model * vec4(aPos, 1.0));
-	//Normal = aNormal;
-	Normal = mat3(transpose(inverse(model))) * aNormal;
-	TexCoords = aTexCoords;
-    FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
+	gl_Position = _Projection * _View * _Model * vec4(Pos, 1.0);
+
+	vs.worldPos = vec3(_Model * vec4(Pos, 1.0));
+	vs.normal = mat3(transpose(inverse(_Model))) * Normal;
+	vs.uv = UV;
+    vs.lightSpacePos = _WorldToLight * vec4(vs.worldPos, 1.0);
 }

@@ -10,69 +10,11 @@
 
 namespace Velvet
 {
-	Actor::Actor() {}
-
-	Actor::Actor(string name) : name(name) {}
-	
-	shared_ptr<Actor> Actor::PrefabQuad()
-	{
-		Mesh mesh({ 3,2 }, DefaultAssets::quad_vertices, DefaultAssets::quad_indices);
-
-		Material material("Assets/Shader/Quad");
-		{
-			material.texture1 = Resource::LoadTexture("Assets/Texture/container.jpg");
-			material.texture2 = Resource::LoadTexture("Assets/Texture/awesomeface.png");
-
-			material.Use();
-			material.SetInt("texture1", 0);
-			material.SetInt("texture2", 1);
-		}
-		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
-
-		shared_ptr<Actor> actor(new Actor("Prefab Quad"));
-		actor->AddComponent(renderer);
-
-		return actor;
-	}
-
-	shared_ptr<Actor> Actor::PrefabCube()
-	{
-		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
-
-		Material material("Assets/Shader/_Default");
-		{
-			material.texture1 = Resource::LoadTexture("Assets/Texture/container2.png");
-			material.texture2 = Resource::LoadTexture("Assets/Texture/container2_specular.png");
-
-			material.Use();
-			material.SetInt("material.diffuse", 0);
-			material.SetInt("material.specular", 1);
-
-			material.SetVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-			material.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
-			material.SetFloat("material.shininess", 32.0f);
-		
-			material.SetVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-			material.SetVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darkened
-			material.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
-			
-			material.SetFloat("light.constant", 1.0f);
-			material.SetFloat("light.linear", 0.09f);
-			material.SetFloat("light.quadratic", 0.032f);
-		}
-		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
-
-		shared_ptr<Actor> actor(new Actor("Prefab Cube"));
-		actor->AddComponent(renderer);
-
-		return actor;
-	}
-
 	shared_ptr<Actor> Actor::PrefabLight(LightType type)
 	{
 		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 
-		Material material("Assets/Shader/Light");
+		Material material("Assets/Shader/_Light");
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 
 		shared_ptr<Light> light(new Light());
@@ -94,6 +36,10 @@ namespace Velvet
 		return actor;
 	}
 
+	Actor::Actor() {}
+
+	Actor::Actor(string name) : name(name) {}
+	
 	void Actor::Start()
 	{
 		for (const auto& c : components)

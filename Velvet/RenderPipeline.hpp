@@ -10,13 +10,13 @@ namespace Velvet
 	public:
 		RenderPipeline()
 		{
-			SetupShadow();
+			SetupShadowMap();
 		}
 
 		void Render()
 		{
 			vector<MeshRenderer*> renderers = Global::graphics->FindComponents<MeshRenderer>();
-			renderers = Cull(renderers);
+			//renderers = Cull(renderers);
 			RenderShadow(renderers);
 			RenderObjects(renderers);
 		}
@@ -90,18 +90,7 @@ namespace Velvet
 		}
 	private:
 
-		void Unknown()
-		{
-			// shader configuration
-			// --------------------
-			//shader.use();
-			//shader.setInt("diffuseTexture", 0);
-			//shader.setInt("shadowMap", 1);
-			//debugDepthQuad.use();
-			//debugDepthQuad.setInt("depthMap", 0);
-		}
-
-		void SetupShadow()
+		void SetupShadowMap()
 		{
 			// configure depth map FBO
 			// -----------------------

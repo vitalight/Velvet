@@ -63,7 +63,7 @@ VtGraphics::VtGraphics()
 
 	// setup members
 	m_input = shared_ptr<Input>(new Input(m_window));
-	m_pipeline = shared_ptr<RenderPipeline>(new RenderPipeline());
+	m_renderPipeline = shared_ptr<RenderPipeline>(new RenderPipeline());
 }
 
 shared_ptr<Actor> VtGraphics::AddActor(shared_ptr<Actor> actor)
@@ -76,30 +76,6 @@ shared_ptr<Actor> VtGraphics::CreateActor(const string& name)
 {
 	auto actor = shared_ptr<Actor>(new Actor(name));
 	return AddActor(actor);
-}
-
-void VtGraphics::ProcessMouse(GLFWwindow* m_window, double xpos, double ypos)
-{
-	for (auto foo : onMouseMove)
-	{
-		foo(xpos, ypos);
-	}
-}
-
-void VtGraphics::ProcessScroll(GLFWwindow* m_window, double xoffset, double yoffset)
-{
-	for (auto foo : onMouseScroll)
-	{
-		foo(xoffset, yoffset);
-	}
-}
-
-void VtGraphics::Initialize()
-{
-	for (const auto& go : m_actors)
-	{
-		go->Start();
-	}
 }
 
 int VtGraphics::Run()
@@ -120,6 +96,27 @@ int VtGraphics::Run()
 	Finalize();
 
 	return 0;
+}
+
+unsigned int VtGraphics::depthMapFBO()
+{
+	return m_renderPipeline->depthMapFBO;
+}
+
+void VtGraphics::ProcessMouse(GLFWwindow* m_window, double xpos, double ypos)
+{
+	for (auto foo : onMouseMove)
+	{
+		foo(xpos, ypos);
+	}
+}
+
+void VtGraphics::ProcessScroll(GLFWwindow* m_window, double xoffset, double yoffset)
+{
+	for (auto foo : onMouseScroll)
+	{
+		foo(xoffset, yoffset);
+	}
 }
 
 void VtGraphics::ProcessInput(GLFWwindow* m_window)
@@ -163,6 +160,15 @@ void VtGraphics::ProcessInput(GLFWwindow* m_window)
 	}
 }
 
+
+void VtGraphics::Initialize()
+{
+	for (const auto& go : m_actors)
+	{
+		go->Start();
+	}
+}
+
 void VtGraphics::MainLoop()
 {
 	// render loop
@@ -192,7 +198,7 @@ void VtGraphics::MainLoop()
 				callback();
 			}
 
-			m_pipeline->Render();
+			m_renderPipeline->Render();
 
 			// check and call events and swap the buffers
 			glfwSwapBuffers(m_window);

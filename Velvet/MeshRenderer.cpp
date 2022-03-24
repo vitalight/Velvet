@@ -21,73 +21,23 @@ namespace Velvet
 		name = __func__;
 	}
 
+	// Only support spot light for now
 	void MeshRenderer::SetupLighting(Material m_material)
 	{
-		int numPointLight = 0;
-		int numDirLight = 0;
-		int numSpotLight = 0;
-		const int maxLightPerType = 3;
-		// lighting
-		for (int i = 0; i < Global::light.size(); i++)
-		{
-			auto light = Global::light[i];
+		auto light = Global::light[0];
 
-			if (light->type == LightType::Point)
-			{
-				if (numPointLight > maxLightPerType)
-				{
-					fmt::print("Max light per type is [{}]. Ignore extra point light\n", maxLightPerType);
-					continue;
-				}
-				auto prefix = fmt::format("pointLights[{}].", numPointLight);
-				m_material.SetVec3(prefix + "position", light->position());
-				m_material.SetVec3(prefix + "ambient", 0.05f, 0.05f, 0.05f);
-				m_material.SetVec3(prefix + "diffuse", 0.8f, 0.8f, 0.8f);
-				m_material.SetVec3(prefix + "specular", 1.0f, 1.0f, 1.0f);
-				m_material.SetFloat(prefix + "constant", 1.0f);
-				m_material.SetFloat(prefix + "linear", 0.09f);
-				m_material.SetFloat(prefix + "quadratic", 0.032f);
-				numPointLight++;
-			}
-			else if (light->type == LightType::Directional)
-			{
-				if (numDirLight > maxLightPerType)
-				{
-					fmt::print("Max light per type is [{}]. Ignore extra dir light\n", maxLightPerType);
-					continue;
-				}
-				auto prefix = fmt::format("dirLights[{}].", numDirLight);
-				m_material.SetVec3(prefix + "direction", -light->position());
-				m_material.SetVec3(prefix + "ambient", 0.05f, 0.05f, 0.05f);
-				m_material.SetVec3(prefix + "diffuse", 0.4f, 0.4f, 0.4f);
-				m_material.SetVec3(prefix + "specular", 0.5f, 0.5f, 0.5f);
-				numDirLight++;
-			}
-			else
-			{
-				if (numSpotLight > maxLightPerType)
-				{
-					fmt::print("Max light per type is [{}]. Ignore extra point light\n", maxLightPerType);
-					continue;
-				}
-				auto prefix = fmt::format("spotLights[{}].", numSpotLight);
-				auto front = Helper::RotateWithDegree(glm::vec3(0,-1,0), light->transform()->rotation);
-				m_material.SetVec3(prefix+"position", light->position());
-				m_material.SetVec3(prefix+"direction", front);
-				m_material.SetVec3(prefix+"ambient", 0.5f, 0.5f, 0.5f);
-				m_material.SetVec3(prefix+"diffuse", 1.0f, 1.0f, 1.0f);
-				m_material.SetVec3(prefix+"specular", 1.0f, 1.0f, 1.0f);
-				m_material.SetFloat(prefix+"constant", 1.0f);
-				m_material.SetFloat(prefix+"linear", 0.09f);
-				m_material.SetFloat(prefix+"quadratic", 0.032f);
-				m_material.SetFloat(prefix+"cutOff", glm::cos(glm::radians(45.0f)));
-				m_material.SetFloat(prefix+"outerCutOff", glm::cos(glm::radians(60.0f)));
-				numSpotLight++;
-			}
-		}
-		m_material.SetInt("numSpotLight", numSpotLight);
-		m_material.SetInt("numDirLight", numDirLight);
-		m_material.SetInt("numPointLight", numPointLight);
+		auto prefix = fmt::format("spotLight.");
+		auto front = Helper::RotateWithDegree(glm::vec3(0,-1,0), light->transform()->rotation);
+		m_material.SetVec3(prefix+"position", light->position());
+		m_material.SetVec3(prefix+"direction", front);
+		m_material.SetVec3(prefix+"ambient", 0.5f, 0.5f, 0.5f);
+		m_material.SetVec3(prefix+"diffuse", 1.0f, 1.0f, 1.0f);
+		m_material.SetVec3(prefix+"specular", 1.0f, 1.0f, 1.0f);
+		m_material.SetFloat(prefix+"constant", 1.0f);
+		m_material.SetFloat(prefix+"linear", 0.09f);
+		m_material.SetFloat(prefix+"quadratic", 0.032f);
+		m_material.SetFloat(prefix+"cutOff", glm::cos(glm::radians(45.0f)));
+		m_material.SetFloat(prefix+"outerCutOff", glm::cos(glm::radians(60.0f)));
 	}
 
 	void MeshRenderer::Render(glm::mat4 lightMatrix)
@@ -96,30 +46,31 @@ namespace Velvet
 			return;
 
 		m_material.Use();
-		SetupLighting(m_material);
 
 		// camera
-		m_material.SetVec3("viewPos", Global::camera->transform()->position);
+		m_material.SetVec3("_CameraPos", Global::camera->transform()->position);
+
+		// light
 		if (Global::light.size() > 0)
 		{
-			m_material.SetVec3("lightPos", Global::light[0]->position());
+			m_material.SetVec3("_LightPos", Global::light[0]->position());
+			SetupLighting(m_material);
 		}
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_material.texture1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, m_material.texture2);
+		for (int i = 0; i < m_material.textures.size(); i++)
+		{
+			glActiveTexture(GL_TEXTURE0 + i);
+			glBindTexture(GL_TEXTURE_2D, m_material.textures[i]);
+		}
 
 		glm::mat4 model = actor->transform->matrix();
 		glm::mat4 view = Global::camera->view();
-		// TODO: move to camera
-		glm::mat4 projection = glm::perspective(glm::radians(Global::camera->zoom), Config::screenAspect, 0.1f,
-			100.0f);
+		glm::mat4 projection = Global::camera->projection();
 
-		m_material.SetMat4("model", model);
-		m_material.SetMat4("view", view);
-		m_material.SetMat4("projection", projection);
-		m_material.SetMat4("lightSpaceMatrix", lightMatrix);
+		m_material.SetMat4("_Model", model);
+		m_material.SetMat4("_View", view);
+		m_material.SetMat4("_Projection", projection);
+		m_material.SetMat4("_WorldToLight", lightMatrix);
 
 		glBindVertexArray(m_mesh.VAO());
 		if (m_mesh.useIndices())
@@ -140,10 +91,9 @@ namespace Velvet
 		}
 
 		m_shadowMaterial.Use();
-		m_shadowMaterial.SetMat4("lightSpaceMatrix", lightMatrix);
 
-		glm::mat4 model = actor->transform->matrix();
-		m_shadowMaterial.SetMat4("model", model);
+		m_shadowMaterial.SetMat4("_Model", actor->transform->matrix());
+		m_shadowMaterial.SetMat4("_WorldToLight", lightMatrix);
 
 		glBindVertexArray(m_mesh.VAO());
 		if (m_mesh.useIndices())

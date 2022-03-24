@@ -16,8 +16,7 @@ namespace Velvet
 	class Material
 	{
 	public:
-		unsigned int texture1 = 0;
-		unsigned int texture2 = 0;
+		vector<unsigned int> textures;
 
 		Material() {}
 
@@ -99,6 +98,12 @@ namespace Velvet
 
 		// utility uniform functions
 		// ------------------------------------------------------------------------
+		void SetTexture(const std::string&name, unsigned int texture)
+		{
+			SetInt(name, textures.size());
+			textures.push_back(texture);
+		}
+		// ------------------------------------------------------------------------
 		void SetBool(const std::string& name, bool value) const
 		{
 			Use();
@@ -109,6 +114,12 @@ namespace Velvet
 		{
 			Use();
 			glUniform1i(GetLocation(name), value);
+		}
+		// ------------------------------------------------------------------------
+		void SetUInt(const std::string& name, unsigned int value) const
+		{
+			Use();
+			glUniform1ui(GetLocation(name), value);
 		}
 		// ------------------------------------------------------------------------
 		void SetFloat(const std::string& name, float value) const

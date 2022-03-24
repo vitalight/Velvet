@@ -9,6 +9,7 @@
 #include "Component.hpp"
 #include "Global.hpp"
 #include "Actor.hpp"
+#include "Config.hpp"
 
 using namespace std;
 
@@ -27,17 +28,18 @@ namespace Velvet
 
 		glm::vec3 position() const
 		{
-			//return position;
 			return actor->transform->position;
 		}
 
 		glm::vec3 front() const
 		{
+			const glm::vec3 kFront = glm::vec3(0.0f, 0.0f, -1.0f);
 			return Helper::RotateWithDegree(kFront, actor->transform->rotation);
 		}
 
 		glm::vec3 up() const
 		{
+			const glm::vec3 kUp = glm::vec3(0.0f, 1.0f, 0.0f);
 			return Helper::RotateWithDegree(kUp, actor->transform->rotation);
 		}
 
@@ -49,9 +51,10 @@ namespace Velvet
 			return result;
 		}
 
-	private:
-		//glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f);
-		glm::vec3 kFront = glm::vec3(0.0f, 0.0f, -1.0f);
-		glm::vec3 kUp = glm::vec3(0.0f, 1.0f, 0.0f);
+		glm::mat4 projection() const
+		{
+			return glm::perspective(glm::radians(zoom), Config::screenAspect, 0.1f,
+				100.0f);
+		}
 	};
 }
