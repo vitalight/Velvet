@@ -90,12 +90,6 @@ void CreateScene_Shadow(VtGraphics& graphics)
 	light->transform->position = glm::vec3(0, 4.0, -1.0f);
 	light->transform->scale = glm::vec3(0.2f);
 	auto lightComp = light->GetComponent<Light>();
-	lightComp->innerCutoff = 50.0f;
-	lightComp->outerCutoff = 60.0f;
-	lightComp->ambient = 0.15;
-	lightComp->linear = 0;
-	lightComp->quadratic = 1.0;
-	lightComp->constant = 0.001;
 
 	graphics.postUpdate.push_back([light, lightComp]() {
 		//light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));

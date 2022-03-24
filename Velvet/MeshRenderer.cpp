@@ -51,7 +51,7 @@ namespace Velvet
 
 		// material
 		m_material.SetFloat("material.specular", m_material.specular);
-		m_material.SetFloat("material.shininess", m_material.shininess);
+		m_material.SetFloat("material.smoothness", m_material.smoothness);
 
 		// camera param
 		m_material.SetVec3("_CameraPos", Global::camera->transform()->position);

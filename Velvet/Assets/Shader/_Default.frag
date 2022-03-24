@@ -4,7 +4,7 @@ struct Material {
 	sampler2D diffuse;
     
     float specular;
-	float shininess;
+	float smoothness;
 };
 
 struct SpotLight {
@@ -70,7 +70,7 @@ float ShadowCalculation(float ndotl, vec4 lightSpaceFragPos)
 }
 
 // calculates the color when using a spot light.
-vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, vec4 lightSpaceFragPos, Material material)
+vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, vec4 lightSpaceFragPos, Material material, vec3 albedo)
 {
     vec3 lightDir = normalize(light.position - worldPos);
     // diffuse shading
@@ -79,7 +79,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, 
     // specular shading
 	vec3 viewDir = normalize(cameraPos - worldPos);
     vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), material.smoothness);
     float distance = length(light.position - worldPos);
     float attenuation = 1.0;// / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
     // spotlight intensity
@@ -88,13 +88,13 @@ vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, 
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
     // combine results
     float ambient = light.ambient;
-    float diffuse = diff;
+    float diffuse = diff * (1-material.specular);
     float specular = spec * material.specular;
     ambient *= max(0.3, attenuation * intensity);
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
     float shadow = ShadowCalculation(ndotl, lightSpaceFragPos) * 0.6;
-    return light.color * (ambient + (1.0 - shadow) * (diffuse + specular));
+    return light.color * (ambient * albedo + (1.0 - shadow) * (diffuse * albedo + specular));
 }
 
 vec3 GammaCorrection(vec3 color)
@@ -106,9 +106,9 @@ void main()
 {
 	vec3 norm = normalize(vs.normal);
 	vec3 viewDir = normalize(_CameraPos - vs.worldPos);
-
-	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, vs.worldPos, vs.lightSpaceFragPos, material);
+    
     vec3 diffuseColor = vec3(texture(material.diffuse, vs.uv));
-	FragColor = vec4(GammaCorrection(lighting * diffuseColor), 1.0);
+	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, vs.worldPos, vs.lightSpaceFragPos, material, diffuseColor);
+	FragColor = vec4(GammaCorrection(lighting ), 1.0);
 }
 

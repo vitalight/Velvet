@@ -36,8 +36,8 @@ namespace Velvet
 
 		LightType type = LightType::Point;
 		glm::vec3 color = glm::vec3(1.0f);
-		float ambient = 0.4f;
-		float innerCutoff = 45.0f;
+		float ambient = 0.15f;
+		float innerCutoff = 50.0f;
 		float outerCutoff = 60.0f;
 		float constant = 1.0f;
 		float linear = 0.09f;
