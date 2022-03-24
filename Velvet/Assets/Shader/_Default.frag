@@ -2,6 +2,8 @@
 
 struct Material {
 	sampler2D diffuse;
+    
+    float specular;
 	float shininess;
 };
 
@@ -15,9 +17,8 @@ struct SpotLight {
 	float linear;
 	float quadratic;
 
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
+    vec3 color;
+    float ambient;
 };
 
 in VS {
@@ -69,7 +70,7 @@ float ShadowCalculation(float ndotl, vec4 lightSpaceFragPos)
 }
 
 // calculates the color when using a spot light.
-vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, vec4 lightSpaceFragPos, float specularPower)
+vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, vec4 lightSpaceFragPos, Material material)
 {
     vec3 lightDir = normalize(light.position - worldPos);
     // diffuse shading
@@ -78,7 +79,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, 
     // specular shading
 	vec3 viewDir = normalize(cameraPos - worldPos);
     vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfwayDir), 0.0), specularPower);
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
     float distance = length(light.position - worldPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
     // spotlight intensity
@@ -86,14 +87,14 @@ vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, 
     float epsilon = light.cutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
     // combine results
-    vec3 ambient = light.ambient;
-    vec3 diffuse = light.diffuse * diff;
-    vec3 specular = light.specular * spec;
+    float ambient = light.ambient;
+    float diffuse = diff;
+    float specular = spec * material.specular;
     ambient *= max(0.3, attenuation * intensity);
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
     float shadow = ShadowCalculation(ndotl, lightSpaceFragPos);
-    return (ambient + (1.0 - shadow) * (diffuse + specular));
+    return light.color * (ambient + (1.0 - shadow) * (diffuse + specular));
 }
 
 void main()
@@ -101,7 +102,7 @@ void main()
 	vec3 norm = normalize(vs.normal);
 	vec3 viewDir = normalize(_CameraPos - vs.worldPos);
 
-	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, vs.worldPos, vs.lightSpaceFragPos, material.shininess);
+	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, vs.worldPos, vs.lightSpaceFragPos, material);
     vec3 diffuseColor = vec3(texture(material.diffuse, vs.uv));
 
 	FragColor = vec4(lighting * diffuseColor, 1.0);

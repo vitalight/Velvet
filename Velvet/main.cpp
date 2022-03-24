@@ -103,17 +103,8 @@ void CreateScene_Shadow(VtGraphics& graphics)
 	{
 		material.Use();
 
-		material.SetFloat("material.shininess", 32.0f);
 		material.SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
 		material.SetTexture("_ShadowTex", graphics.depthMapFBO());
-
-		material.SetVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-		material.SetVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darkened
-		material.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-		material.SetFloat("light.constant", 1.0f);
-		material.SetFloat("light.linear", 0.09f);
-		material.SetFloat("light.quadratic", 0.032f);
 	}
 
 	Material shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
@@ -203,14 +194,6 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		{
 			mat.Use();
 			mat.SetTexture("_ShadowTex", graphics.depthMapFBO());
-
-			mat.SetVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-			mat.SetVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darkened
-			mat.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-			mat.SetFloat("light.constant", 1.0f);
-			mat.SetFloat("light.linear", 0.09f);
-			mat.SetFloat("light.quadratic", 0.032f);
 		}
 		Mesh mesh;
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, mat));
