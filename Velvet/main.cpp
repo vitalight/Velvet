@@ -205,6 +205,14 @@ void CreateScene_Shadow(VtGraphics& graphics)
 			}
 		});
 	}
+
+	auto infPlane = graphics.CreateActor("InfPlane");
+	{
+		Material mat("Assets/Shader/_InfinitePlane");
+		Mesh mesh;
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, mat));
+		infPlane->AddComponent(renderer);
+	}
 }
 
 int main()

@@ -112,6 +112,7 @@ namespace Velvet
 
 		glm::mat4 model = actor->transform->matrix();
 		glm::mat4 view = Global::camera->view();
+		// TODO: move to camera
 		glm::mat4 projection = glm::perspective(glm::radians(Global::camera->zoom), Config::screenAspect, 0.1f,
 			100.0f);
 

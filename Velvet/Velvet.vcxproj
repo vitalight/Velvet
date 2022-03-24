@@ -128,6 +128,8 @@
     <None Include="Assets\Shader\ShadowDebug.vert" />
     <None Include="Assets\Shader\ShadowDepth.frag" />
     <None Include="Assets\Shader\ShadowDepth.vert" />
+    <None Include="Assets\Shader\_InfinitePlane.frag" />
+    <None Include="Assets\Shader\_InfinitePlane.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

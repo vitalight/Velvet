@@ -149,5 +149,11 @@
     <None Include="Assets\Shader\ShadowDebug.vert">
       <Filter>Shader</Filter>
     </None>
+    <None Include="Assets\Shader\_InfinitePlane.frag">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\_InfinitePlane.vert">
+      <Filter>Shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

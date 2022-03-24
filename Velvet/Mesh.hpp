@@ -22,7 +22,47 @@ namespace Velvet
 	class Mesh
 	{
 	public:
-		//Mesh() {}
+		// for infinite plane
+		Mesh()
+		{
+			float w = 1.0;
+			vector<glm::vec4> vertices = { 
+				glm::vec4(1,1,0, w), glm::vec4(-1,-1,0, w), glm::vec4(-1,1,0, w), glm::vec4(1,-1,0, w) };
+			vector<glm::vec3> normals = {
+				glm::vec3(0, 1, 0), glm::vec3(0, 1, 0) , glm::vec3(0, 1, 0) , glm::vec3(0, 1, 0) };
+			vector<unsigned int> indices = { 0, 1, 2, 1, 0, 3 };
+			vector<unsigned int> attributeSizes = { 4,3 };
+			m_indices = indices;
+
+			// 1. bind Vertex Array Object
+			glGenVertexArrays(1, &m_VAO);
+			glBindVertexArray(m_VAO);
+
+			unsigned int VBO;
+			glGenBuffers(1, &VBO);
+
+			// 2. copy our vertices array in a buffer for OpenGL to use
+			size_t size[] = { vertices.size() * sizeof(glm::vec4),
+				normals.size() * sizeof(glm::vec3)};
+
+			glBindBuffer(GL_ARRAY_BUFFER, VBO);
+			glBufferData(GL_ARRAY_BUFFER, size[0] + size[1], NULL, GL_STATIC_DRAW);
+
+			glBufferSubData(GL_ARRAY_BUFFER, 0, size[0], vertices.data());
+			glBufferSubData(GL_ARRAY_BUFFER, size[0], size[1], normals.data());
+
+			// 3. copy our index array in a element buffer for OpenGL to use
+			if (useIndices())
+			{
+				unsigned int EBO;
+				glGenBuffers(1, &EBO);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+			}
+
+			// 4. then set the vertex attributes pointers
+			SetupAttributes(attributeSizes);
+		}
 
 		Mesh(vector<unsigned int> attributeSizes, vector<float> vertices, vector<unsigned int> indices = vector<unsigned int>())
 		{
@@ -67,6 +107,10 @@ namespace Velvet
 
 		unsigned int VAO() const
 		{
+			if (m_VAO == 0)
+			{
+				fmt::print("Error(Mesh): Access VAO of 0. Possiblely uninitialized.");
+			}
 			return m_VAO;
 		}
 

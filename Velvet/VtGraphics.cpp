@@ -22,7 +22,7 @@ VtGraphics::VtGraphics()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	// Multi-sample Anti-aliasing
-	//glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	m_window = glfwCreateWindow(Config::screenWidth, Config::screenHeight, "Velvet", NULL, NULL);
 
