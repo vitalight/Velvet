@@ -105,7 +105,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, 
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
     float distance = length(light.position - worldPos);
-    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+    float attenuation = 1.0;// / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
     // spotlight intensity
     float theta = dot(lightDir, normalize(-light.direction));
     float epsilon = light.cutOff - light.outerCutOff;
@@ -117,7 +117,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, 
     ambient *= max(0.3, attenuation * intensity);
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
-    float shadow = ShadowCalculation(ndotl, lightSpaceFragPos);
+    float shadow = ShadowCalculation(ndotl, lightSpaceFragPos) * 0.6;
     return light.color * (ambient + (1.0 - shadow) * (diffuse + specular));
 }
 

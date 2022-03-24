@@ -31,8 +31,8 @@ namespace Velvet
 
 		m_material.SetVec3(prefix + "position", light->position());
 		m_material.SetVec3(prefix + "direction", front);
-		m_material.SetFloat(prefix + "cutOff", glm::cos(light->innerCutoff));
-		m_material.SetFloat(prefix + "outerCutOff", glm::cos(light->outerCutoff));
+		m_material.SetFloat(prefix + "cutOff", glm::cos(glm::radians(light->innerCutoff)));
+		m_material.SetFloat(prefix + "outerCutOff", glm::cos(glm::radians(light->outerCutoff)));
 
 		m_material.SetFloat(prefix + "constant", light->constant);
 		m_material.SetFloat(prefix + "linear", light->linear);

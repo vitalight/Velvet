@@ -150,7 +150,7 @@ namespace Velvet
 			glUniformMatrix4fv(GetLocation(name), 1, GL_FALSE, &mat[0][0]);
 		}
 
-		float specular = 1.0f;
+		float specular = 0.5f;
 		float shininess = 32.0f;
 	private:
 		unsigned int m_shaderID = -1;
