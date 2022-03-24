@@ -8,7 +8,7 @@ out VS {
 	vec3 worldPos;
 	vec3 normal;
 	vec2 uv;
-	vec4 lightSpacePos;
+	vec4 lightSpaceFragPos;
 } vs;
 
 uniform mat4 _Model;
@@ -23,5 +23,5 @@ void main()
 	vs.worldPos = vec3(_Model * vec4(Pos, 1.0));
 	vs.normal = mat3(transpose(inverse(_Model))) * Normal;
 	vs.uv = UV;
-    vs.lightSpacePos = _WorldToLight * vec4(vs.worldPos, 1.0);
+    vs.lightSpaceFragPos = _WorldToLight * vec4(vs.worldPos, 1.0);
 }

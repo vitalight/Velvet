@@ -24,7 +24,7 @@ in VS {
 	vec3 worldPos;
 	vec3 normal;
 	vec2 uv;
-	vec4 lightSpacePos;
+	vec4 lightSpaceFragPos;
 } vs;
 
 uniform vec3 _CameraPos;
@@ -34,10 +34,10 @@ uniform Material material;
 
 out vec4 FragColor;
 
-float ShadowCalculation(vec3 lightPos, vec4 lightSpacePos)
+float ShadowCalculation(float ndotl, vec4 lightSpaceFragPos)
 {
     // perform perspective divide
-    vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+    vec3 projCoords = lightSpaceFragPos.xyz / lightSpaceFragPos.w;
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
@@ -45,9 +45,7 @@ float ShadowCalculation(vec3 lightPos, vec4 lightSpacePos)
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
     // calculate bias (based on depth map resolution and slope)
-    vec3 normal = normalize(vs.normal);
-    vec3 lightDir = normalize(lightPos - vs.worldPos);
-    float bias = max(0.01 * (1.0 - dot(normal, lightDir)), 0.001);
+    float bias = max(0.01 * (1.0 - ndotl), 0.001);
     // check whether current frag pos is in shadow
     // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
     // PCF
@@ -71,16 +69,17 @@ float ShadowCalculation(vec3 lightPos, vec4 lightSpacePos)
 }
 
 // calculates the color when using a spot light.
-vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
+vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, vec4 lightSpaceFragPos, float specularPower)
 {
-    vec3 lightDir = normalize(light.position - fragPos);
+    vec3 lightDir = normalize(light.position - worldPos);
     // diffuse shading
-    float diff = max(dot(normal, lightDir), 0.0);
+    float ndotl = dot(normal, lightDir);
+    float diff = max(ndotl, 0.0);
     // specular shading
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    // attenuation
-    float distance = length(light.position - fragPos);
+	vec3 viewDir = normalize(cameraPos - worldPos);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), specularPower);
+    float distance = length(light.position - worldPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
     // spotlight intensity
     float theta = dot(lightDir, normalize(-light.direction));
@@ -93,8 +92,8 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     ambient *= max(0.3, attenuation * intensity);
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
-    float shadow = ShadowCalculation(light.position, vs.lightSpacePos);
-    return (ambient + (1.0 - shadow) * (diffuse + specular)) * vec3(texture(material.diffuse, vs.uv));
+    float shadow = ShadowCalculation(ndotl, lightSpaceFragPos);
+    return (ambient + (1.0 - shadow) * (diffuse + specular));
 }
 
 void main()
@@ -102,8 +101,9 @@ void main()
 	vec3 norm = normalize(vs.normal);
 	vec3 viewDir = normalize(_CameraPos - vs.worldPos);
 
-	vec3 result = CalcSpotLight(spotLight, norm, vs.worldPos, viewDir);
+	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, vs.worldPos, vs.lightSpaceFragPos, material.shininess);
+    vec3 diffuseColor = vec3(texture(material.diffuse, vs.uv));
 
-	FragColor = vec4(result, 1.0);
+	FragColor = vec4(lighting * diffuseColor, 1.0);
 }
 

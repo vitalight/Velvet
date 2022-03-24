@@ -9,6 +9,7 @@ uniform mat4 _Projection;
 out VS {
     vec3 nearPoint;
     vec3 farPoint;
+    vec3 normal;
 } vs;
 
 vec3 UnprojectPoint(float x, float y, float z, mat4 _View, mat4 _Projection) {
@@ -22,5 +23,6 @@ void main()
 {
     vs.nearPoint = UnprojectPoint(aPos.x, aPos.y, 0.0, _View, _Projection).xyz; // unprojecting on the near plane
     vs.farPoint = UnprojectPoint(aPos.x, aPos.y, 1.0, _View, _Projection).xyz; // unprojecting on the far plane
+    vs.normal = aNormal;
 	gl_Position = aPos;
 }

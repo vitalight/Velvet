@@ -92,7 +92,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 
 	graphics.postUpdate.push_back([light]() {
 		//light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
-		light->transform->rotation = glm::vec3(20 * sin(glfwGetTime()) - 20, 0, 0);
+		//light->transform->rotation = glm::vec3(20 * sin(glfwGetTime()) - 20, 0, 0);
 		});
 
 	//=====================================
@@ -102,12 +102,10 @@ void CreateScene_Shadow(VtGraphics& graphics)
 	Material material = Resource::LoadMaterial("_Default");
 	{
 		material.Use();
+
+		material.SetFloat("material.shininess", 32.0f);
 		material.SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
 		material.SetTexture("_ShadowTex", graphics.depthMapFBO());
-
-		material.SetVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-		material.SetVec3("material.specular", 0.5f, 0.5f, 0.5f);
-		material.SetFloat("material.shininess", 32.0f);
 
 		material.SetVec3("light.ambient", 0.2f, 0.2f, 0.2f);
 		material.SetVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darkened
@@ -202,6 +200,18 @@ void CreateScene_Shadow(VtGraphics& graphics)
 	auto infPlane = graphics.CreateActor("InfPlane");
 	{
 		Material mat = Resource::LoadMaterial("_InfinitePlane");
+		{
+			mat.Use();
+			mat.SetTexture("_ShadowTex", graphics.depthMapFBO());
+
+			mat.SetVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+			mat.SetVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darkened
+			mat.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+			mat.SetFloat("light.constant", 1.0f);
+			mat.SetFloat("light.linear", 0.09f);
+			mat.SetFloat("light.quadratic", 0.032f);
+		}
 		Mesh mesh;
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, mat));
 		infPlane->AddComponent(renderer);
@@ -214,7 +224,7 @@ int main()
 	// 1. Create graphics
 	//=====================================
 	VtGraphics graphics;
-	graphics.skyColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
+	//graphics.skyColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
 
 	//=====================================
 	// 2. Instantiate actors

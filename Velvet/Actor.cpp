@@ -12,7 +12,7 @@ namespace Velvet
 {
 	shared_ptr<Actor> Actor::PrefabLight(LightType type)
 	{
-		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
+		Mesh mesh = *Resource::LoadMesh("cylinder.obj").get();
 
 		Material material = Resource::LoadMaterial("Assets/Shader/_Light");
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
