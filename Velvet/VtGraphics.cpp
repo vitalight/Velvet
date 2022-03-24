@@ -160,7 +160,6 @@ void VtGraphics::ProcessInput(GLFWwindow* m_window)
 	}
 }
 
-
 void VtGraphics::Initialize()
 {
 	for (const auto& go : m_actors)
@@ -171,6 +170,7 @@ void VtGraphics::Initialize()
 
 void VtGraphics::MainLoop()
 {
+	fmt::print("Info(VtGraphics): Initialization success. Enter main loop.\n");
 	// render loop
 	while (!glfwWindowShouldClose(m_window))
 	{
