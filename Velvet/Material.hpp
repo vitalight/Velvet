@@ -20,40 +20,11 @@ namespace Velvet
 
 		Material() {}
 
-		Material(const string path)
+		Material(string& vertexCode, string& fragmentCode)
 		{
-			string vertexCode = ReadFromFile(path + ".vert");
-			string fragmentCode = ReadFromFile(path + ".frag");
 			const char* vShaderCode = vertexCode.c_str();
 			const char* fShaderCode = fragmentCode.c_str();
-
 			m_shaderID = CompileShader(vShaderCode, fShaderCode);
-		}
-
-		static string ReadFromFile(const string path)
-		{
-			// 1. retrieve the vertex/fragment source code from filePath
-			std::string code;
-			std::ifstream file;
-			// ensure ifstream objects can throw exceptions:
-			file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-			try
-			{
-				// open files
-				file.open(path);
-				std::stringstream vShaderStream;
-				// read file's buffer contents into streams
-				vShaderStream << file.rdbuf();
-				// close file handlers
-				file.close();
-				// convert stream into string
-				code = vShaderStream.str();
-			}
-			catch (std::ifstream::failure& e)
-			{
-				std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
-			}
-			return code;
 		}
 
 		unsigned int CompileShader(const char* vShaderCode, const char* fShaderCode) const

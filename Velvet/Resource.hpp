@@ -1,6 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include <unordered_map>
+#include <string>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -10,19 +12,40 @@
 #include <assimp/postprocess.h>
 
 #include "External/stb_image.h"
+#include "Mesh.hpp"
 
 namespace Velvet
 {
+	inline unordered_map<string, unsigned int> textureCache;
+	inline unordered_map<string, shared_ptr<Mesh>> meshCache;
+	inline unordered_map<string, Material> matCache;
+
+	inline string defaultTexturePath = "Assets/Texture/";
+	inline string defaultMeshPath = "Assets/Model/";
+	inline string defaultMaterialPath = "Assets/Shader/";
+
 	class Resource
 	{
 	public:
-		static unsigned int LoadTexture(const char* path)
+
+		static unsigned int LoadTexture(const string& path)
 		{
+			if (textureCache.count(path) > 0)
+			{
+				fmt::print("Cached texture load\n");
+				return textureCache[path];
+			}
+
             unsigned int textureID;
             glGenTextures(1, &textureID);
+			textureCache[path] = textureID;
 
             int width, height, nrComponents;
-            unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+            unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
+			if (data == nullptr)
+			{
+				data = stbi_load((defaultTexturePath+path).c_str(), &width, &height, &nrComponents, 0);
+			}
             if (data)
             {
                 GLenum format;
@@ -46,22 +69,38 @@ namespace Velvet
             }
             else
             {
-                std::cout << "Texture failed to load at path: " << path << std::endl;
+				fmt::print("Error(Resource): Texture failed to load at path({})\n", path);
                 stbi_image_free(data);
             }
 
             return textureID;
 		}
 
-		static void LoadMeshFromFile(const string& filePath, vector<glm::vec3>& vertices, vector<glm::vec3>& normals, vector<glm::vec2>& texCoords, vector<unsigned int>& indices)
+		static shared_ptr<Mesh> LoadMesh(const string& path)
 		{
+			if (meshCache.count(path) > 0)
+			{
+				fmt::print("Cached mesh load\n");
+				return meshCache[path];
+			}
+
+			vector<glm::vec3> vertices;
+			vector<glm::vec3> normals;
+			vector<glm::vec2> texCoords;
+			vector<unsigned int> indices;
+
 			Assimp::Importer importer;
-			const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+			const aiScene* scene = importer.ReadFile(defaultMeshPath + path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 			// check for errors
 			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
 			{
-				cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
-				return;
+				scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+
+				if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
+				{	
+					fmt::print("Error(Resource) Fail to load mesh ({})\n", path);
+					return shared_ptr<Mesh>();
+				}
 			}
 			aiMesh* mesh = scene->mMeshes[0];
 
@@ -100,8 +139,57 @@ namespace Velvet
 				for (unsigned int j = 0; j < face.mNumIndices; j++)
 					indices.push_back(face.mIndices[j]);
 			}
+			auto result = shared_ptr<Mesh>(new Mesh(vertices, normals, texCoords, indices));
+			meshCache[path] = result;
+			return result;
 		}
 	
+		static Material LoadMaterial(const string& path)
+		{
+			if (matCache.count(path))
+			{
+				fmt::print("Cached material load\n");
+				return matCache[path];
+			}
+			string vertexCode = LoadText(defaultMaterialPath + path + ".vert");
+			if (vertexCode.length() == 0) vertexCode = LoadText(path + ".vert");
+			if (vertexCode.length() == 0) fmt::print("Error(Resource): material.vertex not found ({})\n", path);
+
+			string fragmentCode = LoadText(defaultMaterialPath + path + ".frag");
+			if (fragmentCode.length() == 0) fragmentCode = LoadText(path + ".frag");
+			if (fragmentCode.length() == 0) fmt::print("Error(Resource): material.fragment not found ({})\n", path);
+
+			auto result = Material(vertexCode, fragmentCode);
+			matCache[path] = result;
+			return result;
+		}
+
+		static string LoadText(const string& path)
+		{
+			// 1. retrieve the vertex/fragment source code from filePath
+			std::string code;
+			std::ifstream file;
+			// ensure ifstream objects can throw exceptions:
+			file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+			try
+			{
+				// open files
+				file.open(path);
+				std::stringstream vShaderStream;
+				// read file's buffer contents into streams
+				vShaderStream << file.rdbuf();
+				// close file handlers
+				file.close();
+				// convert stream into string
+				code = vShaderStream.str();
+			}
+			catch (std::ifstream::failure& e)
+			{
+				//std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
+			}
+			return code;
+		}
+
 	private:
 		static inline glm::vec3 AdaptVector(const aiVector3D& input)
 		{

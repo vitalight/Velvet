@@ -4,7 +4,7 @@
 
 #include "External/stb_image.h"
 
-#include "VtHelper.hpp"
+#include "Helper.hpp"
 #include "Camera.hpp"
 #include "Input.hpp"
 #include "RenderPipeline.hpp"

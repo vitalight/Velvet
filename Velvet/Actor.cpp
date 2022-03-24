@@ -14,7 +14,7 @@ namespace Velvet
 	{
 		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 
-		Material material("Assets/Shader/_Light");
+		Material material = Resource::LoadMaterial("Assets/Shader/_Light");
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 
 		shared_ptr<Light> light(new Light());

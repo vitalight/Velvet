@@ -8,7 +8,6 @@
 #include <fmt/core.h>
 
 #include "Material.hpp"
-#include "Resource.hpp"
 
 using namespace std;
 
@@ -89,17 +88,6 @@ namespace Velvet
 
 		Mesh(vector<glm::vec3>& vertices, vector<glm::vec3>& normals, vector<glm::vec2>& texCoords, vector<unsigned int>& indices = vector<unsigned int>())
 		{
-			Initialize(vertices, normals, texCoords, indices);
-		}
-
-		Mesh(const string& filePath)
-		{
-			vector<glm::vec3> vertices;
-			vector<glm::vec3> normals;
-			vector<glm::vec2> texCoords;
-			vector<unsigned int> indices;
-			Resource::LoadMeshFromFile(filePath, vertices, normals, texCoords, indices);
-
 			Initialize(vertices, normals, texCoords, indices);
 		}
 

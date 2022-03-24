@@ -89,7 +89,7 @@
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="VtGraphics.cpp" />
-    <ClCompile Include="VtHelper.cpp" />
+    <ClCompile Include="Helper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.hpp" />
@@ -109,7 +109,7 @@
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="VtGraphics.hpp" />
-    <ClInclude Include="VtHelper.hpp" />
+    <ClInclude Include="Helper.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shader\BlinnPhong.frag" />

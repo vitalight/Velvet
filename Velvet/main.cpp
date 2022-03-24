@@ -35,10 +35,10 @@ void CreateScene_BlinnPhong(VtGraphics& graphics)
 	//=====================================
 	// 3. Objects
 	//=====================================
-	Material material("Assets/Shader/BlinnPhong");
+	Material material = Resource::LoadMaterial("BlinnPhong");
 	{
 		material.Use();
-		material.SetTexture("floorTexture", Resource::LoadTexture("Assets/Texture/wood.png"));
+		material.SetTexture("floorTexture", Resource::LoadTexture("wood.png"));
 		material.SetInt("blinn", 1);
 	}
 
@@ -99,10 +99,10 @@ void CreateScene_Shadow(VtGraphics& graphics)
 	// 3. Objects
 	//=====================================
 
-	Material material("Assets/Shader/_Default");
+	Material material = Resource::LoadMaterial("_Default");
 	{
 		material.Use();
-		material.SetTexture("material.diffuse", Resource::LoadTexture("Assets/Texture/wood.png"));
+		material.SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
 		material.SetTexture("_ShadowTex", graphics.depthMapFBO());
 
 		material.SetVec3("material.ambient", 1.0f, 0.5f, 0.31f);
@@ -118,7 +118,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		material.SetFloat("light.quadratic", 0.032f);
 	}
 
-	Material shadowMaterial("Assets/Shader/_ShadowDepth");
+	Material shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
 	auto plane = graphics.CreateActor("Plane");
 	{
@@ -140,7 +140,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 
 	auto cube1 = graphics.CreateActor("Cube1");
 	{
-		Mesh mesh("Assets/Model/sphere.obj");
+		auto mesh = *Resource::LoadMesh("sphere.obj").get();
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		cube1->AddComponent(renderer);
 		cube1->transform->position = glm::vec3(0.0f, 1.5f, 0.0);
@@ -168,7 +168,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 
 	auto quad = graphics.CreateActor("Debug Quad");
 	{
-		Material debugMat("Assets/Shader/_ShadowDebug");
+		Material debugMat = Resource::LoadMaterial("_ShadowDebug");
 		{
 			float near_plane = 1.0f, far_plane = 7.5f;
 			debugMat.SetFloat("near_plane", near_plane);

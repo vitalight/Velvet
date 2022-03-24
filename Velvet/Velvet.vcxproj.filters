@@ -17,7 +17,7 @@
     <ClCompile Include="Input.cpp">
       <Filter>Graphics\Source</Filter>
     </ClCompile>
-    <ClCompile Include="VtHelper.cpp">
+    <ClCompile Include="Helper.cpp">
       <Filter>Graphics\Source</Filter>
     </ClCompile>
     <ClCompile Include="VtGraphics.cpp">
@@ -81,16 +81,13 @@
     <ClInclude Include="MeshRenderer.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerController.hpp">
-      <Filter>Graphics\Include</Filter>
-    </ClInclude>
     <ClInclude Include="Transform.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
     <ClInclude Include="VtGraphics.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
-    <ClInclude Include="VtHelper.hpp">
+    <ClInclude Include="Helper.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
     <ClInclude Include="Resource.hpp">
@@ -99,6 +96,7 @@
     <ClInclude Include="RenderPipeline.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
+    <ClInclude Include="PlayerController.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shader\_Default.frag">

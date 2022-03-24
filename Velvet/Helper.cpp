@@ -1,4 +1,4 @@
-#include "VtHelper.hpp"
+#include "Helper.hpp"
 #include <glm\ext\matrix_transform.hpp>
 
 namespace Velvet

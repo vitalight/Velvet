@@ -9,13 +9,13 @@
 
 namespace Velvet
 {
-	MeshRenderer::MeshRenderer(Mesh mesh, Material material)
+	MeshRenderer::MeshRenderer(Mesh &mesh, Material &material)
 		: m_mesh(mesh), m_material(material) 
 	{
 		name = __func__;
 	}
 
-	MeshRenderer::MeshRenderer(Mesh mesh, Material material, Material shadowMaterial)
+	MeshRenderer::MeshRenderer(Mesh &mesh, Material &material, Material &shadowMaterial)
 		: m_mesh(mesh), m_material(material), m_shadowMaterial(shadowMaterial)
 	{
 		name = __func__;

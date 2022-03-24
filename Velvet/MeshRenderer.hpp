@@ -18,9 +18,9 @@ namespace Velvet
 	class MeshRenderer : public Component
 	{
 	public:
-		MeshRenderer(Mesh mesh, Material material);
+		MeshRenderer(Mesh &mesh, Material &material);
 
-		MeshRenderer(Mesh mesh, Material material, Material shadowMaterial);
+		MeshRenderer(Mesh &mesh, Material &material, Material &shadowMaterial);
 
 		void SetupLighting(Material m_material);
 
