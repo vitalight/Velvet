@@ -33,31 +33,9 @@ uniform vec3 _CameraPos;
 uniform sampler2D _ShadowTex;
 uniform SpotLight spotLight;
 uniform Material material;
+uniform vec4 _Plane;
 
 out vec4 FragColor;
-
-float computeDepth(vec3 pos) {
-    vec4 clip_space_pos = _Projection * _View * vec4(pos.xyz, 1.0);
-    return (clip_space_pos.z / clip_space_pos.w);
-}
-
-float computeLinearDepth(vec3 pos) {
-    float near = 0.01;
-    float far = 100;
-
-    vec4 clip_space_pos = _Projection * _View * vec4(pos.xyz, 1.0);
-    float clip_space_depth = (clip_space_pos.z / clip_space_pos.w) * 2.0 - 1.0; // put back between -1 and 1
-    float linearDepth = (2.0 * near * far) / (far + near - clip_space_depth * (far - near)); // get linear value between 0.01 and 100
-    return linearDepth / far; // normalize
-}
-
-float checker(vec2 uv, float repeats)
-{
-    float cx = floor(repeats * uv.x);
-    float cy = floor(repeats * uv.y); 
-    float result = mod(cx + cy, 2.0);
-    return sign(result);
-}
 
 float ShadowCalculation(float ndotl, vec4 lightSpaceFragPos)
 {
@@ -121,11 +99,37 @@ vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, 
     return light.color * (ambient * albedo + (1.0 - shadow) * (diffuse * albedo + specular));
 }
 
+float computeDepth(vec3 pos) {
+    vec4 clip_space_pos = _Projection * _View * vec4(pos.xyz, 1.0);
+    return (clip_space_pos.z / clip_space_pos.w);
+}
+
+float filterwidth(vec2 v)
+{
+  vec2 fw = max(abs(dFdx(v)), abs(dFdy(v)));
+  return max(fw.x, fw.y);
+}
+
+vec2 bump(vec2 x) 
+{
+	return (floor((x)/2) + 2.f * max(((x)/2) - floor((x)/2) - .5f, 0.f)); 
+}
+
+float checker(vec2 uv)
+{
+  float width = filterwidth(uv);
+  vec2 p0 = uv - 0.5 * width;
+  vec2 p1 = uv + 0.5 * width;
+  
+  vec2 i = (bump(p1) - bump(p0)) / width;
+  return i.x * i.y + (1 - i.x) * (1 - i.y);
+}
+
 vec3 ComputeDiffuseColor(vec3 worldPos)
 {
-    float checkerboard = checker(vec2(worldPos.x, worldPos.z), 2.0);
+    float checkerboard = checker(vec2(worldPos.x, worldPos.z) * 2.0);
 
-    return vec3(1.0 - checkerboard * 0.25);
+    return vec3(1.0- checkerboard * 0.25);
 }
 
 vec3 GammaCorrection(vec3 color)
@@ -142,7 +146,12 @@ vec3 ApplyFog(vec3 color, vec3 pos)
 void main()
 {
     // only draw when view ray intersects plane
-	float t = -vs.nearPoint.y / (vs.farPoint.y - vs.nearPoint.y);
+    vec3 planeNormal = _Plane.xyz;
+    float planeDistance = _Plane.w;
+    vec3 rayDirection = vs.farPoint - vs.nearPoint;
+    vec3 rayOrigin = vs.nearPoint;
+
+    float t = -(planeDistance + dot(rayOrigin, planeNormal)) / dot(rayDirection, planeNormal);
 	if (t <= 0)
 		discard;
 
@@ -151,9 +160,8 @@ void main()
 
     // compute color using checker-board pattern
     vec3 diffuseColor = ComputeDiffuseColor(worldPos);
-    
     // lighting
-	vec3 norm = vec3(0,1,0);//normalize(vs.normal);
+	vec3 norm = planeNormal;
 	vec3 viewDir = normalize(_CameraPos - worldPos);
     vec4 lightSpaceFragPos = _WorldToLight * vec4(worldPos, 1.0);
 

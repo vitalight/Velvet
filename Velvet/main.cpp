@@ -126,30 +126,30 @@ void CreateScene_Shadow(VtGraphics& graphics)
 
 	Material shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
-	auto plane = graphics.CreateActor("Plane");
-	{
-		vector<float> planeVertices = {
-			// positions            // normals         // texcoords
-			 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-			-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-			-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+	//auto plane = graphics.CreateActor("Plane");
+	//{
+	//	vector<float> planeVertices = {
+	//		// positions            // normals         // texcoords
+	//		 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+	//		-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+	//		-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
 
-			 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-			-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-			 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
-		};
-		Mesh mesh({ 3, 3, 2 }, planeVertices);
+	//		 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+	//		-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+	//		 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
+	//	};
+	//	Mesh mesh({ 3, 3, 2 }, planeVertices);
 
-		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
-		plane->AddComponent(renderer);
-	}
+	//	shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
+	//	plane->AddComponent(renderer);
+	//}
 
 	auto cube1 = graphics.CreateActor("Cube1");
 	{
 		auto mesh = *Resource::LoadMesh("sphere.obj").get();
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		cube1->AddComponent(renderer);
-		cube1->transform->position = glm::vec3(0.0f, 1.5f, 0.0);
+		cube1->transform->position = glm::vec3(0.0f, 2.0f, 0.0);
 		cube1->transform->scale = glm::vec3(0.5f);
 	}
 
@@ -158,7 +158,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		cube2->AddComponent(renderer);
-		cube2->transform->position = glm::vec3(2.0f, 0, 1.0);
+		cube2->transform->position = glm::vec3(2.0f, 0.5, 1.0);
 		cube2->transform->scale = glm::vec3(0.5f);
 	}
 
@@ -167,11 +167,25 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		cube3->AddComponent(renderer);
-		cube3->transform->position = glm::vec3(-1.0f, 0, 2.0);
+		cube3->transform->position = glm::vec3(-1.0f, 0.5, 2.0);
 		cube3->transform->scale = glm::vec3(0.25f);
 		cube3->transform->rotation = glm::vec3(60, 0, 60);
 	}
 
+	auto infPlane = graphics.CreateActor("InfPlane");
+	{
+		Material mat = Resource::LoadMaterial("_InfinitePlane");
+		{
+			mat.Use();
+			mat.SetTexture("_ShadowTex", graphics.depthMapFBO());
+			// Plane: ax + by + cz + d = 0
+			mat.SetVec4("_Plane", glm::vec4(0, 1, 0, 0));
+		}
+		Mesh mesh;
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, mat));
+		infPlane->AddComponent(renderer);
+	}
+	
 	auto quad = graphics.CreateActor("Debug Quad");
 	{
 		Material debugMat = Resource::LoadMaterial("_ShadowDebug");
@@ -202,20 +216,9 @@ void CreateScene_Shadow(VtGraphics& graphics)
 			{
 				renderer->hidden = !renderer->hidden;
 			}
-		});
+			});
 	}
 
-	auto infPlane = graphics.CreateActor("InfPlane");
-	{
-		Material mat = Resource::LoadMaterial("_InfinitePlane");
-		{
-			mat.Use();
-			mat.SetTexture("_ShadowTex", graphics.depthMapFBO());
-		}
-		Mesh mesh;
-		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, mat));
-		infPlane->AddComponent(renderer);
-	}
 }
 
 int main()
