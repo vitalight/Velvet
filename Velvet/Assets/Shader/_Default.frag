@@ -72,28 +72,26 @@ float ShadowCalculation(float ndotl, vec4 lightSpaceFragPos)
 // calculates the color when using a spot light.
 vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, vec4 lightSpaceFragPos, Material material, vec3 albedo)
 {
-    vec3 lightDir = normalize(light.position - worldPos);
-    // diffuse shading
-    float ndotl = dot(normal, lightDir);
-    float diff = max(ndotl, 0.0);
-    // specular shading
-	vec3 viewDir = normalize(cameraPos - worldPos);
-    vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfwayDir), 0.0), material.smoothness);
-    float distance = length(light.position - worldPos);
-    float attenuation = 1.0;// / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
     // spotlight intensity
+    vec3 lightDir = normalize(light.position - worldPos);
     float theta = dot(lightDir, normalize(-light.direction));
     float epsilon = light.cutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
-    // combine results
-    float ambient = light.ambient;
-    float diffuse = diff * (1-material.specular);
-    float specular = spec * material.specular;
-    ambient *= max(0.3, attenuation * intensity);
-    diffuse *= attenuation * intensity;
-    specular *= attenuation * intensity;
+    float attenuation = intensity;
+    // ambient
+    float ambient = light.ambient * max(0.3, attenuation);
+    // diffuse
+    float ndotl = dot(normal, lightDir);
+    float diff = max(ndotl, 0.0);
+    float diffuse = diff * (1-material.specular) * attenuation;
+    // specular
+	vec3 viewDir = normalize(cameraPos - worldPos);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), material.smoothness);
+    float specular = spec * material.specular * attenuation;
+    // shadow
     float shadow = ShadowCalculation(ndotl, lightSpaceFragPos) * 0.6;
+
     return light.color * (ambient * albedo + (1.0 - shadow) * (diffuse * albedo + specular));
 }
 

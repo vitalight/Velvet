@@ -149,7 +149,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		auto mesh = *Resource::LoadMesh("sphere.obj").get();
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		cube1->AddComponent(renderer);
-		cube1->transform->position = glm::vec3(0.0f, 2.0f, 0.0);
+		cube1->transform->position = glm::vec3(0.6f, 2.0f, 0.0);
 		cube1->transform->scale = glm::vec3(0.5f);
 	}
 
@@ -202,8 +202,8 @@ void CreateScene_Shadow(VtGraphics& graphics)
 			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
 
 			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
 			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
 		};
 
 		Mesh quadMesh({ 3,2 }, quadVertices);

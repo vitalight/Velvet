@@ -64,6 +64,7 @@ namespace Velvet
 			glViewport(0, 0, Config::shadowWidth, Config::shadowHeight);
 			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 			glClear(GL_DEPTH_BUFFER_BIT);
+			glCullFace(GL_FRONT);
 
 			auto lightSpaceMatrix = ComputeLightMatrix();
 
@@ -80,6 +81,7 @@ namespace Velvet
 			// reset viewport
 			glViewport(0, 0, Config::screenWidth, Config::screenHeight);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glCullFace(GL_BACK);
 
 			auto lightSpaceMatrix = ComputeLightMatrix();
 

@@ -30,10 +30,10 @@ uniform mat4 _Projection;
 uniform mat4 _WorldToLight;
 
 uniform vec3 _CameraPos;
+uniform vec4 _Plane;
 uniform sampler2D _ShadowTex;
 uniform SpotLight spotLight;
 uniform Material material;
-uniform vec4 _Plane;
 
 out vec4 FragColor;
 
@@ -48,7 +48,7 @@ float ShadowCalculation(float ndotl, vec4 lightSpaceFragPos)
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
     // calculate bias (based on depth map resolution and slope)
-    float bias = max(0.01 * (1.0 - ndotl), 0.001);
+    float bias = 0.0;//max(0.01 * (1.0 - ndotl), 0.001);
     // check whether current frag pos is in shadow
     // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
     // PCF
@@ -74,34 +74,32 @@ float ShadowCalculation(float ndotl, vec4 lightSpaceFragPos)
 // calculates the color when using a spot light.
 vec3 CalcSpotLight(SpotLight light, vec3 cameraPos, vec3 normal, vec3 worldPos, vec4 lightSpaceFragPos, Material material, vec3 albedo)
 {
-    vec3 lightDir = normalize(light.position - worldPos);
-    // diffuse shading
-    float ndotl = dot(normal, lightDir);
-    float diff = max(ndotl, 0.0);
-    // specular shading
-	vec3 viewDir = normalize(cameraPos - worldPos);
-    vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfwayDir), 0.0), material.smoothness);
-    float distance = length(light.position - worldPos);
-    float attenuation = 1.0;// / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
     // spotlight intensity
+    vec3 lightDir = normalize(light.position - worldPos);
     float theta = dot(lightDir, normalize(-light.direction));
     float epsilon = light.cutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
-    // combine results
-    float ambient = light.ambient;
-    float diffuse = diff * (1-material.specular);
-    float specular = spec * material.specular;
-    ambient *= max(0.3, attenuation * intensity);
-    diffuse *= attenuation * intensity;
-    specular *= attenuation * intensity;
+    float attenuation = intensity;
+    // ambient
+    float ambient = light.ambient * max(0.3, attenuation);
+    // diffuse
+    float ndotl = dot(normal, lightDir);
+    float diff = max(ndotl, 0.0);
+    float diffuse = diff * (1-material.specular) * attenuation;
+    // specular
+	vec3 viewDir = normalize(cameraPos - worldPos);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), material.smoothness);
+    float specular = spec * material.specular * attenuation;
+    // shadow
     float shadow = ShadowCalculation(ndotl, lightSpaceFragPos) * 0.6;
+
     return light.color * (ambient * albedo + (1.0 - shadow) * (diffuse * albedo + specular));
 }
 
-float computeDepth(vec3 pos) {
+float ComputeFragDepth(vec3 pos) {
     vec4 clip_space_pos = _Projection * _View * vec4(pos.xyz, 1.0);
-    return (clip_space_pos.z / clip_space_pos.w);
+    return (clip_space_pos.z / clip_space_pos.w)  * 0.5 + 0.5;
 }
 
 float filterwidth(vec2 v)
@@ -128,19 +126,18 @@ float checker(vec2 uv)
 vec3 ComputeDiffuseColor(vec3 worldPos)
 {
     float checkerboard = checker(vec2(worldPos.x, worldPos.z) * 2.0);
-
     return vec3(1.0- checkerboard * 0.25);
+}
+
+vec3 ApplyFog(vec3 color, vec3 pos)
+{
+    vec4 viewSpacePos = _View * vec4(pos, 1.0);
+    return mix(vec3(0.0), color, exp(viewSpacePos.z * 0.05));
 }
 
 vec3 GammaCorrection(vec3 color)
 {
     return pow(color, vec3(1.0/2.2));
-}
-
-vec3 ApplyFog(vec3 color, vec3 pos)
-{
-    vec4 depth = _View * vec4(pos, 1.0);
-    return mix(vec3(0.0), color, exp(depth.z * 0.05));
 }
 
 void main()
@@ -155,19 +152,15 @@ void main()
 	if (t <= 0)
 		discard;
 
-	vec3 worldPos = vs.nearPoint + t * (vs.farPoint- vs.nearPoint);
-	gl_FragDepth = computeDepth(worldPos) * 0.5 + 0.5;
+	vec3 worldPos = rayOrigin + t * rayDirection;
+	gl_FragDepth = ComputeFragDepth(worldPos);
 
-    // compute color using checker-board pattern
-    vec3 diffuseColor = ComputeDiffuseColor(worldPos);
     // lighting
-	vec3 norm = planeNormal;
+    vec3 diffuseColor = ComputeDiffuseColor(worldPos);
 	vec3 viewDir = normalize(_CameraPos - worldPos);
     vec4 lightSpaceFragPos = _WorldToLight * vec4(worldPos, 1.0);
+	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, planeNormal, worldPos, lightSpaceFragPos, material, diffuseColor);
+    vec3 finalColor = GammaCorrection(ApplyFog(lighting, worldPos));
 
-	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, worldPos, lightSpaceFragPos, material, diffuseColor);
-
-    lighting = ApplyFog(lighting, worldPos);
-
-	FragColor = vec4(GammaCorrection(lighting), 1.0);
+	FragColor = vec4(finalColor, 1.0);
 }

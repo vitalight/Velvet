@@ -27,7 +27,8 @@ namespace Velvet
 				glm::vec4(1,1,0, w), glm::vec4(-1,-1,0, w), glm::vec4(-1,1,0, w), glm::vec4(1,-1,0, w) };
 			vector<glm::vec3> normals = {
 				glm::vec3(0, 1, 0), glm::vec3(0, 1, 0) , glm::vec3(0, 1, 0) , glm::vec3(0, 1, 0) };
-			vector<unsigned int> indices = { 0, 1, 2, 1, 0, 3 };
+			vector<unsigned int> indices = { 2,1,0, 3, 0, 1 };
+			//vector<unsigned int> indices = { 0, 1, 2, 1, 0, 3 };
 			vector<unsigned int> attributeSizes = { 4,3 };
 			m_indices = indices;
 

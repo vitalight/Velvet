@@ -53,7 +53,7 @@ namespace Velvet
 
 		glm::mat4 projection() const
 		{
-			return glm::perspective(glm::radians(zoom), Config::screenAspect, 0.1f,
+			return glm::perspective(glm::radians(zoom), Config::screenAspect, 0.01f,
 				100.0f);
 		}
 	};

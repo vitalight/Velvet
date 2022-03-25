@@ -55,8 +55,8 @@ VtGraphics::VtGraphics()
 	}
 	glViewport(0, 0, Config::screenWidth, Config::screenHeight);
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 
 	// setup stbi
 	stbi_set_flip_vertically_on_load(true);
