@@ -133,6 +133,12 @@ vec3 GammaCorrection(vec3 color)
     return pow(color, vec3(1.0/2.2));
 }
 
+vec3 ApplyFog(vec3 color, vec3 pos)
+{
+    vec4 depth = _View * vec4(pos, 1.0);
+    return mix(vec3(0.0), color, exp(depth.z * 0.05));
+}
+
 void main()
 {
     // only draw when view ray intersects plane
@@ -152,6 +158,8 @@ void main()
     vec4 lightSpaceFragPos = _WorldToLight * vec4(worldPos, 1.0);
 
 	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, worldPos, lightSpaceFragPos, material, diffuseColor);
+
+    lighting = ApplyFog(lighting, worldPos);
 
 	FragColor = vec4(GammaCorrection(lighting), 1.0);
 }
