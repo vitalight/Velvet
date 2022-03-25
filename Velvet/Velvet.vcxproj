@@ -98,6 +98,7 @@
     <ClInclude Include="Actor.hpp" />
     <ClInclude Include="Component.hpp" />
     <ClInclude Include="Global.hpp" />
+    <ClInclude Include="GUI.hpp" />
     <ClInclude Include="Input.hpp" />
     <ClInclude Include="Light.hpp" />
     <ClInclude Include="Material.hpp" />

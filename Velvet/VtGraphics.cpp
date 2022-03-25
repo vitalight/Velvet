@@ -9,6 +9,7 @@
 #include "Input.hpp"
 #include "RenderPipeline.hpp"
 #include "Config.hpp"
+#include "GUI.hpp"
 
 using namespace Velvet;
 
@@ -64,6 +65,8 @@ VtGraphics::VtGraphics()
 	// setup members
 	m_input = shared_ptr<Input>(new Input(m_window));
 	m_renderPipeline = shared_ptr<RenderPipeline>(new RenderPipeline());
+	m_gui = shared_ptr<GUI>(new GUI());
+	m_gui->Initialize(m_window);
 }
 
 shared_ptr<Actor> VtGraphics::AddActor(shared_ptr<Actor> actor)
@@ -189,6 +192,8 @@ void VtGraphics::MainLoop()
 			lastUpdateTime = current;
 			elapsedTime += deltaTime;
 
+			m_gui->PreUpdate();
+			m_gui->OnUpdate();
 			for (const auto& go : m_actors)
 			{
 				go->Update();
@@ -199,6 +204,7 @@ void VtGraphics::MainLoop()
 			}
 
 			m_renderPipeline->Render();
+			m_gui->Render();
 
 			// check and call events and swap the buffers
 			glfwSwapBuffers(m_window);
@@ -219,6 +225,7 @@ void VtGraphics::Finalize()
 	{
 		go->OnDestroy();
 	}
+	m_gui->ShutDown();
 	glfwTerminate();
 }
 

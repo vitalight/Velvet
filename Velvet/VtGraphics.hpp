@@ -18,6 +18,7 @@ namespace Velvet
 	class Light;
 	class Input;
 	class RenderPipeline;
+	class GUI;
 
 	class VtGraphics
 	{
@@ -76,5 +77,6 @@ namespace Velvet
 		bool m_pause = false;
 		shared_ptr<RenderPipeline> m_renderPipeline;
 		GLFWwindow* m_window = nullptr;
+		shared_ptr<GUI> m_gui;
 	};
 }

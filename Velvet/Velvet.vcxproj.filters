@@ -97,6 +97,9 @@
       <Filter>Graphics\Include</Filter>
     </ClInclude>
     <ClInclude Include="PlayerController.hpp" />
+    <ClInclude Include="GUI.hpp">
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shader\_Default.frag">

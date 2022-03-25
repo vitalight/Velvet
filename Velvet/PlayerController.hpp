@@ -77,7 +77,7 @@ namespace Velvet
 		{
 			static float lastX = Config::screenWidth / 2, lastY = Config::screenHeight / 2;
 
-			bool shouldRotate = Global::input->GetMouse(GLFW_MOUSE_BUTTON_LEFT);
+			bool shouldRotate = Global::input->GetMouse(GLFW_MOUSE_BUTTON_RIGHT);
 
 			if (shouldRotate)
 			{
