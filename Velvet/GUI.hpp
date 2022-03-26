@@ -34,6 +34,14 @@ namespace Velvet
 			g_Gui->m_showDebugInfoOnce.push_back(callback);
 		}
 
+		static void RegisterDebugOnce(const string& debugMessage)
+		{
+			//vprintf(debugMessage, args);
+			g_Gui->m_showDebugInfoOnce.push_back([debugMessage]() {
+				ImGui::Text(debugMessage.c_str());
+				});
+		}
+
 	public:
 		void Initialize(GLFWwindow* window)
 		{
@@ -140,7 +148,10 @@ namespace Velvet
 
 			ImGui::PushItemWidth(-FLT_MIN);
 
-			ImGui::Button("Reset", ImVec2(-FLT_MIN, 0));
+			if (ImGui::Button("Reset", ImVec2(-FLT_MIN, 0)))
+			{
+				Global::graphics->Reset();
+			}
 			ImGui::Dummy(ImVec2(0.0f, 10.0f));
 
 			if (ImGui::CollapsingHeader("Global", ImGuiTreeNodeFlags_DefaultOpen))
@@ -152,12 +163,12 @@ namespace Velvet
 				ImGui::Dummy(ImVec2(0.0f, 10.0f));
 			}
 
-			if (ImGui::CollapsingHeader("Sim", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "LightPos", (float*)&(Global::light[0]->transform()->position), -10, 10, "%.2f");
-				static float value = 0.0;
-				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Timestep", &value, 0, 1);
-			}
+			//if (ImGui::CollapsingHeader("Simulation", ImGuiTreeNodeFlags_DefaultOpen))
+			//{
+			//	IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "LightPos", (float*)&(Global::light[0]->transform()->position), -10, 10, "%.2f");
+			//	static float value = 0.0;
+			//	IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Timestep", &value, 0, 1);
+			//}
 
 			ImGui::End();
 		}
@@ -209,25 +220,27 @@ namespace Velvet
 			const float timer2_interval = 1.0f / 30.0f;
 
 			const auto& graphics = Global::graphics;
-			float frameCount = Global::graphics->frameCount;
+			float frameCount = graphics->frameCount;
 			float elapsedTime = graphics->elapsedTime;
-			float deltaTime = graphics->deltaTime * 1000;
+			float deltaTimeMiliseconds = graphics->deltaTime * 1000;
 
 			stat.frameCount = frameCount;
+			timer1 += graphics->deltaTime;
+			timer2 += graphics->deltaTime;
 
-			if (elapsedTime > timer2)
+			if (timer2 > timer2_interval)
 			{
-				timer2 = elapsedTime + timer2_interval;
+				timer2 = 0;
 
-				stat.graphValues[stat.graphIndex] = deltaTime;
+				stat.graphValues[stat.graphIndex] = deltaTimeMiliseconds;
 				stat.graphIndex = (stat.graphIndex + 1) % IM_ARRAYSIZE(stat.graphValues);
 			}
 
-			if (elapsedTime > timer1)
+			if (timer1 > timer1_interval)
 			{
-				timer1 = elapsedTime + timer1_interval;
+				timer1 = 0;
 
-				stat.deltaTime = deltaTime;
+				stat.deltaTime = deltaTimeMiliseconds;
 				stat.frameRate = (int)(frameCount / elapsedTime);
 
 				for (int n = 0; n < IM_ARRAYSIZE(stat.graphValues); n++)

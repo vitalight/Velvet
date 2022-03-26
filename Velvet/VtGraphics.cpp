@@ -3,6 +3,7 @@
 #include <functional>
 
 #include "External/stb_image.h"
+#include "fmt/color.h"
 
 #include "Helper.hpp"
 #include "Camera.hpp"
@@ -12,6 +13,11 @@
 #include "GUI.hpp"
 
 using namespace Velvet;
+
+static void PrintGlfwError(int error, const char* description)
+{
+	fmt::print("Error(Glfw): Code({}), {}\n", error, description);
+}
 
 VtGraphics::VtGraphics()
 {
@@ -47,6 +53,7 @@ VtGraphics::VtGraphics()
 	glfwSetScrollCallback(m_window, [](GLFWwindow* m_window, double xoffset, double yoffset) {
 		Global::graphics->ProcessScroll(m_window, xoffset, yoffset);
 		});
+	glfwSetErrorCallback(PrintGlfwError);
 
 	// setup opengl
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -69,6 +76,16 @@ VtGraphics::VtGraphics()
 	m_gui->Initialize(m_window);
 }
 
+Velvet::VtGraphics::~VtGraphics()
+{
+	m_gui->ShutDown();
+	m_gui = nullptr;
+	m_input = nullptr;
+	m_renderPipeline = nullptr;
+
+	glfwTerminate();
+}
+
 shared_ptr<Actor> VtGraphics::AddActor(shared_ptr<Actor> actor)
 {
 	m_actors.push_back(actor);
@@ -81,9 +98,15 @@ shared_ptr<Actor> VtGraphics::CreateActor(const string& name)
 	return AddActor(actor);
 }
 
+void Velvet::VtGraphics::CreateScene(function<void(VtGraphics*)> scene)
+{
+	scene(this);
+	m_scene = scene;
+}
+
 int VtGraphics::Run()
 {
-	fmt::print(
+	fmt::print(fg(fmt::color::green),
 		"©°{0:\-^{2}}©´\n"
 		"©¦{1: ^{2}}©¦\n"
 		"©¸{0:\-^{2}}©¼\n", "", "Hello, Velvet!", 30);
@@ -98,11 +121,28 @@ int VtGraphics::Run()
 	}
 	fmt::print("\n");
 
-	Initialize();
-	MainLoop();
-	Finalize();
+	do {
+		if (m_pendingReset)
+		{
+			frameCount = 0;
+			deltaTime = 0.0f;
+			elapsedTime = 0.0f;
+			lastUpdateTime = glfwGetTime();
+
+			m_scene(this);
+			m_pendingReset = false;
+		}
+		Initialize();
+		MainLoop();
+		Finalize();
+	} while(m_pendingReset);
 
 	return 0;
+}
+
+void Velvet::VtGraphics::Reset()
+{
+	m_pendingReset = true;
 }
 
 unsigned int VtGraphics::depthMapFBO()
@@ -161,7 +201,7 @@ void VtGraphics::MainLoop()
 {
 	fmt::print("Info(VtGraphics): Initialization success. Enter main loop.\n");
 	// render loop
-	while (!glfwWindowShouldClose(m_window))
+	while (!glfwWindowShouldClose(m_window) && !m_pendingReset)
 	{
 		// input
 		ProcessKeyboard(m_window);
@@ -181,6 +221,7 @@ void VtGraphics::MainLoop()
 		
 		frameCount++;
 		elapsedTime += deltaTime;
+
 		for (const auto& go : m_actors)
 		{
 			go->Update();
@@ -201,16 +242,16 @@ void VtGraphics::MainLoop()
 
 void VtGraphics::Finalize()
 {
-	if (Global::camera)
-	{
-		fmt::print("Info(VtGraphics): Final camera state[position{}, rotation{}],\n",
-			Global::camera->transform()->position, Global::camera->transform()->rotation);
-	}
 	for (const auto& go : m_actors)
 	{
 		go->OnDestroy();
 	}
-	m_gui->ShutDown();
-	glfwTerminate();
+
+	Global::light.clear();
+	
+	m_actors.clear();
+	onMouseScroll.clear();
+	onMouseMove.clear();
+	postUpdate.clear();
 }
 

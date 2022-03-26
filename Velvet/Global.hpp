@@ -13,7 +13,8 @@ namespace Velvet
 	{
 		inline VtGraphics* graphics;
 		inline Camera* camera;
-		inline std::vector<Light*> light;
 		inline Input* input;
+
+		inline std::vector<Light*> light;
 	}
 }

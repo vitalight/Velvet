@@ -11,12 +11,13 @@
 
 using namespace Velvet;
 
-void CreateScene_BlinnPhong(VtGraphics& graphics)
+void CreateScene_BlinnPhong(VtGraphics* graphics)
 {
+	graphics->skyColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
 	//=====================================
 	// 1. Camera
 	//=====================================
-	auto camera = graphics.AddActor(Actor::PrefabCamera());
+	auto camera = graphics->AddActor(Actor::PrefabCamera());
 	camera->transform->position = glm::vec3(1.5, 1.5, 5.0);
 	camera->transform->rotation = glm::vec3(-8.5, 9.0, 0);
 
@@ -24,11 +25,11 @@ void CreateScene_BlinnPhong(VtGraphics& graphics)
 	// 2. Light
 	//=====================================
 
-	auto light = graphics.AddActor(Actor::PrefabLight(LightType::Directional));
+	auto light = graphics->AddActor(Actor::PrefabLight(LightType::Directional));
 	//light->GetComponent<MeshRenderer>()->hidden = true;
 	light->transform->position = glm::vec3(-2.0, 4.0, -1.0f);
 
-	graphics.postUpdate.push_back([light]() {
+	graphics->postUpdate.push_back([light]() {
 		light->transform->rotation += glm::vec3(1, 0, 0);
 		});
 
@@ -47,8 +48,8 @@ void CreateScene_BlinnPhong(VtGraphics& graphics)
 		vector<float> planeVertices = {
 			// positions            // normals         // texcoords
 			 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-			-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
 			-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+			-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
 
 			 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
 			-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
@@ -60,7 +61,7 @@ void CreateScene_BlinnPhong(VtGraphics& graphics)
 		plane->AddComponent(renderer);
 		plane->transform->position = glm::vec3(0, -0.1f, 0);
 	}
-	graphics.AddActor(plane);
+	graphics->AddActor(plane);
 
 	shared_ptr<Actor> cube(new Actor("Cube"));
 	{
@@ -68,16 +69,16 @@ void CreateScene_BlinnPhong(VtGraphics& graphics)
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
 		cube->AddComponent(renderer);
 	}
-	graphics.AddActor(cube);
+	graphics->AddActor(cube);
 
 }
 
-void CreateScene_Shadow(VtGraphics& graphics)
+void CreateScene_Shadow(VtGraphics* graphics)
 {
 	//=====================================
 	// 1. Camera
 	//=====================================
-	auto camera = graphics.AddActor(Actor::PrefabCamera());
+	auto camera = graphics->AddActor(Actor::PrefabCamera());
 	camera->transform->position = glm::vec3(1.5, 1.5, 5.0);
 	camera->transform->rotation = glm::vec3(-8.5, 9.0, 0);
 
@@ -85,15 +86,15 @@ void CreateScene_Shadow(VtGraphics& graphics)
 	// 2. Light
 	//=====================================
 
-	auto light = graphics.AddActor(Actor::PrefabLight(LightType::SpotLight));
+	auto light = graphics->AddActor(Actor::PrefabLight(LightType::SpotLight));
 	//light->transform->position = glm::vec3(-2.0, 4.0, -1.0f);
 	light->transform->position = glm::vec3(0, 4.0, -1.0f);
 	light->transform->scale = glm::vec3(0.2f);
 	auto lightComp = light->GetComponent<Light>();
 
-	graphics.postUpdate.push_back([light, lightComp]() {
+	graphics->postUpdate.push_back([light, lightComp]() {
 		//light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
-		//light->transform->rotation = glm::vec3(20 * sin(glfwGetTime()) - 20, 0, 0);
+		light->transform->rotation = glm::vec3(20 * sin(glfwGetTime()) - 20, 0, 0);
 		if (Global::input->GetKeyDown(GLFW_KEY_UP))
 		{
 			fmt::print("Outer: {}\n", lightComp->outerCutoff++);
@@ -121,12 +122,12 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		material.Use();
 
 		material.SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
-		material.SetTexture("_ShadowTex", graphics.depthMapFBO());
+		material.SetTexture("_ShadowTex", graphics->depthMapFBO());
 	}
 
 	Material shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
-	//auto plane = graphics.CreateActor("Plane");
+	//auto plane = graphics->CreateActor("Plane");
 	//{
 	//	vector<float> planeVertices = {
 	//		// positions            // normals         // texcoords
@@ -144,7 +145,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 	//	plane->AddComponent(renderer);
 	//}
 
-	auto cube1 = graphics.CreateActor("Cube1");
+	auto cube1 = graphics->CreateActor("Cube1");
 	{
 		auto mesh = *Resource::LoadMesh("sphere.obj").get();
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
@@ -153,7 +154,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		cube1->transform->scale = glm::vec3(0.5f);
 	}
 
-	auto cube2 = graphics.CreateActor("Cube2");
+	auto cube2 = graphics->CreateActor("Cube2");
 	{
 		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
@@ -162,7 +163,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		cube2->transform->scale = glm::vec3(0.5f);
 	}
 
-	auto cube3 = graphics.CreateActor("Cube3");
+	auto cube3 = graphics->CreateActor("Cube3");
 	{
 		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
@@ -172,12 +173,12 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		cube3->transform->rotation = glm::vec3(60, 0, 60);
 	}
 
-	auto infPlane = graphics.CreateActor("InfPlane");
+	auto infPlane = graphics->CreateActor("InfPlane");
 	{
 		Material mat = Resource::LoadMaterial("_InfinitePlane");
 		{
 			mat.Use();
-			mat.SetTexture("_ShadowTex", graphics.depthMapFBO());
+			mat.SetTexture("_ShadowTex", graphics->depthMapFBO());
 			// Plane: ax + by + cz + d = 0
 			mat.SetVec4("_Plane", glm::vec4(0, 1, 0, 0));
 		}
@@ -186,14 +187,14 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		infPlane->AddComponent(renderer);
 	}
 	
-	auto quad = graphics.CreateActor("Debug Quad");
+	auto quad = graphics->CreateActor("Debug Quad");
 	{
 		Material debugMat = Resource::LoadMaterial("_ShadowDebug");
 		{
 			float near_plane = 1.0f, far_plane = 7.5f;
 			debugMat.SetFloat("near_plane", near_plane);
 			debugMat.SetFloat("far_plane", far_plane);
-			debugMat.SetTexture("depthMap", graphics.depthMapFBO());
+			debugMat.SetTexture("depthMap", graphics->depthMapFBO());
 		}
 		vector<float> quadVertices = {
 			// positions        // texture Coords
@@ -211,7 +212,7 @@ void CreateScene_Shadow(VtGraphics& graphics)
 		quad->AddComponent(renderer);
 		renderer->hidden = true;
 
-		graphics.postUpdate.push_back([renderer]() {
+		graphics->postUpdate.push_back([renderer]() {
 			if (Global::input->GetKeyDown(GLFW_KEY_1))
 			{
 				renderer->hidden = !renderer->hidden;
@@ -226,21 +227,19 @@ int main()
 	//=====================================
 	// 1. Create graphics
 	//=====================================
-	VtGraphics graphics;
+	shared_ptr<VtGraphics> graphics(new VtGraphics());
 	//graphics.skyColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
 
 	//=====================================
 	// 2. Instantiate actors
 	//=====================================
 	
-	//CreateScene_BlinnPhong(graphics);
-	CreateScene_Shadow(graphics);
+	graphics->CreateScene(CreateScene_Shadow);
+	//CreateScene_BlinnPhong(&graphics);
+	//CreateScene_Shadow(&graphics);
 
-	//graphics.postUpdate.push_back([&]() {
-	//	});
-	
 	//=====================================
 	// 3. Run graphics
 	//=====================================
-	return graphics.Run();
+	return graphics->Run();
 }

@@ -25,11 +25,19 @@ namespace Velvet
 	public:
 		VtGraphics();
 
+		~VtGraphics();
+
+		VtGraphics(const VtGraphics&) = delete;
+
 		shared_ptr<Actor> AddActor(shared_ptr<Actor> actor);
 
 		shared_ptr<Actor> CreateActor(const string& name);
 
+		void CreateScene(function<void(VtGraphics*)> scene);
+
 		int Run();
+
+		void Reset();
 
 		template <typename T>
 		enable_if_t<is_base_of<Component, T>::value, vector<T*>> FindComponents()
@@ -77,10 +85,12 @@ namespace Velvet
 		void Finalize();
 
 	private:
+		bool m_pendingReset = false;
 		vector<shared_ptr<Actor>> m_actors;
 		shared_ptr<Input> m_input;
 		shared_ptr<RenderPipeline> m_renderPipeline;
 		GLFWwindow* m_window = nullptr;
 		shared_ptr<GUI> m_gui;
+		function<void(VtGraphics*)> m_scene;
 	};
 }
