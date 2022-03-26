@@ -4,6 +4,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+#define IMGUI_LEFT_LABEL(func, label, ...) (ImGui::TextUnformatted(label), ImGui::SameLine(), func("##" label, __VA_ARGS__))
+
 namespace Velvet
 {
 	class GUI
@@ -17,11 +19,15 @@ namespace Velvet
 			ImGui::CreateContext();
 			ImGuiIO& io = ImGui::GetIO(); (void)io;
 			io.IniFilename = NULL;
+			io.Fonts->AddFontFromFileTTF("Assets/DroidSans.ttf", 19);
 			//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 			//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
 			// Setup Dear ImGui style
 			ImGui::StyleColorsDark();
+
+			auto style = &ImGui::GetStyle();
+			style->Colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.6f);
 			//ImGui::StyleColorsClassic();
 
 			// Setup Platform/Renderer backends
@@ -38,26 +44,155 @@ namespace Velvet
 			ImGui::NewFrame();
 		}
 
+		void OnUpdate1()
+		{
+			static bool show_demo_window = true;
+			static bool show_another_window = true;
+			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+			if (show_demo_window)
+				ImGui::ShowDemoWindow(&show_demo_window);
+
+			// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+			{
+				static float f = 0.0f;
+				static int counter = 0;
+
+				ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+				ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+				ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+				ImGui::Checkbox("Another Window", &show_another_window);
+
+				ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+
+				if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+					counter++;
+				ImGui::SameLine();
+				ImGui::Text("counter = %d", counter);
+
+				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+				ImGui::End();
+			}
+
+			// 3. Show another simple window.
+			if (show_another_window)
+			{
+				ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+				ImGui::Text("Hello from another window!");
+				if (ImGui::Button("Close Me"))
+					show_another_window = false;
+				ImGui::End();
+			}
+		}
+
 		void OnUpdate()
 		{
-			static float f = 0.0f;
-			static int counter = 0;
-			static bool show_demo_window = true;
+			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+				ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+			static bool displayGUI = true;
 
-			ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+			int canvasWidth;
+			int canvasHeight;
+			glfwGetWindowSize(m_window, &canvasWidth, &canvasHeight);
+			int windowWidth = 250;
 
-			ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-			ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+			{
+				ImGui::SetNextWindowSize(ImVec2(windowWidth, (canvasHeight - 60) * 0.4));
+				ImGui::SetNextWindowPos(ImVec2(20, 20));
+				ImGui::Begin("Scene", &displayGUI, window_flags);
+				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 151, 61, 255));
+				ImGui::Text("Scene");
+				ImGui::PopStyleColor();
+				ImGui::Separator();
+				//ImGui::Indent(10);
 
-			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+				//ImGui::SetWindowFontScale(2.0f);
+				static int selected = 0;
+				for (int i = 0; i < 10; i++)
+				{
+					auto label = fmt::format("Scene {}", (char)('A' + i));
+					if (ImGui::Selectable(label.c_str(), selected == i))
+					{
+						selected = i;
+					}
+				}
+				ImGui::End();
+			}
 
-			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-				counter++;
-			ImGui::SameLine();
-			ImGui::Text("counter = %d", counter);
+			{
+				ImGui::SetNextWindowSize(ImVec2(windowWidth, (canvasHeight - 60) * 0.6));
+				ImGui::SetNextWindowPos(ImVec2(20, 40 + (canvasHeight - 60) * 0.4));
+				ImGui::Begin("Options", &displayGUI, window_flags);
+				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 151, 61, 255));
+				ImGui::Text("Options");
+				ImGui::PopStyleColor();
+				ImGui::Separator();
+				//ImGui::Indent(10);
 
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-			ImGui::End();
+				ImGui::PushItemWidth(-FLT_MIN);
+				ImGui::Button("Reset", ImVec2(-FLT_MIN, 0));
+				ImGui::Separator();
+				static bool radio = true;
+				ImGui::Checkbox("Render", &radio);
+				ImGui::Separator();
+				//ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.6f);
+
+				//ImGui::SliderFloat3("Lightpos", (float*)&(Global::light[0]->transform()->position), -10, 10, "%.2f");
+				IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "Lightpos", (float*)&(Global::light[0]->transform()->position), -10, 10, "%.2f");
+				static float value = 0.0;
+				//ImGui::SliderFloat("Timestep", &value, 0, 1);
+				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Timestep", &value, 0, 1);
+				ImGui::End();
+			}
+
+			{
+				static float nextUpdateTime = Global::graphics->elapsedTime;
+				static float deltaTime;
+				static int frameRate;
+				if (Global::graphics->elapsedTime > nextUpdateTime)
+				{
+					nextUpdateTime = Global::graphics->elapsedTime + 0.2;
+					deltaTime = Global::graphics->deltaTime * 1000;
+					frameRate = (int)(Global::graphics->frameCount / Global::graphics->elapsedTime);
+				}
+				ImGui::SetNextWindowSize(ImVec2(windowWidth * 1.1, 0));
+				ImGui::SetNextWindowPos(ImVec2(canvasWidth - windowWidth * 1.1 -20, 20));
+				ImGui::Begin("Statistics", &displayGUI, window_flags);
+				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 151, 61, 255));
+				ImGui::Text("Statistics");
+				ImGui::PopStyleColor();
+				ImGui::Separator();
+				//ImGui::Indent(10);
+				ImGui::Text("Frame:  %d", Global::graphics->frameCount);
+				ImGui::Text("Avg FrameRate:  %d FPS", frameRate);
+				{
+					static float values[90] = {};
+					static int values_offset = 0;
+					static double refresh_time = 0.0;
+					if (refresh_time == 0.0)
+						refresh_time = ImGui::GetTime();
+					while (refresh_time < ImGui::GetTime()) // Create data at fixed 60 Hz rate for the demo
+					{
+						static float phase = 0.0f;
+						values[values_offset] = Global::graphics->deltaTime * 1000;
+						values_offset = (values_offset + 1) % IM_ARRAYSIZE(values);
+						refresh_time += 1.0f / 30.0f;
+					}
+					float average = 0.0f;
+					for (int n = 0; n < IM_ARRAYSIZE(values); n++)
+						average += values[n];
+					average /= (float)IM_ARRAYSIZE(values);
+					auto overlay = fmt::format("{:.2f} ms (Avg: {:.2f} ms)", deltaTime, average);
+					ImGui::PlotLines("Lines", values, IM_ARRAYSIZE(values), values_offset, overlay.c_str(), 
+						average * 0.5, average * 2.0, ImVec2(0, 80.0f));
+				}
+
+				ImGui::Separator();
+				string deviceName((char*)glGetString(GL_RENDERER));
+				deviceName = deviceName.substr(0, deviceName.find("/"));
+				ImGui::Text("Device:  %s", deviceName.c_str());
+				ImGui::End();
+			}
 		}
 
 		void Render()

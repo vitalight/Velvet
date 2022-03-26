@@ -53,6 +53,7 @@ namespace Velvet
 		vector<function<void(double, double)>> onMouseMove;
 		vector<function<void()>> postUpdate;
 
+		int frameCount = 0;
 		float deltaTime = 0.0f;
 		float elapsedTime = 0.0f;
 		float lastUpdateTime = 0.0f;

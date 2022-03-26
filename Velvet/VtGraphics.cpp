@@ -83,8 +83,11 @@ shared_ptr<Actor> VtGraphics::CreateActor(const string& name)
 
 int VtGraphics::Run()
 {
-	fmt::print("Hello Velvet!\n");
-	fmt::print("# Total actors: {}\n", m_actors.size());
+	fmt::print(
+		"©°{0:\-^{2}}©´\n"
+		"©¦{1: ^{2}}©¦\n"
+		"©¸{0:\-^{2}}©¼\n", "", "Hello, Velvet!", 30);
+	fmt::print("Total actors: {}\n", m_actors.size());
 	for (auto actor : m_actors)
 	{
 		fmt::print(" + {}\n", actor->name);
@@ -93,6 +96,7 @@ int VtGraphics::Run()
 			fmt::print(" |-- {}\n", component->name);
 		}
 	}
+	fmt::print("\n");
 
 	Initialize();
 	MainLoop();
@@ -191,6 +195,7 @@ void VtGraphics::MainLoop()
 			deltaTime = current - lastUpdateTime;
 			lastUpdateTime = current;
 			elapsedTime += deltaTime;
+			frameCount++;
 
 			m_gui->PreUpdate();
 			m_gui->OnUpdate();
@@ -218,7 +223,7 @@ void VtGraphics::Finalize()
 {
 	if (Global::camera)
 	{
-		fmt::print("Final camera state[position{}, rotation{}],\n", 
+		fmt::print("Info(VtGraphics): Final camera state[position{}, rotation{}],\n", 
 			Global::camera->transform()->position, Global::camera->transform()->rotation);
 	}
 	for (const auto& go : m_actors)
