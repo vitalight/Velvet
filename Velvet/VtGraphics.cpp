@@ -134,36 +134,11 @@ void VtGraphics::ProcessInput(GLFWwindow* m_window)
 	}
 	if (Global::input->GetKeyDown(GLFW_KEY_L))
 	{
-		static bool renderLine = true;
-		if (renderLine)
-		{
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		}
-		else
-		{
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
-		renderLine = !renderLine;
+		renderWireframe = !renderWireframe;
 	}
 	if (Global::input->GetKeyDown(GLFW_KEY_SPACE))
 	{
-		m_pause = !m_pause;
-		if (!m_pause)
-		{
-			lastUpdateTime = (float)glfwGetTime();
-		}
-	}
-
-	if (Global::input->GetKeyDown(GLFW_KEY_ENTER))
-	{
-		if (glfwGetInputMode(m_window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL)
-		{
-			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		}
-		else
-		{
-			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		}
+		pause = !pause;
 	}
 }
 
@@ -185,15 +160,16 @@ void VtGraphics::MainLoop()
 		ProcessInput(m_window);
 
 		// rendering commands here
-		if (!m_pause)
+		if (!pause)
 		{
 			glClearColor(skyColor.x, skyColor.y, skyColor.z, skyColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glPolygonMode(GL_FRONT_AND_BACK, renderWireframe ? GL_LINE : GL_FILL);
 
 			// timing
 			float current = (float)glfwGetTime();
-			deltaTime = current - lastUpdateTime;
 			lastUpdateTime = current;
+			deltaTime = current - lastUpdateTime;
 			elapsedTime += deltaTime;
 			frameCount++;
 
@@ -214,7 +190,11 @@ void VtGraphics::MainLoop()
 			// check and call events and swap the buffers
 			glfwSwapBuffers(m_window);
 		}
-
+		else
+		{
+			float current = (float)glfwGetTime();
+			lastUpdateTime = current;
+		}
 		glfwPollEvents();
 	}
 }

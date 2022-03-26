@@ -27,7 +27,21 @@ namespace Velvet
 			ImGui::StyleColorsDark();
 
 			auto style = &ImGui::GetStyle();
+			style->SelectableTextAlign = ImVec2(0, 0.5);
+			style->WindowPadding = ImVec2(10, 12);
+			style->WindowRounding = 6;
+			style->GrabRounding = 8;
+			style->FrameRounding = 6;
+			style->WindowTitleAlign = ImVec2(0.5, 0.5);
+
 			style->Colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.6f);
+			style->Colors[ImGuiCol_TitleBg] = style->Colors[ImGuiCol_WindowBg];
+			style->Colors[ImGuiCol_TitleBgActive] = style->Colors[ImGuiCol_TitleBg];
+			style->Colors[ImGuiCol_SliderGrab] = ImVec4(0.325, 0.325, 0.325, 1);
+			style->Colors[ImGuiCol_FrameBg] = ImVec4(0.114, 0.114, 0.114, 1);
+			style->Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.2, 0.2, 0.2, 1);
+			style->Colors[ImGuiCol_Button] = ImVec4(0.46, 0.46, 0.46, 0.46);
+			style->Colors[ImGuiCol_CheckMark] = ImVec4(0.851, 0.851, 0.851, 1);
 			//ImGui::StyleColorsClassic();
 
 			// Setup Platform/Renderer backends
@@ -87,8 +101,13 @@ namespace Velvet
 
 		void OnUpdate()
 		{
-			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
-				ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+			//static bool show_demo_window = true;
+			//ImGui::ShowDemoWindow(&show_demo_window);
+
+			ImGuiWindowFlags window_flags =  ImGuiWindowFlags_AlwaysAutoResize |
+				ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav |
+				ImGuiWindowFlags_NoResize  | ImGuiWindowFlags_NoCollapse
+				;
 			static bool displayGUI = true;
 
 			int canvasWidth;
@@ -99,11 +118,8 @@ namespace Velvet
 			{
 				ImGui::SetNextWindowSize(ImVec2(windowWidth, (canvasHeight - 60) * 0.4));
 				ImGui::SetNextWindowPos(ImVec2(20, 20));
-				ImGui::Begin("Scene", &displayGUI, window_flags);
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 151, 61, 255));
-				ImGui::Text("Scene");
-				ImGui::PopStyleColor();
-				ImGui::Separator();
+				ImGui::Begin("Scene", NULL, window_flags);
+				//ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 151, 61, 255));
 				//ImGui::Indent(10);
 
 				//ImGui::SetWindowFontScale(2.0f);
@@ -111,7 +127,7 @@ namespace Velvet
 				for (int i = 0; i < 10; i++)
 				{
 					auto label = fmt::format("Scene {}", (char)('A' + i));
-					if (ImGui::Selectable(label.c_str(), selected == i))
+					if (ImGui::Selectable(label.c_str(), selected == i, 0, ImVec2(0, 28)))
 					{
 						selected = i;
 					}
@@ -122,26 +138,29 @@ namespace Velvet
 			{
 				ImGui::SetNextWindowSize(ImVec2(windowWidth, (canvasHeight - 60) * 0.6));
 				ImGui::SetNextWindowPos(ImVec2(20, 40 + (canvasHeight - 60) * 0.4));
-				ImGui::Begin("Options", &displayGUI, window_flags);
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 151, 61, 255));
-				ImGui::Text("Options");
-				ImGui::PopStyleColor();
-				ImGui::Separator();
-				//ImGui::Indent(10);
-
+				ImGui::Begin("Options", NULL, window_flags);
 				ImGui::PushItemWidth(-FLT_MIN);
-				ImGui::Button("Reset", ImVec2(-FLT_MIN, 0));
-				ImGui::Separator();
-				static bool radio = true;
-				ImGui::Checkbox("Render", &radio);
-				ImGui::Separator();
-				//ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.6f);
 
-				//ImGui::SliderFloat3("Lightpos", (float*)&(Global::light[0]->transform()->position), -10, 10, "%.2f");
-				IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "Lightpos", (float*)&(Global::light[0]->transform()->position), -10, 10, "%.2f");
-				static float value = 0.0;
-				//ImGui::SliderFloat("Timestep", &value, 0, 1);
-				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Timestep", &value, 0, 1);
+				ImGui::Button("Reset", ImVec2(-FLT_MIN, 0));
+				ImGui::Dummy(ImVec2(0.0f, 10.0f));
+				if (ImGui::CollapsingHeader("Global", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					static bool radio = false;
+					ImGui::Checkbox("Pause", &Global::graphics->pause);
+					ImGui::Checkbox("Wireframe", &Global::graphics->renderWireframe);
+					ImGui::Checkbox("Draw Points", &radio);
+					ImGui::Dummy(ImVec2(0.0f, 10.0f));
+				}
+
+				if (ImGui::CollapsingHeader("Sim", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					//ImGui::SliderFloat3("Lightpos", (float*)&(Global::light[0]->transform()->position), -10, 10, "%.2f");
+					IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "Lightpos", (float*)&(Global::light[0]->transform()->position), -10, 10, "%.2f");
+					static float value = 0.0;
+					//ImGui::SliderFloat("Timestep", &value, 0, 1);
+					IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Timestep", &value, 0, 1);
+				}
+
 				ImGui::End();
 			}
 
@@ -157,23 +176,18 @@ namespace Velvet
 				}
 				ImGui::SetNextWindowSize(ImVec2(windowWidth * 1.1, 0));
 				ImGui::SetNextWindowPos(ImVec2(canvasWidth - windowWidth * 1.1 -20, 20));
-				ImGui::Begin("Statistics", &displayGUI, window_flags);
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 151, 61, 255));
-				ImGui::Text("Statistics");
-				ImGui::PopStyleColor();
-				ImGui::Separator();
+				ImGui::Begin("Statistics", NULL, window_flags);
 				//ImGui::Indent(10);
 				ImGui::Text("Frame:  %d", Global::graphics->frameCount);
 				ImGui::Text("Avg FrameRate:  %d FPS", frameRate);
 				{
-					static float values[90] = {};
+					static float values[100] = {};
 					static int values_offset = 0;
 					static double refresh_time = 0.0;
 					if (refresh_time == 0.0)
 						refresh_time = ImGui::GetTime();
 					while (refresh_time < ImGui::GetTime()) // Create data at fixed 60 Hz rate for the demo
 					{
-						static float phase = 0.0f;
 						values[values_offset] = Global::graphics->deltaTime * 1000;
 						values_offset = (values_offset + 1) % IM_ARRAYSIZE(values);
 						refresh_time += 1.0f / 30.0f;
@@ -183,8 +197,8 @@ namespace Velvet
 						average += values[n];
 					average /= (float)IM_ARRAYSIZE(values);
 					auto overlay = fmt::format("{:.2f} ms (Avg: {:.2f} ms)", deltaTime, average);
-					ImGui::PlotLines("Lines", values, IM_ARRAYSIZE(values), values_offset, overlay.c_str(), 
-						average * 0.5, average * 2.0, ImVec2(0, 80.0f));
+					ImGui::PlotLines("##", values, IM_ARRAYSIZE(values), values_offset, overlay.c_str(), 
+						0, average * 2.0, ImVec2(windowWidth+5, 80.0f));
 				}
 
 				ImGui::Separator();

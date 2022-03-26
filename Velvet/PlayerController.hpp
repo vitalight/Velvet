@@ -22,7 +22,7 @@ namespace Velvet
 
 		void Start() override
 		{
-			Global::graphics->onMouseScroll.push_back(OnMouseScroll);
+			//Global::graphics->onMouseScroll.push_back(OnMouseScroll);
 
 			Global::graphics->onMouseMove.push_back(OnMouseMove);
 		}

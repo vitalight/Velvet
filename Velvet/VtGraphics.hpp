@@ -57,6 +57,8 @@ namespace Velvet
 		float deltaTime = 0.0f;
 		float elapsedTime = 0.0f;
 		float lastUpdateTime = 0.0f;
+		bool renderWireframe = false;
+		bool pause = false;
 		glm::vec4 skyColor = glm::vec4(0.0f);
 
 	private:
@@ -75,7 +77,6 @@ namespace Velvet
 	private:
 		vector<shared_ptr<Actor>> m_actors;
 		shared_ptr<Input> m_input;
-		bool m_pause = false;
 		shared_ptr<RenderPipeline> m_renderPipeline;
 		GLFWwindow* m_window = nullptr;
 		shared_ptr<GUI> m_gui;
