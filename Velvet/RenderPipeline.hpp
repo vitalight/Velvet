@@ -61,6 +61,7 @@ namespace Velvet
 			if (Global::light.size() == 0)
 				return;
 
+			auto originalWindowSize = Global::graphics->windowSize();
 			glViewport(0, 0, Config::shadowWidth, Config::shadowHeight);
 			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 			glClear(GL_DEPTH_BUFFER_BIT);
@@ -74,12 +75,12 @@ namespace Velvet
 			}
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glViewport(0, 0, originalWindowSize.x, originalWindowSize.y);
 		}
 
 		void RenderObjects(vector<MeshRenderer*> renderers)
 		{        
 			// reset viewport
-			glViewport(0, 0, Config::screenWidth, Config::screenHeight);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glCullFace(GL_BACK);
 

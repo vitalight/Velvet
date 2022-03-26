@@ -8,18 +8,43 @@
 
 namespace Velvet
 {
+	struct PerformanceStat
+	{
+		float deltaTime = 0;
+		int frameRate = 0;
+		int frameCount = 0;
+
+		float graphValues[100] = {};
+		int graphIndex = 0;
+		float graphAverage = 0.0f;
+	};
+
+	inline GUI* g_Gui;
+
 	class GUI
 	{
 	public:
+		static void RegisterDebug(function<void()> callback)
+		{
+			g_Gui->m_showDebugInfo.push_back(callback);
+		}
+
+		static void RegisterDebugOnce(function<void()> callback)
+		{
+			g_Gui->m_showDebugInfoOnce.push_back(callback);
+		}
+
+	public:
 		void Initialize(GLFWwindow* window)
 		{
+			g_Gui = this;
 			m_window = window;
 			// Setup Dear ImGui context
 			IMGUI_CHECKVERSION();
 			ImGui::CreateContext();
 			ImGuiIO& io = ImGui::GetIO(); (void)io;
 			io.IniFilename = NULL;
-			io.Fonts->AddFontFromFileTTF("Assets/DroidSans.ttf", 19);
+			io.Fonts->AddFontFromFileTTF("Assets/DroidSans.ttf", 18);
 			//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 			//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
@@ -48,6 +73,9 @@ namespace Velvet
 			const char* glsl_version = "#version 330";
 			ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 			ImGui_ImplOpenGL3_Init(glsl_version);
+
+			m_deviceName = string((char*)glGetString(GL_RENDERER));
+			m_deviceName = m_deviceName.substr(0, m_deviceName.find("/"));
 		}
 
 		void PreUpdate()
@@ -58,155 +86,16 @@ namespace Velvet
 			ImGui::NewFrame();
 		}
 
-		void OnUpdate1()
-		{
-			static bool show_demo_window = true;
-			static bool show_another_window = true;
-			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-			if (show_demo_window)
-				ImGui::ShowDemoWindow(&show_demo_window);
-
-			// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-			{
-				static float f = 0.0f;
-				static int counter = 0;
-
-				ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-				ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-				ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-				ImGui::Checkbox("Another Window", &show_another_window);
-
-				ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-
-				if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-					counter++;
-				ImGui::SameLine();
-				ImGui::Text("counter = %d", counter);
-
-				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-				ImGui::End();
-			}
-
-			// 3. Show another simple window.
-			if (show_another_window)
-			{
-				ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-				ImGui::Text("Hello from another window!");
-				if (ImGui::Button("Close Me"))
-					show_another_window = false;
-				ImGui::End();
-			}
-		}
-
 		void OnUpdate()
 		{
 			//static bool show_demo_window = true;
 			//ImGui::ShowDemoWindow(&show_demo_window);
 
-			ImGuiWindowFlags window_flags =  ImGuiWindowFlags_AlwaysAutoResize |
-				ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav |
-				ImGuiWindowFlags_NoResize  | ImGuiWindowFlags_NoCollapse
-				;
-			static bool displayGUI = true;
+			glfwGetWindowSize(m_window, &m_canvasWidth, &m_canvasHeight);
 
-			int canvasWidth;
-			int canvasHeight;
-			glfwGetWindowSize(m_window, &canvasWidth, &canvasHeight);
-			int windowWidth = 250;
-
-			{
-				ImGui::SetNextWindowSize(ImVec2(windowWidth, (canvasHeight - 60) * 0.4));
-				ImGui::SetNextWindowPos(ImVec2(20, 20));
-				ImGui::Begin("Scene", NULL, window_flags);
-				//ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 151, 61, 255));
-				//ImGui::Indent(10);
-
-				//ImGui::SetWindowFontScale(2.0f);
-				static int selected = 0;
-				for (int i = 0; i < 10; i++)
-				{
-					auto label = fmt::format("Scene {}", (char)('A' + i));
-					if (ImGui::Selectable(label.c_str(), selected == i, 0, ImVec2(0, 28)))
-					{
-						selected = i;
-					}
-				}
-				ImGui::End();
-			}
-
-			{
-				ImGui::SetNextWindowSize(ImVec2(windowWidth, (canvasHeight - 60) * 0.6));
-				ImGui::SetNextWindowPos(ImVec2(20, 40 + (canvasHeight - 60) * 0.4));
-				ImGui::Begin("Options", NULL, window_flags);
-				ImGui::PushItemWidth(-FLT_MIN);
-
-				ImGui::Button("Reset", ImVec2(-FLT_MIN, 0));
-				ImGui::Dummy(ImVec2(0.0f, 10.0f));
-				if (ImGui::CollapsingHeader("Global", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					static bool radio = false;
-					ImGui::Checkbox("Pause", &Global::graphics->pause);
-					ImGui::Checkbox("Wireframe", &Global::graphics->renderWireframe);
-					ImGui::Checkbox("Draw Points", &radio);
-					ImGui::Dummy(ImVec2(0.0f, 10.0f));
-				}
-
-				if (ImGui::CollapsingHeader("Sim", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					//ImGui::SliderFloat3("Lightpos", (float*)&(Global::light[0]->transform()->position), -10, 10, "%.2f");
-					IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "Lightpos", (float*)&(Global::light[0]->transform()->position), -10, 10, "%.2f");
-					static float value = 0.0;
-					//ImGui::SliderFloat("Timestep", &value, 0, 1);
-					IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Timestep", &value, 0, 1);
-				}
-
-				ImGui::End();
-			}
-
-			{
-				static float nextUpdateTime = Global::graphics->elapsedTime;
-				static float deltaTime;
-				static int frameRate;
-				if (Global::graphics->elapsedTime > nextUpdateTime)
-				{
-					nextUpdateTime = Global::graphics->elapsedTime + 0.2;
-					deltaTime = Global::graphics->deltaTime * 1000;
-					frameRate = (int)(Global::graphics->frameCount / Global::graphics->elapsedTime);
-				}
-				ImGui::SetNextWindowSize(ImVec2(windowWidth * 1.1, 0));
-				ImGui::SetNextWindowPos(ImVec2(canvasWidth - windowWidth * 1.1 -20, 20));
-				ImGui::Begin("Statistics", NULL, window_flags);
-				//ImGui::Indent(10);
-				ImGui::Text("Frame:  %d", Global::graphics->frameCount);
-				ImGui::Text("Avg FrameRate:  %d FPS", frameRate);
-				{
-					static float values[100] = {};
-					static int values_offset = 0;
-					static double refresh_time = 0.0;
-					if (refresh_time == 0.0)
-						refresh_time = ImGui::GetTime();
-					while (refresh_time < ImGui::GetTime()) // Create data at fixed 60 Hz rate for the demo
-					{
-						values[values_offset] = Global::graphics->deltaTime * 1000;
-						values_offset = (values_offset + 1) % IM_ARRAYSIZE(values);
-						refresh_time += 1.0f / 30.0f;
-					}
-					float average = 0.0f;
-					for (int n = 0; n < IM_ARRAYSIZE(values); n++)
-						average += values[n];
-					average /= (float)IM_ARRAYSIZE(values);
-					auto overlay = fmt::format("{:.2f} ms (Avg: {:.2f} ms)", deltaTime, average);
-					ImGui::PlotLines("##", values, IM_ARRAYSIZE(values), values_offset, overlay.c_str(), 
-						0, average * 2.0, ImVec2(windowWidth+5, 80.0f));
-				}
-
-				ImGui::Separator();
-				string deviceName((char*)glGetString(GL_RENDERER));
-				deviceName = deviceName.substr(0, deviceName.find("/"));
-				ImGui::Text("Device:  %s", deviceName.c_str());
-				ImGui::End();
-			}
+			ShowSceneWindow();
+			ShowOptionWindow();
+			ShowStatWindow();
 		}
 
 		void Render()
@@ -221,7 +110,143 @@ namespace Velvet
 			ImGui_ImplGlfw_Shutdown();
 			ImGui::DestroyContext();
 		}
+
 	private:
+
+		void ShowSceneWindow()
+		{
+			ImGui::SetNextWindowSize(ImVec2(k_windowWidth, (m_canvasHeight - 60) * 0.4));
+			ImGui::SetNextWindowPos(ImVec2(20, 20));
+			ImGui::Begin("Scene", NULL, k_windowFlags);
+
+			static int selected = 0;
+			for (int i = 0; i < 10; i++)
+			{
+				auto label = fmt::format("Scene {}", (char)('A' + i));
+				if (ImGui::Selectable(label.c_str(), selected == i, 0, ImVec2(0, 28)))
+				{
+					selected = i;
+				}
+			}
+
+			ImGui::End();
+		}
+
+		void ShowOptionWindow()
+		{
+			ImGui::SetNextWindowSize(ImVec2(k_windowWidth, (m_canvasHeight - 60) * 0.6));
+			ImGui::SetNextWindowPos(ImVec2(20, 40 + (m_canvasHeight - 60) * 0.4));
+			ImGui::Begin("Options", NULL, k_windowFlags);
+
+			ImGui::PushItemWidth(-FLT_MIN);
+
+			ImGui::Button("Reset", ImVec2(-FLT_MIN, 0));
+			ImGui::Dummy(ImVec2(0.0f, 10.0f));
+
+			if (ImGui::CollapsingHeader("Global", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				static bool radio = false;
+				ImGui::Checkbox("Pause Physics", &Global::graphics->pause);
+				ImGui::Checkbox("Wireframe", &Global::graphics->renderWireframe);
+				ImGui::Checkbox("Draw Points", &radio);
+				ImGui::Dummy(ImVec2(0.0f, 10.0f));
+			}
+
+			if (ImGui::CollapsingHeader("Sim", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "LightPos", (float*)&(Global::light[0]->transform()->position), -10, 10, "%.2f");
+				static float value = 0.0;
+				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Timestep", &value, 0, 1);
+			}
+
+			ImGui::End();
+		}
+
+		void ShowStatWindow()
+		{
+			ImGui::SetNextWindowSize(ImVec2(k_windowWidth * 1.1, 0));
+			ImGui::SetNextWindowPos(ImVec2(m_canvasWidth - k_windowWidth * 1.1 - 20, 20));
+			ImGui::Begin("Statistics", NULL, k_windowFlags);
+
+			static PerformanceStat stat;
+			ComputeStatData(stat);
+
+			ImGui::Text("Device:  %s", m_deviceName.c_str());
+			ImGui::Text("Frame:  %d", stat.frameCount);
+			ImGui::Text("Avg FrameRate:  %d FPS", stat.frameRate);
+
+			ImGui::Dummy(ImVec2(0, 5));
+			auto overlay = fmt::format("{:.2f} ms (Avg: {:.2f} ms)", stat.deltaTime, stat.graphAverage);
+			ImGui::PlotLines("##", stat.graphValues, IM_ARRAYSIZE(stat.graphValues), stat.graphIndex, overlay.c_str(),
+				0, stat.graphAverage * 2.0, ImVec2(k_windowWidth + 5, 80.0f));
+			ImGui::Dummy(ImVec2(0, 5));
+
+			if (m_showDebugInfo.size() + m_showDebugInfoOnce.size() > 0)
+			{
+				if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					//ImGui::Text("DebugInfo: (1,1,1)");
+					for (auto callback : m_showDebugInfo)
+					{
+						callback();
+					}
+					for (auto callback : m_showDebugInfoOnce)
+					{
+						callback();
+					}
+					m_showDebugInfoOnce.clear();
+				}
+			}
+
+			ImGui::End();
+		}
+
+		void ComputeStatData(PerformanceStat& stat)
+		{
+			static float timer1 = 0;
+			static float timer2 = 0.0;
+			const float timer1_interval = 0.2f;
+			const float timer2_interval = 1.0f / 30.0f;
+
+			const auto& graphics = Global::graphics;
+			float frameCount = Global::graphics->frameCount;
+			float elapsedTime = graphics->elapsedTime;
+			float deltaTime = graphics->deltaTime * 1000;
+
+			stat.frameCount = frameCount;
+
+			if (elapsedTime > timer2)
+			{
+				timer2 = elapsedTime + timer2_interval;
+
+				stat.graphValues[stat.graphIndex] = deltaTime;
+				stat.graphIndex = (stat.graphIndex + 1) % IM_ARRAYSIZE(stat.graphValues);
+			}
+
+			if (elapsedTime > timer1)
+			{
+				timer1 = elapsedTime + timer1_interval;
+
+				stat.deltaTime = deltaTime;
+				stat.frameRate = (int)(frameCount / elapsedTime);
+
+				for (int n = 0; n < IM_ARRAYSIZE(stat.graphValues); n++)
+					stat.graphAverage += stat.graphValues[n];
+				stat.graphAverage /= (float)IM_ARRAYSIZE(stat.graphValues);
+			}
+		}
+
+		const ImGuiWindowFlags k_windowFlags = ImGuiWindowFlags_AlwaysAutoResize |
+			ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav |
+			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
+		const int k_windowWidth = 250;
+
+		vector<function<void()>> m_showDebugInfo;
+		vector<function<void()>> m_showDebugInfoOnce;
+
 		GLFWwindow* m_window;
+		int m_canvasWidth;
+		int m_canvasHeight;
+		string m_deviceName;
 	};
 }

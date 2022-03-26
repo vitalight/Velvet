@@ -110,6 +110,13 @@ unsigned int VtGraphics::depthMapFBO()
 	return m_renderPipeline->depthMapFBO;
 }
 
+glm::ivec2 Velvet::VtGraphics::windowSize()
+{
+	glm::ivec2 result;
+	glfwGetWindowSize(m_window, &result.x, &result.y);
+	return result;
+}
+
 void VtGraphics::ProcessMouse(GLFWwindow* m_window, double xpos, double ypos)
 {
 	for (auto foo : onMouseMove)
@@ -126,7 +133,7 @@ void VtGraphics::ProcessScroll(GLFWwindow* m_window, double xoffset, double yoff
 	}
 }
 
-void VtGraphics::ProcessInput(GLFWwindow* m_window)
+void VtGraphics::ProcessKeyboard(GLFWwindow* m_window)
 {
 	if (Global::input->GetKey(GLFW_KEY_ESCAPE))
 	{
@@ -136,7 +143,7 @@ void VtGraphics::ProcessInput(GLFWwindow* m_window)
 	{
 		renderWireframe = !renderWireframe;
 	}
-	if (Global::input->GetKeyDown(GLFW_KEY_SPACE))
+	if (Global::input->GetKeyDown(GLFW_KEY_P))
 	{
 		pause = !pause;
 	}
@@ -157,44 +164,37 @@ void VtGraphics::MainLoop()
 	while (!glfwWindowShouldClose(m_window))
 	{
 		// input
-		ProcessInput(m_window);
+		ProcessKeyboard(m_window);
 
 		// rendering commands here
-		if (!pause)
+		glClearColor(skyColor.x, skyColor.y, skyColor.z, skyColor.w);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glPolygonMode(GL_FRONT_AND_BACK, renderWireframe ? GL_LINE : GL_FILL);
+
+		// timing
+		float current = (float)glfwGetTime();
+		deltaTime = current - lastUpdateTime;
+		lastUpdateTime = current;
+
+		m_gui->PreUpdate();
+		m_gui->OnUpdate();
+		
+		frameCount++;
+		elapsedTime += deltaTime;
+		for (const auto& go : m_actors)
 		{
-			glClearColor(skyColor.x, skyColor.y, skyColor.z, skyColor.w);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glPolygonMode(GL_FRONT_AND_BACK, renderWireframe ? GL_LINE : GL_FILL);
-
-			// timing
-			float current = (float)glfwGetTime();
-			lastUpdateTime = current;
-			deltaTime = current - lastUpdateTime;
-			elapsedTime += deltaTime;
-			frameCount++;
-
-			m_gui->PreUpdate();
-			m_gui->OnUpdate();
-			for (const auto& go : m_actors)
-			{
-				go->Update();
-			}
-			for (const auto& callback : postUpdate)
-			{
-				callback();
-			}
-
-			m_renderPipeline->Render();
-			m_gui->Render();
-
-			// check and call events and swap the buffers
-			glfwSwapBuffers(m_window);
+			go->Update();
 		}
-		else
+		for (const auto& callback : postUpdate)
 		{
-			float current = (float)glfwGetTime();
-			lastUpdateTime = current;
+			callback();
 		}
+
+		m_renderPipeline->Render();
+		m_gui->Render();
+
+		// check and call events and swap the buffers
+		glfwSwapBuffers(m_window);
 		glfwPollEvents();
 	}
 }
@@ -203,7 +203,7 @@ void VtGraphics::Finalize()
 {
 	if (Global::camera)
 	{
-		fmt::print("Info(VtGraphics): Final camera state[position{}, rotation{}],\n", 
+		fmt::print("Info(VtGraphics): Final camera state[position{}, rotation{}],\n",
 			Global::camera->transform()->position, Global::camera->transform()->rotation);
 	}
 	for (const auto& go : m_actors)

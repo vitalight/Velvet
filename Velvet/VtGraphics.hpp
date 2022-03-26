@@ -49,6 +49,8 @@ namespace Velvet
 	public:
 		unsigned int depthMapFBO();
 
+		glm::ivec2 windowSize();
+
 		vector<function<void(double, double)>> onMouseScroll;
 		vector<function<void(double, double)>> onMouseMove;
 		vector<function<void()>> postUpdate;
@@ -66,7 +68,7 @@ namespace Velvet
 		
 		void ProcessScroll(GLFWwindow* m_window, double xoffset, double yoffset);
 
-		void ProcessInput(GLFWwindow* m_window);
+		void ProcessKeyboard(GLFWwindow* m_window);
 
 		void Initialize();
 

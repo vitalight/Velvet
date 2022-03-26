@@ -10,7 +10,6 @@ namespace Velvet
 
 		const unsigned int screenWidth = 1600;
 		const unsigned int screenHeight = 900;
-		const float screenAspect = float(screenWidth) / float(screenHeight);
 
 		const unsigned int shadowWidth = 1024;
 		const unsigned int shadowHeight = 1024;

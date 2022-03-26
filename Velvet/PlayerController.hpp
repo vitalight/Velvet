@@ -9,6 +9,7 @@
 #include "Config.hpp"
 #include "Light.hpp"
 #include "Input.hpp"
+#include "GUI.hpp"
 
 namespace Velvet
 {
@@ -56,6 +57,11 @@ namespace Velvet
 
 				currentSpeed = Helper::Lerp(currentSpeed, targetSpeed, Global::graphics->deltaTime * 10);
 				trans->position += currentSpeed * speedScalar * Global::graphics->deltaTime;
+
+				GUI::RegisterDebugOnce([trans]() {
+					ImGui::Text(fmt::format("CamPosition = {}", trans->position).c_str());
+					ImGui::Text(fmt::format("CamRotation = {}", trans->rotation).c_str());
+					});
 			}
 			else
 			{
