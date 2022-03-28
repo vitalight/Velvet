@@ -1,6 +1,6 @@
 #include "MeshRenderer.hpp"
 
-#include "VtGraphics.hpp"
+#include "GameInstance.hpp"
 #include "Global.hpp"
 #include "Camera.hpp"
 #include "Actor.hpp"
@@ -24,7 +24,7 @@ namespace Velvet
 	// Only support spot light for now
 	void MeshRenderer::SetupLighting(shared_ptr<Material> m_material)
 	{
-		auto light = Global::light[0];
+		auto light = Global::lights[0];
 
 		auto prefix = fmt::format("spotLight.");
 		auto front = Helper::RotateWithDegree(glm::vec3(0, -1, 0), light->transform()->rotation);
@@ -57,7 +57,7 @@ namespace Velvet
 		m_material->SetVec3("_CameraPos", Global::camera->transform()->position);
 
 		// light params
-		if (Global::light.size() > 0)
+		if (Global::lights.size() > 0)
 		{
 			SetupLighting(m_material);
 		}

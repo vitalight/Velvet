@@ -20,10 +20,16 @@
     <ClCompile Include="Helper.cpp">
       <Filter>Graphics\Source</Filter>
     </ClCompile>
-    <ClCompile Include="VtGraphics.cpp">
+    <ClCompile Include="GameInstance.cpp">
       <Filter>Graphics\Source</Filter>
     </ClCompile>
     <ClCompile Include="MeshRenderer.cpp">
+      <Filter>Graphics\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="VtEngine.cpp">
+      <Filter>Graphics\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI.cpp">
       <Filter>Graphics\Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -84,7 +90,7 @@
     <ClInclude Include="Transform.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
-    <ClInclude Include="VtGraphics.hpp">
+    <ClInclude Include="GameInstance.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
     <ClInclude Include="Helper.hpp">
@@ -101,6 +107,9 @@
       <Filter>Graphics\Include</Filter>
     </ClInclude>
     <ClInclude Include="Scene.hpp">
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="VtEngine.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
   </ItemGroup>

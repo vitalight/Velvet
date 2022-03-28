@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VtGraphics.hpp"
+#include "GameInstance.hpp"
 #include "Config.hpp"
 
 namespace Velvet
@@ -10,38 +10,58 @@ namespace Velvet
 	public:
 		RenderPipeline()
 		{
-			SetupShadowMap();
+			// configure depth map FBO
+			// -----------------------
+			const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+			//unsigned int depthMapFBO;
+			glGenFramebuffers(1, &depthFrameBuffer);
+			// create depth texture
+			glGenTextures(1, &depthTex);
+			glBindTexture(GL_TEXTURE_2D, depthTex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+			float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+			// attach depth texture as FBO's depth buffer
+			glBindFramebuffer(GL_FRAMEBUFFER, depthFrameBuffer);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTex, 0);
+			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
 		RenderPipeline(const RenderPipeline&) = delete;
 
 		~RenderPipeline()
 		{
-			if (depthMapFBO > 0)
+			if (depthFrameBuffer > 0)
 			{
-				glDeleteFramebuffers(1, &depthMapFBO);
+				glDeleteFramebuffers(1, &depthFrameBuffer);
+			}
+			if (depthTex > 0)
+			{
+				glDeleteTextures(1, &depthTex);
 			}
 		}
 
 		void Render()
 		{
-			vector<MeshRenderer*> renderers = Global::graphics->FindComponents<MeshRenderer>();
+			vector<MeshRenderer*> renderers = Global::game->FindComponents<MeshRenderer>();
 			//renderers = Cull(renderers);
 			RenderShadow(renderers);
 			RenderObjects(renderers);
 		}
 
-		unsigned int depthMapFBO;
+		unsigned int depthFrameBuffer = 0;
+		unsigned int depthTex = 0;
 	private:
-
-		vector<MeshRenderer*> Cull(vector<MeshRenderer*> renderers)
-		{
-			return renderers;
-		}
 
 		glm::mat4 ComputeLightMatrix()
 		{
-			if (Global::light.size() == 0)
+			if (Global::lights.size() == 0)
 			{
 				return glm::mat4(1);
 			}
@@ -50,7 +70,7 @@ namespace Velvet
 			glm::mat4 lightProjection, lightView;
 			glm::mat4 lightSpaceMatrix;
 			float near_plane = 1.0f, far_plane = 7.5f;
-			auto light = Global::light[0];
+			auto light = Global::lights[0];
 			glm::vec3 lightPos = light->position();
 			if (light->type == LightType::SpotLight)
 			{
@@ -68,12 +88,12 @@ namespace Velvet
 
 		void RenderShadow(vector<MeshRenderer*> renderers)
 		{
-			if (Global::light.size() == 0)
+			if (Global::lights.size() == 0)
 				return;
 
-			auto originalWindowSize = Global::graphics->windowSize();
+			auto originalWindowSize = Global::game->windowSize();
 			glViewport(0, 0, Config::shadowWidth, Config::shadowHeight);
-			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+			glBindFramebuffer(GL_FRAMEBUFFER, depthFrameBuffer);
 			glClear(GL_DEPTH_BUFFER_BIT);
 			glCullFace(GL_FRONT);
 
@@ -100,33 +120,6 @@ namespace Velvet
 			{
 				r->Render(lightSpaceMatrix);
 			}
-		}
-	private:
-
-		void SetupShadowMap()
-		{
-			// configure depth map FBO
-			// -----------------------
-			const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-			//unsigned int depthMapFBO;
-			glGenFramebuffers(1, &depthMapFBO);
-			// create depth texture
-			unsigned int depthMap;
-			glGenTextures(1, &depthMap);
-			glBindTexture(GL_TEXTURE_2D, depthMap);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-			float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-			// attach depth texture as FBO's depth buffer
-			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-			glDrawBuffer(GL_NONE);
-			glReadBuffer(GL_NONE);
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 	};
 }

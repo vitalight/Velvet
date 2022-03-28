@@ -7,9 +7,9 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <fmt/core.h>
+#include <glm/glm.hpp>
 
-#include "Actor.hpp"
+#include "Component.hpp"
 
 namespace Velvet
 {
@@ -20,27 +20,22 @@ namespace Velvet
 	class RenderPipeline;
 	class GUI;
 	class Scene;
+	class Actor;
 
-	class VtGraphics
+	class GameInstance
 	{
 	public:
-		VtGraphics();
-
-		~VtGraphics();
-
-		VtGraphics(const VtGraphics&) = delete;
+		GameInstance(GLFWwindow* window, shared_ptr<GUI> gui);
+		GameInstance(const GameInstance&) = delete;
 
 		shared_ptr<Actor> AddActor(shared_ptr<Actor> actor);
-
 		shared_ptr<Actor> CreateActor(const string& name);
-
-		void SetSceneInitializers(const vector<shared_ptr<Scene>>& scenes);
 
 		int Run();
 
-		void Reset();
-
-		void SwitchScene(unsigned int sceneIndex);
+		void ProcessMouse(GLFWwindow* m_window, double xpos, double ypos);
+		void ProcessScroll(GLFWwindow* m_window, double xoffset, double yoffset);
+		void ProcessKeyboard(GLFWwindow* m_window);
 
 		template <typename T>
 		enable_if_t<is_base_of<Component, T>::value, vector<T*>> FindComponents()
@@ -58,44 +53,33 @@ namespace Velvet
 		}
 
 	public:
-		unsigned int depthMapFBO();
-
+		unsigned int depthFrameBuffer();
 		glm::ivec2 windowSize();
 
 		vector<function<void(double, double)>> onMouseScroll;
 		vector<function<void(double, double)>> onMouseMove;
 		vector<function<void()>> postUpdate;
 
-		vector<shared_ptr<Scene>> sceneInitializers;
 		int frameCount = 0;
-		float deltaTime = 0.0f;
 		float elapsedTime = 0.0f;
-		float lastUpdateTime = 0.0f;
-		bool renderWireframe = false;
+		float lastUpdateTime = (float)glfwGetTime();
+		float deltaTime = 0.0f;
+
 		bool pause = false;
+		bool renderWireframe = false;
+		bool pendingReset = false;
 		glm::vec4 skyColor = glm::vec4(0.0f);
 
 	private:
-		void ProcessMouse(GLFWwindow* m_window, double xpos, double ypos);
-		
-		void ProcessScroll(GLFWwindow* m_window, double xoffset, double yoffset);
-
-		void ProcessKeyboard(GLFWwindow* m_window);
-
 		void Initialize();
-
 		void MainLoop();
-
 		void Finalize();
 
 	private:
-		bool m_pendingReset = false;
-		vector<shared_ptr<Actor>> m_actors;
-		shared_ptr<Input> m_input;
-		shared_ptr<RenderPipeline> m_renderPipeline;
 		GLFWwindow* m_window = nullptr;
 		shared_ptr<GUI> m_gui;
 
-		unsigned int m_sceneIndex = 0;
+		vector<shared_ptr<Actor>> m_actors;
+		shared_ptr<RenderPipeline> m_renderPipeline;
 	};
 }

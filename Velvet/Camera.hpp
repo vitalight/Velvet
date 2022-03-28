@@ -53,7 +53,7 @@ namespace Velvet
 
 		glm::mat4 projection() const
 		{
-			auto size = Global::graphics->windowSize();
+			auto size = Global::game->windowSize();
 			auto screenAspect = (float)size.x / (float)size.y;
 			return glm::perspective(glm::radians(zoom), screenAspect, 0.01f,
 				100.0f);

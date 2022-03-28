@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "VtGraphics.hpp"
+#include "GameInstance.hpp"
 #include "Global.hpp"
 #include "Light.hpp"
 #include "Camera.hpp"
@@ -9,6 +9,7 @@
 #include "RenderPipeline.hpp"
 #include "Input.hpp"
 #include "Scene.hpp"
+#include "VtEngine.hpp"
 
 using namespace Velvet;
 
@@ -19,27 +20,11 @@ class SceneBlinnPhong : public Scene
 public:
 	SceneBlinnPhong() { name = "Basic / Rotating Light"; }
 
-	void PopulateActors(VtGraphics* graphics) override
+	void PopulateActors(GameInstance* game) override
 	{
-		graphics->skyColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
-		//=====================================
-		// 1. Camera
-		//=====================================
-		auto camera = graphics->AddActor(Actor::PrefabCamera());
-		camera->transform->position = glm::vec3(1.5, 1.5, 5.0);
-		camera->transform->rotation = glm::vec3(-8.5, 9.0, 0);
-
-		//=====================================
-		// 2. Light
-		//=====================================
-
-		auto light = graphics->AddActor(Actor::PrefabLight(LightType::Directional));
-		//light->GetComponent<MeshRenderer>()->hidden = true;
-		light->transform->position = glm::vec3(-2.0, 4.0, -1.0f);
-
-		graphics->postUpdate.push_back([light]() {
-			light->transform->rotation += glm::vec3(1, 0, 0);
-			});
+		Scene::PopulateCameraAndLight(game);
+		Scene::PopulateDebug(game);
+		game->skyColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
 
 		//=====================================
 		// 3. Objects
@@ -49,7 +34,7 @@ public:
 			material->Use();
 
 			material->SetTexture("material->diffuse", Resource::LoadTexture("wood.png"));
-			material->SetTexture("_ShadowTex", graphics->depthMapFBO());
+			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
 		}
 		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
@@ -71,7 +56,7 @@ public:
 			plane->AddComponent(renderer);
 			plane->transform->position = glm::vec3(0, -0.1f, 0);
 		}
-		graphics->AddActor(plane);
+		game->AddActor(plane);
 
 		shared_ptr<Actor> cube(new Actor("Cube"));
 		{
@@ -79,7 +64,7 @@ public:
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			cube->AddComponent(renderer);
 		}
-		graphics->AddActor(cube);
+		game->AddActor(cube);
 
 	}
 };
@@ -89,9 +74,10 @@ class SceneShadow : public Scene
 public:
 	SceneShadow() { name = "Basic / Premitive Rendering"; }
 
-	void PopulateActors(VtGraphics* graphics) override
+	void PopulateActors(GameInstance* game) override
 	{
-		Scene::PopulateActors(graphics);
+		Scene::PopulateCameraAndLight(game);
+		Scene::PopulateDebug(game);
 
 		//=====================================
 		// 3. Objects
@@ -102,12 +88,12 @@ public:
 			material->Use();
 
 			material->SetTexture("material->diffuse", Resource::LoadTexture("wood.png"));
-			material->SetTexture("_ShadowTex", graphics->depthMapFBO());
+			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
 		}
 
 		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
-		auto cube1 = graphics->CreateActor("Cube1");
+		auto cube1 = game->CreateActor("Cube1");
 		{
 			auto mesh = Resource::LoadMesh("sphere.obj");
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
@@ -116,7 +102,7 @@ public:
 			cube1->transform->scale = glm::vec3(0.5f);
 		}
 
-		auto cube2 = graphics->CreateActor("Cube2");
+		auto cube2 = game->CreateActor("Cube2");
 		{
 			auto mesh = make_shared<Mesh>(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
@@ -125,7 +111,7 @@ public:
 			cube2->transform->scale = glm::vec3(0.5f);
 		}
 
-		auto cube3 = graphics->CreateActor("Cube3");
+		auto cube3 = game->CreateActor("Cube3");
 		{
 			auto mesh = make_shared<Mesh>(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
@@ -135,12 +121,12 @@ public:
 			cube3->transform->rotation = glm::vec3(60, 0, 60);
 		}
 
-		auto infPlane = graphics->CreateActor("InfPlane");
+		auto infPlane = game->CreateActor("InfPlane");
 		{
 			auto mat = Resource::LoadMaterial("_InfinitePlane");
 			{
 				mat->Use();
-				mat->SetTexture("_ShadowTex", graphics->depthMapFBO());
+				mat->SetTexture("_ShadowTex", game->depthFrameBuffer());
 				// Plane: ax + by + cz + d = 0
 				mat->SetVec4("_Plane", glm::vec4(0, 1, 0, 0));
 			}
@@ -149,38 +135,6 @@ public:
 			infPlane->AddComponent(renderer);
 		}
 
-		auto quad = graphics->CreateActor("Debug Quad");
-		{
-			auto debugMat = Resource::LoadMaterial("_ShadowDebug");
-			{
-				float near_plane = 1.0f, far_plane = 7.5f;
-				debugMat->SetFloat("near_plane", near_plane);
-				debugMat->SetFloat("far_plane", far_plane);
-				debugMat->SetTexture("depthMap", graphics->depthMapFBO());
-			}
-			vector<float> quadVertices = {
-				// positions        // texture Coords
-				-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-				-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-				 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-
-				-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-				 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-				 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-			};
-			vector<unsigned int> attributes = { 3,2 };
-			auto quadMesh = make_shared<Mesh>(attributes, quadVertices);
-			shared_ptr<MeshRenderer> renderer(new MeshRenderer(quadMesh, debugMat));
-			quad->AddComponent(renderer);
-			renderer->hidden = true;
-
-			graphics->postUpdate.push_back([renderer]() {
-				if (Global::input->GetKeyDown(GLFW_KEY_1))
-				{
-					renderer->hidden = !renderer->hidden;
-				}
-				});
-		}
 	}
 };
 
@@ -189,21 +143,22 @@ int main()
 	//=====================================
 	// 1. Create graphics
 	//=====================================
-	shared_ptr<VtGraphics> graphics(new VtGraphics());
+	//shared_ptr<GameInstance> graphics(new GameInstance());
 	//graphics.skyColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
+	auto engine = make_shared<VtEngine>();
 
 	//=====================================
 	// 2. Instantiate actors
 	//=====================================
 	
 	vector<ScenePtr> scenes = {
-		ScenePtr(new SceneShadow()),
 		ScenePtr(new SceneBlinnPhong()),
+		ScenePtr(new SceneShadow()),
 	};
-	graphics->SetSceneInitializers(scenes);
+	engine->SetScenes(scenes);
 
 	//=====================================
 	// 3. Run graphics
 	//=====================================
-	return graphics->Run();
+	return engine->Run();
 }

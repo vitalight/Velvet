@@ -32,7 +32,6 @@ namespace Velvet
 		{
 			if (textureCache.count(path) > 0)
 			{
-				fmt::print("Cached texture load\n");
 				return textureCache[path];
 			}
 
@@ -48,13 +47,10 @@ namespace Velvet
 			}
             if (data)
             {
-				GLenum internalFormat;
-				GLenum dataFormat;
-				if (nrComponents == 1)
-				{
-					internalFormat = dataFormat = GL_RED;
-				}
-				else if (nrComponents == 3)
+				GLenum internalFormat = GL_RED;
+				GLenum dataFormat = GL_RED;
+
+				if (nrComponents == 3)
 				{
 					internalFormat = GL_SRGB;
 					dataFormat = GL_RGB;
@@ -89,7 +85,6 @@ namespace Velvet
 		{
 			if (meshCache.count(path) > 0)
 			{
-				fmt::print("Cached mesh load\n");
 				return meshCache[path];
 			}
 
@@ -157,7 +152,6 @@ namespace Velvet
 		{
 			if (matCache.count(path))
 			{
-				fmt::print("Cached material load\n");
 				return matCache[path];
 			}
 			string vertexCode = LoadText(defaultMaterialPath + path + ".vert");
@@ -194,6 +188,7 @@ namespace Velvet
 			}
 			catch (std::ifstream::failure& e)
 			{
+				e;
 				//std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
 			}
 			return code;

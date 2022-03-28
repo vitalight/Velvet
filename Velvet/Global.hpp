@@ -4,17 +4,19 @@
 
 namespace Velvet
 {
-	class VtGraphics;
+	class GameInstance;
 	class Camera;
 	class Light;
 	class Input;
+	class VtEngine;
 
 	namespace Global
 	{
-		inline VtGraphics* graphics;
+		inline VtEngine* engine;
+		inline GameInstance* game;
 		inline Camera* camera;
 		inline Input* input;
 
-		inline std::vector<Light*> light;
+		inline std::vector<Light*> lights;
 	}
 }

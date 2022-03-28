@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include "Global.hpp"
-#include "VtGraphics.hpp"
+#include "GameInstance.hpp"
 
 namespace Velvet
 {

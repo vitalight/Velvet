@@ -2,7 +2,7 @@
 
 #include "Component.hpp"
 #include "Global.hpp"
-#include "VtGraphics.hpp"
+#include "GameInstance.hpp"
 
 namespace Velvet
 {
@@ -18,8 +18,18 @@ namespace Velvet
 	public:
 		Light()
 		{
-			Global::light.push_back(this);
+			Global::lights.push_back(this);
 			name = __func__;
+		}
+
+		~Light()
+		{
+			auto& lights = Global::lights;
+			auto position = std::find(lights.begin(), lights.end(), this);
+			if (position != lights.end())
+			{
+				lights.erase(position);
+			}
 		}
 
 		glm::vec4 position()

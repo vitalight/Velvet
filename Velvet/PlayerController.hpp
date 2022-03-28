@@ -4,7 +4,7 @@
 
 #include <functional>
 
-#include "VtGraphics.hpp"
+#include "GameInstance.hpp"
 #include "Component.hpp"
 #include "Config.hpp"
 #include "Light.hpp"
@@ -25,7 +25,7 @@ namespace Velvet
 		{
 			//Global::graphics->onMouseScroll.push_back(OnMouseScroll);
 
-			Global::graphics->onMouseMove.push_back(OnMouseMove);
+			Global::game->onMouseMove.push_back(OnMouseMove);
 		}
 
 		void Update() override
@@ -55,8 +55,8 @@ namespace Velvet
 				else if (Global::input->GetKey(GLFW_KEY_E))
 					targetSpeed -= camera->up();
 
-				currentSpeed = Helper::Lerp(currentSpeed, targetSpeed, Global::graphics->deltaTime * 10);
-				trans->position += currentSpeed * speedScalar * Global::graphics->deltaTime;
+				currentSpeed = Helper::Lerp(currentSpeed, targetSpeed, Global::game->deltaTime * 10);
+				trans->position += currentSpeed * speedScalar * Global::game->deltaTime;
 
 				GUI::RegisterDebugOnce([trans]() {
 					ImGui::Text(fmt::format("CamPosition = {}", trans->position).c_str());

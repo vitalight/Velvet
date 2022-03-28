@@ -69,7 +69,7 @@ namespace Velvet
 			{
 				stride += attributeSizes[i];
 			}
-			unsigned int numVertices = vertices.size() / stride;
+			unsigned int numVertices = (unsigned int)vertices.size() / stride;
 
 			for (unsigned int i = 0; i < numVertices; i++)
 			{
@@ -128,11 +128,11 @@ namespace Velvet
 		{
 			if (useIndices())
 			{
-				return m_indices.size();
+				return (unsigned int)m_indices.size();
 			}
 			else
 			{
-				return m_vertices.size();
+				return (unsigned int)m_vertices.size();
 			}
 		}
 

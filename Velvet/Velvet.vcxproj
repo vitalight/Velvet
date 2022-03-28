@@ -83,12 +83,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="GUI.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Actor.cpp" />
-    <ClCompile Include="VtGraphics.cpp" />
+    <ClCompile Include="VtEngine.cpp" />
+    <ClCompile Include="GameInstance.cpp" />
     <ClCompile Include="Helper.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -110,7 +112,8 @@
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Transform.hpp" />
-    <ClInclude Include="VtGraphics.hpp" />
+    <ClInclude Include="VtEngine.hpp" />
+    <ClInclude Include="GameInstance.hpp" />
     <ClInclude Include="Helper.hpp" />
   </ItemGroup>
   <ItemGroup>

@@ -78,7 +78,7 @@ namespace Velvet
 		// ------------------------------------------------------------------------
 		void SetTexture(const std::string&name, unsigned int texture)
 		{
-			SetInt(name, textures.size());
+			SetInt(name, (int)textures.size());
 			textures.push_back(texture);
 		}
 		// ------------------------------------------------------------------------
