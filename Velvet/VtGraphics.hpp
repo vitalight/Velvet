@@ -20,6 +20,8 @@ namespace Velvet
 	class RenderPipeline;
 	class GUI;
 
+	typedef function<void(VtGraphics*)> SceneInitializer;
+
 	class VtGraphics
 	{
 	public:
@@ -33,11 +35,13 @@ namespace Velvet
 
 		shared_ptr<Actor> CreateActor(const string& name);
 
-		void CreateScene(function<void(VtGraphics*)> scene);
+		void SetSceneInitializers(const vector<SceneInitializer>& scenes);
 
 		int Run();
 
 		void Reset();
+
+		void SwitchScene(unsigned int sceneIndex);
 
 		template <typename T>
 		enable_if_t<is_base_of<Component, T>::value, vector<T*>> FindComponents()
@@ -63,6 +67,7 @@ namespace Velvet
 		vector<function<void(double, double)>> onMouseMove;
 		vector<function<void()>> postUpdate;
 
+		vector<SceneInitializer> sceneInitializers;
 		int frameCount = 0;
 		float deltaTime = 0.0f;
 		float elapsedTime = 0.0f;
@@ -91,6 +96,7 @@ namespace Velvet
 		shared_ptr<RenderPipeline> m_renderPipeline;
 		GLFWwindow* m_window = nullptr;
 		shared_ptr<GUI> m_gui;
-		function<void(VtGraphics*)> m_scene;
+
+		unsigned int m_sceneIndex = 0;
 	};
 }

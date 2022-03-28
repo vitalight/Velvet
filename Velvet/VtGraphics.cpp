@@ -98,10 +98,9 @@ shared_ptr<Actor> VtGraphics::CreateActor(const string& name)
 	return AddActor(actor);
 }
 
-void Velvet::VtGraphics::CreateScene(function<void(VtGraphics*)> scene)
+void VtGraphics::SetSceneInitializers(const vector<SceneInitializer>& initializers)
 {
-	scene(this);
-	m_scene = scene;
+	sceneInitializers = initializers;
 }
 
 int VtGraphics::Run()
@@ -129,9 +128,11 @@ int VtGraphics::Run()
 			elapsedTime = 0.0f;
 			lastUpdateTime = glfwGetTime();
 
-			m_scene(this);
 			m_pendingReset = false;
 		}
+		// TODO: rename
+		sceneInitializers[m_sceneIndex](this);
+
 		Initialize();
 		MainLoop();
 		Finalize();
@@ -140,8 +141,14 @@ int VtGraphics::Run()
 	return 0;
 }
 
-void Velvet::VtGraphics::Reset()
+void VtGraphics::Reset()
 {
+	m_pendingReset = true;
+}
+
+void VtGraphics::SwitchScene(unsigned int sceneIndex)
+{
+	m_sceneIndex = sceneIndex;
 	m_pendingReset = true;
 }
 
@@ -219,16 +226,19 @@ void VtGraphics::MainLoop()
 		m_gui->PreUpdate();
 		m_gui->OnUpdate();
 		
-		frameCount++;
-		elapsedTime += deltaTime;
+		if (!pause)
+		{
+			frameCount++;
+			elapsedTime += deltaTime;
 
-		for (const auto& go : m_actors)
-		{
-			go->Update();
-		}
-		for (const auto& callback : postUpdate)
-		{
-			callback();
+			for (const auto& go : m_actors)
+			{
+				go->Update();
+			}
+			for (const auto& callback : postUpdate)
+			{
+				callback();
+			}
 		}
 
 		m_renderPipeline->Render();

@@ -47,6 +47,7 @@ namespace Velvet
 		{
 			g_Gui = this;
 			m_window = window;
+
 			// Setup Dear ImGui context
 			IMGUI_CHECKVERSION();
 			ImGui::CreateContext();
@@ -57,25 +58,7 @@ namespace Velvet
 			//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
 			// Setup Dear ImGui style
-			ImGui::StyleColorsDark();
-
-			auto style = &ImGui::GetStyle();
-			style->SelectableTextAlign = ImVec2(0, 0.5);
-			style->WindowPadding = ImVec2(10, 12);
-			style->WindowRounding = 6;
-			style->GrabRounding = 8;
-			style->FrameRounding = 6;
-			style->WindowTitleAlign = ImVec2(0.5, 0.5);
-
-			style->Colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.6f);
-			style->Colors[ImGuiCol_TitleBg] = style->Colors[ImGuiCol_WindowBg];
-			style->Colors[ImGuiCol_TitleBgActive] = style->Colors[ImGuiCol_TitleBg];
-			style->Colors[ImGuiCol_SliderGrab] = ImVec4(0.325, 0.325, 0.325, 1);
-			style->Colors[ImGuiCol_FrameBg] = ImVec4(0.114, 0.114, 0.114, 1);
-			style->Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.2, 0.2, 0.2, 1);
-			style->Colors[ImGuiCol_Button] = ImVec4(0.46, 0.46, 0.46, 0.46);
-			style->Colors[ImGuiCol_CheckMark] = ImVec4(0.851, 0.851, 0.851, 1);
-			//ImGui::StyleColorsClassic();
+			CustomizeStyle();
 
 			// Setup Platform/Renderer backends
 			const char* glsl_version = "#version 330";
@@ -121,19 +104,46 @@ namespace Velvet
 
 	private:
 
+		void CustomizeStyle()
+		{
+			ImGui::StyleColorsDark();
+
+			auto style = &ImGui::GetStyle();
+			style->SelectableTextAlign = ImVec2(0, 0.5);
+			style->WindowPadding = ImVec2(10, 12);
+			style->WindowRounding = 6;
+			style->GrabRounding = 8;
+			style->FrameRounding = 6;
+			style->WindowTitleAlign = ImVec2(0.5, 0.5);
+
+			style->Colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.6f);
+			style->Colors[ImGuiCol_TitleBg] = style->Colors[ImGuiCol_WindowBg];
+			style->Colors[ImGuiCol_TitleBgActive] = style->Colors[ImGuiCol_TitleBg];
+			style->Colors[ImGuiCol_SliderGrab] = ImVec4(0.325, 0.325, 0.325, 1);
+			style->Colors[ImGuiCol_FrameBg] = ImVec4(0.114, 0.114, 0.114, 1);
+			style->Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.2, 0.2, 0.2, 1);
+			style->Colors[ImGuiCol_Button] = ImVec4(0.46, 0.46, 0.46, 0.46);
+			style->Colors[ImGuiCol_CheckMark] = ImVec4(0.851, 0.851, 0.851, 1);
+			//ImGui::StyleColorsClassic();
+		}
+
 		void ShowSceneWindow()
 		{
 			ImGui::SetNextWindowSize(ImVec2(k_windowWidth, (m_canvasHeight - 60) * 0.4));
 			ImGui::SetNextWindowPos(ImVec2(20, 20));
 			ImGui::Begin("Scene", NULL, k_windowFlags);
 
-			static int selected = 0;
-			for (int i = 0; i < 10; i++)
+			static unsigned int selected = 0;
+			for (unsigned int i = 0; i < Global::graphics->sceneInitializers.size(); i++)
 			{
 				auto label = fmt::format("Scene {}", (char)('A' + i));
 				if (ImGui::Selectable(label.c_str(), selected == i, 0, ImVec2(0, 28)))
 				{
-					selected = i;
+					if (selected != i)
+					{
+						selected = i;
+						Global::graphics->SwitchScene(i);
+					}
 				}
 			}
 
@@ -158,7 +168,7 @@ namespace Velvet
 			{
 				static bool radio = false;
 				ImGui::Checkbox("Pause Physics", &Global::graphics->pause);
-				ImGui::Checkbox("Wireframe", &Global::graphics->renderWireframe);
+				ImGui::Checkbox("Draw Wireframe", &Global::graphics->renderWireframe);
 				ImGui::Checkbox("Draw Points", &radio);
 				ImGui::Dummy(ImVec2(0.0f, 10.0f));
 			}
@@ -185,6 +195,8 @@ namespace Velvet
 			ImGui::Text("Device:  %s", m_deviceName.c_str());
 			ImGui::Text("Frame:  %d", stat.frameCount);
 			ImGui::Text("Avg FrameRate:  %d FPS", stat.frameRate);
+			ImGui::Text("CPU time:  %.2f ms", 0);
+			ImGui::Text("GPU time:  %.2f ms", 0);
 
 			ImGui::Dummy(ImVec2(0, 5));
 			auto overlay = fmt::format("{:.2f} ms (Avg: {:.2f} ms)", stat.deltaTime, stat.graphAverage);
@@ -205,7 +217,10 @@ namespace Velvet
 					{
 						callback();
 					}
-					m_showDebugInfoOnce.clear();
+					if (!Global::graphics->pause)
+					{
+						m_showDebugInfoOnce.clear();
+					}
 				}
 			}
 

@@ -36,12 +36,14 @@ void CreateScene_BlinnPhong(VtGraphics* graphics)
 	//=====================================
 	// 3. Objects
 	//=====================================
-	Material material = Resource::LoadMaterial("BlinnPhong");
+	Material material = Resource::LoadMaterial("_Default");
 	{
 		material.Use();
-		material.SetTexture("floorTexture", Resource::LoadTexture("wood.png"));
-		material.SetInt("blinn", 1);
+
+		material.SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
+		material.SetTexture("_ShadowTex", graphics->depthMapFBO());
 	}
+	Material shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
 	shared_ptr<Actor> plane(new Actor("Plane"));
 	{
@@ -51,13 +53,13 @@ void CreateScene_BlinnPhong(VtGraphics* graphics)
 			-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
 			-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
 
-			 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
 			-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+			 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
 			 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
 		};
 		Mesh mesh({ 3, 3, 2 }, planeVertices);
 
-		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		plane->AddComponent(renderer);
 		plane->transform->position = glm::vec3(0, -0.1f, 0);
 	}
@@ -66,7 +68,7 @@ void CreateScene_BlinnPhong(VtGraphics* graphics)
 	shared_ptr<Actor> cube(new Actor("Cube"));
 	{
 		Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
-		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material));
+		shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 		cube->AddComponent(renderer);
 	}
 	graphics->AddActor(cube);
@@ -126,24 +128,6 @@ void CreateScene_Shadow(VtGraphics* graphics)
 	}
 
 	Material shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
-
-	//auto plane = graphics->CreateActor("Plane");
-	//{
-	//	vector<float> planeVertices = {
-	//		// positions            // normals         // texcoords
-	//		 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-	//		-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-	//		-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-
-	//		 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-	//		-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-	//		 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
-	//	};
-	//	Mesh mesh({ 3, 3, 2 }, planeVertices);
-
-	//	shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
-	//	plane->AddComponent(renderer);
-	//}
 
 	auto cube1 = graphics->CreateActor("Cube1");
 	{
@@ -234,9 +218,11 @@ int main()
 	// 2. Instantiate actors
 	//=====================================
 	
-	graphics->CreateScene(CreateScene_Shadow);
-	//CreateScene_BlinnPhong(&graphics);
-	//CreateScene_Shadow(&graphics);
+	vector<SceneInitializer> scenes = {
+		CreateScene_Shadow,
+		CreateScene_BlinnPhong,
+	};
+	graphics->SetSceneInitializers(scenes);
 
 	//=====================================
 	// 3. Run graphics
