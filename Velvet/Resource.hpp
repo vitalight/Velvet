@@ -18,7 +18,7 @@ namespace Velvet
 {
 	inline unordered_map<string, unsigned int> textureCache;
 	inline unordered_map<string, shared_ptr<Mesh>> meshCache;
-	inline unordered_map<string, Material> matCache;
+	inline unordered_map<string, shared_ptr<Material>> matCache;
 
 	inline string defaultTexturePath = "Assets/Texture/";
 	inline string defaultMeshPath = "Assets/Model/";
@@ -153,7 +153,7 @@ namespace Velvet
 			return result;
 		}
 	
-		static Material LoadMaterial(const string& path)
+		static shared_ptr<Material> LoadMaterial(const string& path)
 		{
 			if (matCache.count(path))
 			{
@@ -168,7 +168,7 @@ namespace Velvet
 			if (fragmentCode.length() == 0) fragmentCode = LoadText(path + ".frag");
 			if (fragmentCode.length() == 0) fmt::print("Error(Resource): material.fragment not found ({})\n", path);
 
-			auto result = Material(vertexCode, fragmentCode);
+			auto result = make_shared<Material>(vertexCode, fragmentCode);
 			matCache[path] = result;
 			return result;
 		}

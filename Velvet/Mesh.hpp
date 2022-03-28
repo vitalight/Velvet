@@ -36,14 +36,14 @@ namespace Velvet
 			glGenVertexArrays(1, &m_VAO);
 			glBindVertexArray(m_VAO);
 
-			unsigned int VBO;
-			glGenBuffers(1, &VBO);
+			unsigned int m_VBO;
+			glGenBuffers(1, &m_VBO);
 
 			// 2. copy our vertices array in a buffer for OpenGL to use
 			size_t size[] = { vertices.size() * sizeof(glm::vec4),
 				normals.size() * sizeof(glm::vec3)};
 
-			glBindBuffer(GL_ARRAY_BUFFER, VBO);
+			glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 			glBufferData(GL_ARRAY_BUFFER, size[0] + size[1], NULL, GL_STATIC_DRAW);
 
 			glBufferSubData(GL_ARRAY_BUFFER, 0, size[0], vertices.data());
@@ -52,9 +52,9 @@ namespace Velvet
 			// 3. copy our index array in a element buffer for OpenGL to use
 			if (useIndices())
 			{
-				unsigned int EBO;
-				glGenBuffers(1, &EBO);
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+				unsigned int m_EBO;
+				glGenBuffers(1, &m_EBO);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 			}
 
@@ -92,6 +92,24 @@ namespace Velvet
 			Initialize(vertices, normals, texCoords, indices);
 		}
 
+		Mesh(const Mesh&) = delete;
+
+		~Mesh()
+		{
+			if (m_EBO > 0)
+			{
+				glDeleteBuffers(1, &m_EBO);
+			}
+			if (m_VBO > 0)
+			{
+				glDeleteBuffers(1, &m_VBO);
+			}
+			if (m_VAO > 0)
+			{
+				glDeleteVertexArrays(1, &m_VAO);
+			}
+		}
+
 		unsigned int VAO() const
 		{
 			if (m_VAO == 0)
@@ -125,6 +143,8 @@ namespace Velvet
 		vector<unsigned int> m_indices;
 
 		unsigned int m_VAO = 0;
+		unsigned int m_VBO = 0;
+		unsigned int m_EBO = 0;
 
 		void Initialize(const vector<glm::vec3>& vertices, const vector<glm::vec3>& normals, const vector<glm::vec2>& texCoords,
 			const vector<unsigned int>& indices, const vector<unsigned int> attributeSizes = { 3,3,2 })
@@ -138,15 +158,14 @@ namespace Velvet
 			glGenVertexArrays(1, &m_VAO);
 			glBindVertexArray(m_VAO);
 
-			unsigned int VBO;
-			glGenBuffers(1, &VBO);
+			glGenBuffers(1, &m_VBO);
 
 			// 2. copy our vertices array in a buffer for OpenGL to use
 			size_t size[] = { vertices.size() * sizeof(glm::vec3),
 				normals.size() * sizeof(glm::vec3),
 				texCoords.size() * sizeof(glm::vec2) };
 
-			glBindBuffer(GL_ARRAY_BUFFER, VBO);
+			glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 			glBufferData(GL_ARRAY_BUFFER, size[0] + size[1] + size[2], NULL, GL_STATIC_DRAW);
 
 			glBufferSubData(GL_ARRAY_BUFFER, 0, size[0], vertices.data());
@@ -156,9 +175,8 @@ namespace Velvet
 			// 3. copy our index array in a element buffer for OpenGL to use
 			if (useIndices())
 			{
-				unsigned int EBO;
-				glGenBuffers(1, &EBO);
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+				glGenBuffers(1, &m_EBO);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 			}
 

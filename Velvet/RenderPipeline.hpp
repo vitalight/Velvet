@@ -13,6 +13,16 @@ namespace Velvet
 			SetupShadowMap();
 		}
 
+		RenderPipeline(const RenderPipeline&) = delete;
+
+		~RenderPipeline()
+		{
+			if (depthMapFBO > 0)
+			{
+				glDeleteFramebuffers(1, &depthMapFBO);
+			}
+		}
+
 		void Render()
 		{
 			vector<MeshRenderer*> renderers = Global::graphics->FindComponents<MeshRenderer>();

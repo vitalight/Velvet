@@ -71,9 +71,9 @@ VtGraphics::VtGraphics()
 	stbi_set_flip_vertically_on_load(true);
 
 	// setup members
-	m_input = shared_ptr<Input>(new Input(m_window));
-	m_renderPipeline = shared_ptr<RenderPipeline>(new RenderPipeline());
-	m_gui = shared_ptr<GUI>(new GUI());
+	m_input = make_shared<Input>(m_window);
+	m_renderPipeline = make_shared<RenderPipeline>();
+	m_gui = make_shared<GUI>();
 	m_gui->Initialize(m_window);
 }
 

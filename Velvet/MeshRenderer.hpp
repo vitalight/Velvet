@@ -18,23 +18,23 @@ namespace Velvet
 	class MeshRenderer : public Component
 	{
 	public:
-		MeshRenderer(Mesh &mesh, Material &material);
+		MeshRenderer(shared_ptr<Mesh> mesh, shared_ptr<Material> material);
 
-		MeshRenderer(Mesh &mesh, Material &material, Material &shadowMaterial);
+		MeshRenderer(shared_ptr<Mesh> mesh, shared_ptr<Material> material, shared_ptr<Material> shadowMaterial);
 
-		void SetupLighting(Material m_material);
+		void SetupLighting(shared_ptr<Material> m_material);
 
 		void Render(glm::mat4 lightMatrix);
 
 		void RenderShadow(glm::mat4 lightMatrix);
 
-		Material material() const;
+		shared_ptr<Material> material() const;
 
 		bool hidden = false;
 
 	private:
-		Mesh m_mesh;
-		Material m_material;
-		Material m_shadowMaterial;
+		shared_ptr<Mesh> m_mesh;
+		shared_ptr<Material> m_material;
+		shared_ptr<Material> m_shadowMaterial;
 	};
 }

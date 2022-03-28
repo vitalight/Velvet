@@ -44,14 +44,14 @@ public:
 		//=====================================
 		// 3. Objects
 		//=====================================
-		Material material = Resource::LoadMaterial("_Default");
+		auto material = Resource::LoadMaterial("_Default");
 		{
-			material.Use();
+			material->Use();
 
-			material.SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
-			material.SetTexture("_ShadowTex", graphics->depthMapFBO());
+			material->SetTexture("material->diffuse", Resource::LoadTexture("wood.png"));
+			material->SetTexture("_ShadowTex", graphics->depthMapFBO());
 		}
-		Material shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
+		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
 		shared_ptr<Actor> plane(new Actor("Plane"));
 		{
@@ -65,7 +65,7 @@ public:
 				 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
 				 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
 			};
-			Mesh mesh({ 3, 3, 2 }, planeVertices);
+			auto mesh = make_shared<Mesh>(vector<unsigned int>{ 3, 3, 2 }, planeVertices);
 
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			plane->AddComponent(renderer);
@@ -75,7 +75,7 @@ public:
 
 		shared_ptr<Actor> cube(new Actor("Cube"));
 		{
-			Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
+			auto mesh = make_shared<Mesh>(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			cube->AddComponent(renderer);
 		}
@@ -97,19 +97,19 @@ public:
 		// 3. Objects
 		//=====================================
 
-		Material material = Resource::LoadMaterial("_Default");
+		auto material = Resource::LoadMaterial("_Default");
 		{
-			material.Use();
+			material->Use();
 
-			material.SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
-			material.SetTexture("_ShadowTex", graphics->depthMapFBO());
+			material->SetTexture("material->diffuse", Resource::LoadTexture("wood.png"));
+			material->SetTexture("_ShadowTex", graphics->depthMapFBO());
 		}
 
-		Material shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
+		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
 		auto cube1 = graphics->CreateActor("Cube1");
 		{
-			auto mesh = *Resource::LoadMesh("sphere.obj").get();
+			auto mesh = Resource::LoadMesh("sphere.obj");
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			cube1->AddComponent(renderer);
 			cube1->transform->position = glm::vec3(0.6f, 2.0f, 0.0);
@@ -118,7 +118,7 @@ public:
 
 		auto cube2 = graphics->CreateActor("Cube2");
 		{
-			Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
+			auto mesh = make_shared<Mesh>(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			cube2->AddComponent(renderer);
 			cube2->transform->position = glm::vec3(2.0f, 0.5, 1.0);
@@ -127,7 +127,7 @@ public:
 
 		auto cube3 = graphics->CreateActor("Cube3");
 		{
-			Mesh mesh(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
+			auto mesh = make_shared<Mesh>(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			cube3->AddComponent(renderer);
 			cube3->transform->position = glm::vec3(-1.0f, 0.5, 2.0);
@@ -137,26 +137,26 @@ public:
 
 		auto infPlane = graphics->CreateActor("InfPlane");
 		{
-			Material mat = Resource::LoadMaterial("_InfinitePlane");
+			auto mat = Resource::LoadMaterial("_InfinitePlane");
 			{
-				mat.Use();
-				mat.SetTexture("_ShadowTex", graphics->depthMapFBO());
+				mat->Use();
+				mat->SetTexture("_ShadowTex", graphics->depthMapFBO());
 				// Plane: ax + by + cz + d = 0
-				mat.SetVec4("_Plane", glm::vec4(0, 1, 0, 0));
+				mat->SetVec4("_Plane", glm::vec4(0, 1, 0, 0));
 			}
-			Mesh mesh;
+			auto mesh = make_shared<Mesh>();
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, mat));
 			infPlane->AddComponent(renderer);
 		}
 
 		auto quad = graphics->CreateActor("Debug Quad");
 		{
-			Material debugMat = Resource::LoadMaterial("_ShadowDebug");
+			auto debugMat = Resource::LoadMaterial("_ShadowDebug");
 			{
 				float near_plane = 1.0f, far_plane = 7.5f;
-				debugMat.SetFloat("near_plane", near_plane);
-				debugMat.SetFloat("far_plane", far_plane);
-				debugMat.SetTexture("depthMap", graphics->depthMapFBO());
+				debugMat->SetFloat("near_plane", near_plane);
+				debugMat->SetFloat("far_plane", far_plane);
+				debugMat->SetTexture("depthMap", graphics->depthMapFBO());
 			}
 			vector<float> quadVertices = {
 				// positions        // texture Coords
@@ -168,8 +168,8 @@ public:
 				 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 				 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
 			};
-
-			Mesh quadMesh({ 3,2 }, quadVertices);
+			vector<unsigned int> attributes = { 3,2 };
+			auto quadMesh = make_shared<Mesh>(attributes, quadVertices);
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(quadMesh, debugMat));
 			quad->AddComponent(renderer);
 			renderer->hidden = true;

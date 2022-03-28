@@ -27,6 +27,13 @@ namespace Velvet
 			m_shaderID = CompileShader(vShaderCode, fShaderCode);
 		}
 
+		Material(const Material&) = delete;
+
+		~Material()
+		{
+			glDeleteProgram(m_shaderID);
+		}
+
 		unsigned int CompileShader(const char* vShaderCode, const char* fShaderCode) const
 		{
 			unsigned int vertex, fragment;
