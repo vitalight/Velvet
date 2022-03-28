@@ -19,8 +19,7 @@ namespace Velvet
 	class Input;
 	class RenderPipeline;
 	class GUI;
-
-	typedef function<void(VtGraphics*)> SceneInitializer;
+	class Scene;
 
 	class VtGraphics
 	{
@@ -35,7 +34,7 @@ namespace Velvet
 
 		shared_ptr<Actor> CreateActor(const string& name);
 
-		void SetSceneInitializers(const vector<SceneInitializer>& scenes);
+		void SetSceneInitializers(const vector<shared_ptr<Scene>>& scenes);
 
 		int Run();
 
@@ -67,7 +66,7 @@ namespace Velvet
 		vector<function<void(double, double)>> onMouseMove;
 		vector<function<void()>> postUpdate;
 
-		vector<SceneInitializer> sceneInitializers;
+		vector<shared_ptr<Scene>> sceneInitializers;
 		int frameCount = 0;
 		float deltaTime = 0.0f;
 		float elapsedTime = 0.0f;

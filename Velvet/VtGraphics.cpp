@@ -11,6 +11,7 @@
 #include "RenderPipeline.hpp"
 #include "Config.hpp"
 #include "GUI.hpp"
+#include "Scene.hpp"
 
 using namespace Velvet;
 
@@ -98,7 +99,7 @@ shared_ptr<Actor> VtGraphics::CreateActor(const string& name)
 	return AddActor(actor);
 }
 
-void VtGraphics::SetSceneInitializers(const vector<SceneInitializer>& initializers)
+void VtGraphics::SetSceneInitializers(const vector<shared_ptr<Scene>>& initializers)
 {
 	sceneInitializers = initializers;
 }
@@ -131,7 +132,7 @@ int VtGraphics::Run()
 			m_pendingReset = false;
 		}
 		// TODO: rename
-		sceneInitializers[m_sceneIndex](this);
+		sceneInitializers[m_sceneIndex]->PopulateActors(this);
 
 		Initialize();
 		MainLoop();

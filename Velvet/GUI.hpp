@@ -4,6 +4,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+#include "Scene.hpp"
+
 #define IMGUI_LEFT_LABEL(func, label, ...) (ImGui::TextUnformatted(label), ImGui::SameLine(), func("##" label, __VA_ARGS__))
 
 namespace Velvet
@@ -136,14 +138,12 @@ namespace Velvet
 			static unsigned int selected = 0;
 			for (unsigned int i = 0; i < Global::graphics->sceneInitializers.size(); i++)
 			{
-				auto label = fmt::format("Scene {}", (char)('A' + i));
+				auto scene = Global::graphics->sceneInitializers[i];
+				auto label = scene->name;
 				if (ImGui::Selectable(label.c_str(), selected == i, 0, ImVec2(0, 28)))
 				{
-					if (selected != i)
-					{
-						selected = i;
-						Global::graphics->SwitchScene(i);
-					}
+					selected = i;
+					Global::graphics->SwitchScene(i);
 				}
 			}
 

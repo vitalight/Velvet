@@ -108,6 +108,7 @@
     <ClInclude Include="PlayerController.hpp" />
     <ClInclude Include="RenderPipeline.hpp" />
     <ClInclude Include="Resource.hpp" />
+    <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="VtGraphics.hpp" />
     <ClInclude Include="Helper.hpp" />
