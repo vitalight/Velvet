@@ -113,6 +113,7 @@
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform.hpp" />
+    <ClInclude Include="VtClothSolver.hpp" />
     <ClInclude Include="VtEngine.hpp" />
     <ClInclude Include="GameInstance.hpp" />
     <ClInclude Include="Helper.hpp" />

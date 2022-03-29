@@ -49,6 +49,9 @@
     <Filter Include="Shader">
       <UniqueIdentifier>{eb97d10c-213f-4430-bad0-dd5f5d16b600}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Physics">
+      <UniqueIdentifier>{0c748510-14c1-4e64-9e99-0510de78c5ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External\stb_image.h">
@@ -114,6 +117,9 @@
     </ClInclude>
     <ClInclude Include="MaterialProperty.hpp">
       <Filter>Graphics\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="VtClothSolver.hpp">
+      <Filter>Physics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

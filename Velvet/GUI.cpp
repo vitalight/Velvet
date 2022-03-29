@@ -185,7 +185,6 @@ void GUI::ShowStatWindow()
 	{
 		if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			//ImGui::Text("DebugInfo: (1,1,1)");
 			for (auto callback : m_showDebugInfo)
 			{
 				callback();
@@ -194,7 +193,7 @@ void GUI::ShowStatWindow()
 			{
 				callback();
 			}
-			if (!Global::game->pause)
+			//if (!Global::game->pause)
 			{
 				m_showDebugInfoOnce.clear();
 			}

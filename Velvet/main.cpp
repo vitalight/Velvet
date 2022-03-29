@@ -1,9 +1,10 @@
 #include <iostream>
 
+#include "VtEngine.hpp"
+#include "VtClothSolver.hpp"
 #include "GameInstance.hpp"
 #include "Resource.hpp"
 #include "Scene.hpp"
-#include "VtEngine.hpp"
 #include "Helper.hpp"
 
 using namespace Velvet;
@@ -196,7 +197,7 @@ public:
 		PopulateCloth(game);
 	}
 
-	void PopulateCloth(GameInstance* game, int resolution = 5)
+	void PopulateCloth(GameInstance* game, int resolution = 3)
 	{
 		glm::vec3 color = glm::vec3(1, 0, 0);
 
@@ -215,28 +216,6 @@ public:
 
 		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
-		if (0)
-		{
-			auto cloth = make_shared<Actor>("Cloth");
-			vector<float> planeVertices = {
-				// positions            // normals         // texcoords
-				 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-				-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-				-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-
-				-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-				 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-				 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
-			};
-			auto mesh = make_shared<Mesh>(vector<unsigned int>{ 3, 3, 2 }, planeVertices);
-			//auto mesh = Resource::LoadMesh("cylinder.obj");
-
-			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
-			cloth->AddComponent(renderer);
-			cloth->Initialize(glm::vec3(0, 3.0f, 0), glm::vec3(0.2));
-			game->AddActor(cloth);
-		}
-
 		{
 			auto cloth = game->CreateActor("Cloth Generated");
 			vector<glm::vec3> vertices;
@@ -247,7 +226,7 @@ public:
 			{
 				for (int x = 0; x <= resolution; x++)
 				{
-					vertices.push_back(glm::vec3((float)x / (float)resolution - 0.5f, (float)y / (float)resolution - 1.0f, 0));
+					vertices.push_back(glm::vec3((float)x / (float)resolution - 0.5f, -(float)y / (float)resolution - 1.0f, 0));
 					normals.push_back(glm::vec3(0, 0, 1));
 				}
 			}
@@ -270,9 +249,15 @@ public:
 				}
 			}
 			auto mesh = make_shared<Mesh>(vertices, normals, vector<glm::vec2>(), indices);
+
 			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
+			renderer->SetMaterialProperty(materialProperty);
 			cloth->AddComponent(renderer);
-			cloth->Initialize(glm::vec3(0, 2.0f, 0), glm::vec3(1.0));
+
+			auto solver = make_shared<VtClothSolver>(resolution);
+			cloth->AddComponent(solver);
+
+			cloth->Initialize(glm::vec3(0, 3.0f, 0), glm::vec3(1.0));
 		}
 	}
 };

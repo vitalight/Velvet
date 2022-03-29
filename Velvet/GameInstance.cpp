@@ -140,7 +140,7 @@ void GameInstance::MainLoop()
 
 		m_gui->OnUpdate();
 
-		if (!pause)
+		//if (!pause)
 		{
 			frameCount++;
 			elapsedTime += deltaTime;

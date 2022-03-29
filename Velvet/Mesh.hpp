@@ -93,6 +93,18 @@ namespace Velvet
 			}
 		}
 
+		const vector<glm::vec3>& vertices() const
+		{
+			return m_vertices;
+		}
+
+		void SetVertices(const vector<glm::vec3>& vertices)
+		{
+			m_vertices = vertices;
+			glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(glm::vec3), vertices.data());
+		}
+
 	private:
 		vector<glm::vec3> m_vertices;
 		vector<glm::vec3> m_normals;

@@ -33,6 +33,11 @@ namespace Velvet
 
 		bool hidden = false;
 
+		shared_ptr<Mesh> mesh() const
+		{
+			return m_mesh;
+		}
+
 	private:
 		shared_ptr<Mesh> m_mesh;
 		shared_ptr<Material> m_material;
