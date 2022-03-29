@@ -22,7 +22,6 @@ struct SpotLight {
 in VS {
     vec3 nearPoint;
     vec3 farPoint;
-    vec3 normal;
 } vs;
 
 uniform mat4 _View;

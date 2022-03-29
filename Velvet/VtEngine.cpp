@@ -1,5 +1,6 @@
 #include "VtEngine.hpp"
 
+#include <algorithm>
 #include <fmt/core.h>
 #include <fmt/color.h>
 
@@ -91,7 +92,7 @@ int VtEngine::Run()
 	do {
 		m_game = nullptr;
 		m_game = make_shared<GameInstance>(m_window, m_gui);
-		scenes[m_sceneIndex]->PopulateActors(m_game.get());
+		scenes[sceneIndex]->PopulateActors(m_game.get());
 		m_game->Run();
 	} while (m_game->pendingReset);
 
@@ -103,9 +104,9 @@ void VtEngine::Reset()
 	m_game->pendingReset = true;
 }
 
-void VtEngine::SwitchScene(unsigned int sceneIndex)
+void VtEngine::SwitchScene(unsigned int _sceneIndex)
 {
-	m_sceneIndex = sceneIndex;
+	sceneIndex = std::clamp(_sceneIndex, 0u, (unsigned int)scenes.size()-1);
 	m_game->pendingReset = true;
 }
 

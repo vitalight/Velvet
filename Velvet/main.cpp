@@ -19,7 +19,6 @@ public:
 	void PopulateActors(GameInstance* game) override
 	{
 		Scene::PopulateCameraAndLight(game);
-		Scene::PopulateDebug(game);
 		game->skyColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
 
 		//=====================================
@@ -73,7 +72,6 @@ public:
 	void PopulateActors(GameInstance* game) override
 	{
 		Scene::PopulateCameraAndLight(game);
-		Scene::PopulateDebug(game);
 
 		//=====================================
 		// 3. Objects
@@ -129,7 +127,6 @@ public:
 	void PopulateActors(GameInstance* game)  override
 	{
 		Scene::PopulateCameraAndLight(game);
-		Scene::PopulateDebug(game);
 
 		game->AddActor(Scene::InfinitePlane(game));
 
@@ -185,6 +182,21 @@ public:
 	}
 };
 
+class SceneSimpleCloth : public Scene
+{
+public:
+	SceneSimpleCloth() { name = "Cloth / Simple"; }
+
+	void PopulateActors(GameInstance* game)  override
+	{
+		PopulateCameraAndLight(game);
+		game->AddActor(Scene::InfinitePlane(game));
+		game->AddActor(Scene::ColoredCube(game));
+
+		// Cloth quad
+	}
+};
+
 int main()
 {
 	//=====================================
@@ -199,6 +211,7 @@ int main()
 	//=====================================
 	
 	vector<ScenePtr> scenes = {
+		ScenePtr(new SceneSimpleCloth()),
 		ScenePtr(new SceneColoredCubes()),
 		ScenePtr(new SceneRotatingLight()),
 		ScenePtr(new ScenePremitiveRendering()),

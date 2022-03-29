@@ -93,7 +93,7 @@ namespace Velvet
 				renderer->hidden = true;
 
 				game->postUpdate.push_back([renderer]() {
-					if (Global::input->GetKeyDown(GLFW_KEY_1))
+					if (Global::input->GetKeyDown(GLFW_KEY_X))
 					{
 						renderer->hidden = !renderer->hidden;
 					}
@@ -116,10 +116,9 @@ namespace Velvet
 
 		shared_ptr<Actor> PrefabCamera()
 		{
-			// TODO: make_shared
-			shared_ptr<Actor> actor(new Actor("Prefab Camera"));
-			shared_ptr<Camera> camera(new Camera());
-			shared_ptr<PlayerController> controller(new PlayerController());
+			auto actor = make_shared<Actor>("Prefab Camera");
+			auto camera = make_shared<Camera>();
+			auto controller = make_shared<PlayerController>();
 			actor->AddComponent(camera);
 			actor->AddComponent(controller);
 			return actor;
@@ -128,20 +127,23 @@ namespace Velvet
 		shared_ptr<Actor> InfinitePlane(GameInstance* game)
 		{
 			auto infPlane = make_shared<Actor>("Infinite Plane");
+
 			auto mat = Resource::LoadMaterial("_InfinitePlane");
-			{
-				mat->Use();
-				mat->SetTexture("_ShadowTex", game->depthFrameBuffer());
-				// Plane: ax + by + cz + d = 0
-				mat->SetVec4("_Plane", glm::vec4(0, 1, 0, 0));
-			}
-			auto mesh = make_shared<Mesh>();
+			mat->Use();
+			mat->SetTexture("_ShadowTex", game->depthFrameBuffer());
+			// Plane: ax + by + cz + d = 0
+			mat->SetVec4("_Plane", glm::vec4(0, 1, 0, 0));
+
+			const vector<glm::vec3> vertices = {
+				glm::vec3(1,1,0), glm::vec3(-1,-1,0), glm::vec3(-1,1,0), glm::vec3(1,-1,0) };
+			const vector<unsigned int> indices = { 2,1,0, 3, 0, 1 };
+
+			auto mesh = make_shared<Mesh>(vertices, vector<glm::vec3>(), vector<glm::vec2>(), indices);
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, mat));
 			infPlane->AddComponent(renderer);
 			return infPlane;
 		}
 	
-		// TODO: AddActor by default
 		shared_ptr<Actor> ColoredCube(GameInstance* game, glm::vec3 color = glm::vec3(1.0f))
 		{
 			auto material = Resource::LoadMaterial("_Default");

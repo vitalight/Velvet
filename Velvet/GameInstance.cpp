@@ -10,6 +10,7 @@
 #include "RenderPipeline.hpp"
 #include "GUI.hpp"
 #include "Timer.hpp"
+#include "VtEngine.hpp"
 
 using namespace Velvet;
 
@@ -99,6 +100,13 @@ void GameInstance::ProcessKeyboard(GLFWwindow* m_window)
 	if (Global::input->GetKeyDown(GLFW_KEY_P))
 	{
 		pause = !pause;
+	}
+	for (int i = 0; i < 9; i++)
+	{
+		if (Global::input->GetKeyDown(GLFW_KEY_1 + i))
+		{
+			Global::engine->SwitchScene(i);
+		}
 	}
 }
 

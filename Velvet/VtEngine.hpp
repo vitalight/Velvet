@@ -32,12 +32,12 @@ namespace Velvet
 		glm::ivec2 windowSize();
 
 		vector<shared_ptr<Scene>> scenes;
+		unsigned int sceneIndex = 0;
 	private:
 		GLFWwindow* m_window = nullptr;
 		shared_ptr<GUI> m_gui;
 		shared_ptr<GameInstance> m_game;
 		shared_ptr<Input> m_input;
 
-		unsigned int m_sceneIndex = 0;
 	};
 }

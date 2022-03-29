@@ -111,16 +111,14 @@ void GUI::ShowSceneWindow()
 	ImGui::SetNextWindowPos(ImVec2(20, 20));
 	ImGui::Begin("Scene", NULL, k_windowFlags);
 
-	static unsigned int selected = 0;
 	const auto& scenes = Global::engine->scenes;
 
 	for (unsigned int i = 0; i < scenes.size(); i++)
 	{
 		auto scene = scenes[i];
 		auto label = scene->name;
-		if (ImGui::Selectable(label.c_str(), selected == i, 0, ImVec2(0, 28)))
+		if (ImGui::Selectable(label.c_str(), Global::engine->sceneIndex == i, 0, ImVec2(0, 28)))
 		{
-			selected = i;
 			Global::engine->SwitchScene(i);
 		}
 	}
