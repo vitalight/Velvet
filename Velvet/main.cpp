@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "GameInstance.hpp"
-#include "DefaultAssets.hpp"
 #include "Resource.hpp"
 #include "Scene.hpp"
 #include "VtEngine.hpp"
@@ -55,7 +54,7 @@ public:
 
 		shared_ptr<Actor> cube(new Actor("Cube"));
 		{
-			auto mesh = make_shared<Mesh>(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
+			auto mesh = Resource::LoadMesh("cube.obj");
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			cube->AddComponent(renderer);
 		}
@@ -98,7 +97,7 @@ public:
 
 		auto cube2 = game->CreateActor("Cube2");
 		{
-			auto mesh = make_shared<Mesh>(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
+			auto mesh = Resource::LoadMesh("cube.obj");
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			cube2->AddComponent(renderer);
 			cube2->transform->position = glm::vec3(2.0f, 0.5, 1.0);
@@ -107,7 +106,7 @@ public:
 
 		auto cube3 = game->CreateActor("Cube3");
 		{
-			auto mesh = make_shared<Mesh>(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
+			auto mesh = Resource::LoadMesh("cube.obj");
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			cube3->AddComponent(renderer);
 			cube3->transform->position = glm::vec3(-1.0f, 0.5, 2.0);
@@ -129,11 +128,10 @@ public:
 		Scene::PopulateCameraAndLight(game);
 
 		game->AddActor(Scene::InfinitePlane(game));
-
 		{
 			auto whiteCube = Scene::ColoredCube(game, glm::vec3(1.0, 1.0, 1.0));
 			whiteCube->Initialize(glm::vec3(0, 0.25, 0),
-				glm::vec3(1, 0.25f, 1));
+				glm::vec3(2, 0.5f, 2));
 			game->AddActor(whiteCube);
 		}
 
@@ -154,7 +152,7 @@ public:
 			glm::vec3 color = colors[Helper::Random(0, colors.size())];
 			auto cube = Scene::ColoredCube(game, color);
 			cube->Initialize(glm::vec3(Helper::Random(-3.0f, 3.0f), Helper::Random(0.3f, 0.5f), Helper::Random(-3.0f, 3.0f)), 
-				glm::vec3(0.15));
+				glm::vec3(0.3));
 			game->AddActor(cube);
 			cubes.push_back(cube);
 			velocities.push_back(glm::vec3(0.0));
@@ -191,9 +189,50 @@ public:
 	{
 		PopulateCameraAndLight(game);
 		game->AddActor(Scene::InfinitePlane(game));
-		game->AddActor(Scene::ColoredCube(game));
+		auto cube = Scene::ColoredCube(game);
+		cube->transform->scale = glm::vec3(2);
 
-		// Cloth quad
+		PopulateCloth(game);
+	}
+
+	void PopulateCloth(GameInstance* game)
+	{
+		glm::vec3 color = glm::vec3(1, 0, 0);
+
+		auto material = Resource::LoadMaterial("_Default");
+		material->Use();
+		material->SetTexture("_ShadowTex", game->depthFrameBuffer());
+		material->SetVec3("material.tint", color);
+		material->SetBool("material.useTexture", false);
+		material->doubleSided = true;
+
+		MaterialProperty materialProperty;
+		materialProperty.preRendering = [color](Material* mat) {
+			mat->SetVec3("material.tint", color);
+			mat->SetBool("material.useTexture", false);
+		};
+
+		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
+
+		shared_ptr<Actor> plane(new Actor("Plane"));
+		{
+			vector<float> planeVertices = {
+				// positions            // normals         // texcoords
+				 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+				-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+				-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+
+				-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+				 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+				 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
+			};
+			auto mesh = make_shared<Mesh>(vector<unsigned int>{ 3, 3, 2 }, planeVertices);
+
+			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
+			plane->AddComponent(renderer);
+			plane->Initialize(glm::vec3(0, 3.0f, 0), glm::vec3(0.2));
+		}
+		game->AddActor(plane);
 	}
 };
 

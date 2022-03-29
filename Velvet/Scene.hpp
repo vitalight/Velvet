@@ -8,7 +8,6 @@
 #include "Resource.hpp"
 #include "Actor.hpp"
 #include "PlayerController.hpp"
-#include "DefaultAssets.hpp"
 #include "MeshRenderer.hpp"
 #include "MaterialProperty.hpp"
 
@@ -148,9 +147,7 @@ namespace Velvet
 		{
 			auto material = Resource::LoadMaterial("_Default");
 			material->Use();
-			material->SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
 			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
-			material->SetVec3("material.tint", color);
 
 			MaterialProperty materialProperty;
 			materialProperty.preRendering = [color](Material* mat) {
@@ -159,7 +156,7 @@ namespace Velvet
 			};
 
 			auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
-			auto mesh = make_shared<Mesh>(DefaultAssets::cube_attributes, DefaultAssets::cube_vertices);
+			auto mesh = Resource::LoadMesh("cube.obj");
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			renderer->SetMaterialProperty(materialProperty);
 

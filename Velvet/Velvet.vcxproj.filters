@@ -63,9 +63,6 @@
     <ClInclude Include="Component.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
-    <ClInclude Include="DefaultAssets.hpp">
-      <Filter>Graphics\Include</Filter>
-    </ClInclude>
     <ClInclude Include="Global.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>

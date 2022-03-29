@@ -159,6 +159,7 @@ namespace Velvet
 
 		float specular = 0.3f;
 		float smoothness = 50.0f;
+		bool doubleSided = false;
 	private:
 		unsigned int m_shaderID = -1;
 

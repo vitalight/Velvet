@@ -107,7 +107,6 @@
     <ClInclude Include="MaterialProperty.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="MeshRenderer.hpp" />
-    <ClInclude Include="DefaultAssets.hpp" />
     <ClInclude Include="PlayerController.hpp" />
     <ClInclude Include="RenderPipeline.hpp" />
     <ClInclude Include="Resource.hpp" />

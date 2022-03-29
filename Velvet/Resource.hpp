@@ -17,14 +17,6 @@
 
 namespace Velvet
 {
-	inline unordered_map<string, unsigned int> textureCache;
-	inline unordered_map<string, shared_ptr<Mesh>> meshCache;
-	inline unordered_map<string, shared_ptr<Material>> matCache;
-
-	inline string defaultTexturePath = "Assets/Texture/";
-	inline string defaultMeshPath = "Assets/Model/";
-	inline string defaultMaterialPath = "Assets/Shader/";
-
 	class Resource
 	{
 	public:
@@ -95,7 +87,7 @@ namespace Velvet
 			vector<unsigned int> indices;
 
 			Assimp::Importer importer;
-			const aiScene* scene = importer.ReadFile(defaultMeshPath + path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+			const aiScene* scene = importer.ReadFile(defaultMeshPath + path, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 			// check for errors
 			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
 			{
@@ -205,5 +197,13 @@ namespace Velvet
 		{
 			return glm::vec2(input.x, input.y);
 		}
+
+		static inline unordered_map<string, unsigned int> textureCache;
+		static inline unordered_map<string, shared_ptr<Mesh>> meshCache;
+		static inline unordered_map<string, shared_ptr<Material>> matCache;
+
+		static inline string defaultTexturePath = "Assets/Texture/";
+		static inline string defaultMeshPath = "Assets/Model/";
+		static inline string defaultMaterialPath = "Assets/Shader/";
 	};
 }

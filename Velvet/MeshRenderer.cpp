@@ -84,6 +84,11 @@ namespace Velvet
 		m_material->SetMat4("_Projection", Global::camera->projection());
 		m_material->SetMat4("_WorldToLight", lightMatrix);
 
+		if (m_material->doubleSided)
+		{
+			glDisable(GL_CULL_FACE);
+		}
+
 		glBindVertexArray(m_mesh->VAO());
 		if (m_mesh->useIndices())
 		{
@@ -92,6 +97,11 @@ namespace Velvet
 		else
 		{
 			glDrawArrays(GL_TRIANGLES, 0, m_mesh->drawCount());
+		}
+
+		if (m_material->doubleSided)
+		{
+			glEnable(GL_CULL_FACE);
 		}
 	}	
 
