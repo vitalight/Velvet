@@ -20,6 +20,10 @@ namespace Velvet
 
 		glm::vec3 RotateWithDegree(glm::vec3 result, const glm::vec3& rotation);
 
+		float Random(float min = 0, float max = 1);
+
+		glm::vec3 RandomUnitVector();
+
 		template <class T>
 		T Lerp(T value1, T value2, float a)
 		{

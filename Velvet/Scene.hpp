@@ -28,40 +28,41 @@ namespace Velvet
 			// 1. Camera
 			//=====================================
 			auto camera = game->AddActor(PrefabCamera());
-			camera->transform->position = glm::vec3(1.5, 1.5, 5.0);
-			camera->transform->rotation = glm::vec3(-8.5, 9.0, 0);
+			camera->Initialize(glm::vec3(0.35, 3.3, 7.2),
+				glm::vec3(1),
+				glm::vec3(-21, 2.25, 0));
 
 			//=====================================
 			// 2. Light
 			//=====================================
 
 			auto light = game->AddActor(PrefabLight());
-			//light->transform->position = glm::vec3(-2.0, 4.0, -1.0f);
-			light->transform->position = glm::vec3(0, 4.0, -1.0f);
-			light->transform->scale = glm::vec3(0.2f);
+			light->Initialize(glm::vec3(2.5f, 5.0f, 2.5f), 
+				glm::vec3(0.2f),
+				glm::vec3(20, 30, 0));
 			auto lightComp = light->GetComponent<Light>();
 
-			game->postUpdate.push_back([light, lightComp, game]() {
-				//light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
-				light->transform->rotation = glm::vec3(10 * sin(game->elapsedTime) - 10, 0, 0);
-				light->transform->position = glm::vec3(2.5 * sin(game->elapsedTime), 4.0, 2.5 * cos(game->elapsedTime));
-				if (Global::input->GetKeyDown(GLFW_KEY_UP))
-				{
-					fmt::print("Outer: {}\n", lightComp->outerCutoff++);
-				}
-				if (Global::input->GetKeyDown(GLFW_KEY_DOWN))
-				{
-					fmt::print("Outer: {}\n", lightComp->outerCutoff--);
-				}
-				if (Global::input->GetKeyDown(GLFW_KEY_RIGHT))
-				{
-					fmt::print("Inner: {}\n", lightComp->innerCutoff++);
-				}
-				if (Global::input->GetKeyDown(GLFW_KEY_LEFT))
-				{
-					fmt::print("Inner: {}\n", lightComp->innerCutoff--);
-				}
-				});
+			//game->postUpdate.push_back([light, lightComp, game]() {
+			//	//light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
+			//	light->transform->rotation = glm::vec3(10 * sin(game->elapsedTime) - 10, 0, 0);
+			//	light->transform->position = glm::vec3(2.5 * sin(game->elapsedTime), 4.0, 2.5 * cos(game->elapsedTime));
+			//	if (Global::input->GetKeyDown(GLFW_KEY_UP))
+			//	{
+			//		fmt::print("Outer: {}\n", lightComp->outerCutoff++);
+			//	}
+			//	if (Global::input->GetKeyDown(GLFW_KEY_DOWN))
+			//	{
+			//		fmt::print("Outer: {}\n", lightComp->outerCutoff--);
+			//	}
+			//	if (Global::input->GetKeyDown(GLFW_KEY_RIGHT))
+			//	{
+			//		fmt::print("Inner: {}\n", lightComp->innerCutoff++);
+			//	}
+			//	if (Global::input->GetKeyDown(GLFW_KEY_LEFT))
+			//	{
+			//		fmt::print("Inner: {}\n", lightComp->innerCutoff--);
+			//	}
+			//	});
 		}
 	
 		void PopulateDebug(GameInstance* game)

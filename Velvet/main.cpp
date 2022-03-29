@@ -5,6 +5,7 @@
 #include "Resource.hpp"
 #include "Scene.hpp"
 #include "VtEngine.hpp"
+#include "Helper.hpp"
 
 using namespace Velvet;
 
@@ -132,18 +133,55 @@ public:
 
 		game->AddActor(Scene::InfinitePlane(game));
 
-		auto cube = Scene::ColoredCube(game, glm::vec3(0.0, 1.0, 0.0));
-		cube->Initialize(glm::vec3(-1.0f, 0.5, 2.0),
-			glm::vec3(0.25f),
-			glm::vec3(60, 0, 60));
-		game->AddActor(cube);
+		{
+			auto whiteCube = Scene::ColoredCube(game, glm::vec3(1.0, 1.0, 1.0));
+			whiteCube->Initialize(glm::vec3(0, 0.25, 0),
+				glm::vec3(1, 0.25f, 1));
+			game->AddActor(whiteCube);
+		}
 
-		auto cube2 = Scene::ColoredCube(game, glm::vec3(1.0, 0.0 ,0.0));
-		game->AddActor(cube2);
+		vector<glm::vec3> colors = {
+			glm::vec3(0.0f, 0.5f, 1.0f),
+			glm::vec3(0.797f, 0.354f, 0.000f),
+			glm::vec3(0.000f, 0.349f, 0.173f),
+			glm::vec3(0.875f, 0.782f, 0.051f),
+			glm::vec3(0.01f, 0.170f, 0.453f),
+			glm::vec3(0.673f, 0.111f, 0.000f),
+			glm::vec3(0.612f, 0.194f, 0.394f)
+		};
 
-		auto cube3 = Scene::ColoredCube(game, glm::vec3(0.0, 0.0, 1.0));
-		cube3->Initialize(glm::vec3(2.0f, 1.0f, -2.0f));
-		game->AddActor(cube2);
+		vector<shared_ptr<Actor>> cubes;
+		static vector<glm::vec3> velocities;
+		for (int i = 0; i < 50; i++)
+		{
+			glm::vec3 color = colors[Helper::Random(0, colors.size())];
+			auto cube = Scene::ColoredCube(game, color);
+			cube->Initialize(glm::vec3(Helper::Random(-3.0f, 3.0f), Helper::Random(0.3f, 0.5f), Helper::Random(-3.0f, 3.0f)), 
+				glm::vec3(0.15));
+			game->AddActor(cube);
+			cubes.push_back(cube);
+			velocities.push_back(glm::vec3(0.0));
+		}
+
+		game->postUpdate.push_back([cubes, game]() {
+			for (int i = 0; i < cubes.size(); i++)
+			{
+				auto cube = cubes[i];
+				//cube->transform->position += Helper::RandomUnitVector() * game->deltaTime * 5.0f;
+				velocities[i] = Helper::Lerp(velocities[i], Helper::RandomUnitVector() * 1.0f, game->deltaTime);
+				cube->transform->rotation += Helper::RandomUnitVector() * game->deltaTime * 50.0f;
+				cube->transform->position += velocities[i] * game->deltaTime * 5.0f;
+
+				if (cube->transform->position.y < 0.07)
+				{
+					cube->transform->position.y = 0.07;
+				}
+				if (cube->transform->position.length() > 3)
+				{
+					cube->transform->position = cube->transform->position / (float)cube->transform->position.length() * 3.0f;
+				}
+			}
+			});
 	}
 };
 

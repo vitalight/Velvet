@@ -71,13 +71,14 @@ namespace Velvet
 			// --------------------------------------------------------------
 			glm::mat4 lightProjection, lightView;
 			glm::mat4 lightSpaceMatrix;
-			float near_plane = 1.0f, far_plane = 7.5f;
+			float near_plane = 1.0f, far_plane = 11.0f;
 			auto light = Global::lights[0];
 			glm::vec3 lightPos = light->position();
 			if (light->type == LightType::SpotLight)
 			{
 				// note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
-				lightProjection = glm::perspective(glm::radians(90.0f), (GLfloat)Config::shadowWidth / (GLfloat)Config::shadowHeight, near_plane, far_plane);
+				lightProjection = glm::perspective(glm::radians(90.0f), (GLfloat)Config::shadowWidth / (GLfloat)Config::shadowHeight, 
+					near_plane, far_plane);
 			}
 			else
 			{

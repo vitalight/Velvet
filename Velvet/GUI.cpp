@@ -8,6 +8,8 @@ using namespace Velvet;
 
 inline GUI* g_Gui;
 
+#define IMGUI_LEFT_LABEL(func, label, ...) (ImGui::TextUnformatted(label), ImGui::SameLine(), func("##" label, __VA_ARGS__))
+
 void GUI::RegisterDebug(function<void()> callback)
 {
 	g_Gui->m_showDebugInfo.push_back(callback);
@@ -149,12 +151,13 @@ void GUI::ShowOptionWindow()
 		ImGui::Dummy(ImVec2(0.0f, 10.0f));
 	}
 
-	//if (ImGui::CollapsingHeader("Simulation", ImGuiTreeNodeFlags_DefaultOpen))
-	//{
-	//	IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "LightPos", (float*)&(Global::light[0]->transform()->position), -10, 10, "%.2f");
-	//	static float value = 0.0;
-	//	IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Timestep", &value, 0, 1);
-	//}
+	if (ImGui::CollapsingHeader("Simulation", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "LightPos", (float*)&(Global::lights[0]->transform()->position), -5, 5, "%.2f");
+		IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "LightRot", (float*)&(Global::lights[0]->transform()->rotation), -79, 79, "%.2f");
+		static float value = 0.0;
+		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Timestep", &value, 0, 1);
+	}
 
 	ImGui::End();
 }

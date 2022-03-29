@@ -21,5 +21,26 @@ namespace Velvet
 			result = rotationMatrix * glm::vec4(result, 0.0f);
 			return glm::normalize(result);
 		}
+
+		float Random(float min, float max)
+		{
+			float zeroToOne = (float)rand() / RAND_MAX;
+			return min + zeroToOne * (max - min);
+		}
+
+		glm::vec3 RandomUnitVector()
+		{
+			const float pi = 3.1415926535;
+			float phi = Random(0, pi * 2.0f);
+			float theta = Random(0, pi * 2.0f);
+
+			float cosTheta = cos(theta);
+			float sinTheta = sin(theta);
+
+			float cosPhi = cos(phi);
+			float sinPhi = sin(phi);
+
+			return glm::vec3(cosTheta * sinPhi, cosPhi, sinTheta * sinPhi);
+		}
 	}
 }
