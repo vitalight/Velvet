@@ -2,6 +2,8 @@
 
 #include "GameInstance.hpp"
 #include "Config.hpp"
+#include "Light.hpp"
+#include "MeshRenderer.hpp"
 
 namespace Velvet
 {

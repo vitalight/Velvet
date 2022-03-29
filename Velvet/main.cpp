@@ -15,10 +15,10 @@ using namespace Velvet;
 
 typedef shared_ptr<Scene> ScenePtr;
 
-class SceneBlinnPhong : public Scene
+class SceneRotatingLight : public Scene
 {
 public:
-	SceneBlinnPhong() { name = "Basic / Rotating Light"; }
+	SceneRotatingLight() { name = "Basic / Rotating Light"; }
 
 	void PopulateActors(GameInstance* game) override
 	{
@@ -69,10 +69,10 @@ public:
 	}
 };
 
-class SceneShadow : public Scene
+class ScenePremitiveRendering : public Scene
 {
 public:
-	SceneShadow() { name = "Basic / Premitive Rendering"; }
+	ScenePremitiveRendering() { name = "Basic / Premitive Rendering"; }
 
 	void PopulateActors(GameInstance* game) override
 	{
@@ -121,20 +121,27 @@ public:
 			cube3->transform->rotation = glm::vec3(60, 0, 60);
 		}
 
-		auto infPlane = game->CreateActor("InfPlane");
-		{
-			auto mat = Resource::LoadMaterial("_InfinitePlane");
-			{
-				mat->Use();
-				mat->SetTexture("_ShadowTex", game->depthFrameBuffer());
-				// Plane: ax + by + cz + d = 0
-				mat->SetVec4("_Plane", glm::vec4(0, 1, 0, 0));
-			}
-			auto mesh = make_shared<Mesh>();
-			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, mat));
-			infPlane->AddComponent(renderer);
-		}
+		game->AddActor(Scene::InfinitePlane(game));
+	}
+};
 
+class SceneColoredCubes : public Scene
+{
+public:
+	SceneColoredCubes() { name = "Basic / Colored Cubes"; }
+
+	void PopulateActors(GameInstance* game)  override
+	{
+		Scene::PopulateCameraAndLight(game);
+		Scene::PopulateDebug(game);
+
+		game->AddActor(Scene::InfinitePlane(game));
+
+		auto cube = Scene::ColoredCube(game);
+		cube->transform->position = glm::vec3(-1.0f, 0.5, 2.0);
+		cube->transform->scale = glm::vec3(0.25f);
+		cube->transform->rotation = glm::vec3(60, 0, 60);
+		game->AddActor(cube);
 	}
 };
 
@@ -152,8 +159,9 @@ int main()
 	//=====================================
 	
 	vector<ScenePtr> scenes = {
-		ScenePtr(new SceneBlinnPhong()),
-		ScenePtr(new SceneShadow()),
+		ScenePtr(new SceneColoredCubes()),
+		ScenePtr(new SceneRotatingLight()),
+		ScenePtr(new ScenePremitiveRendering()),
 	};
 	engine->SetScenes(scenes);
 

@@ -7,8 +7,8 @@
 #include <GLFW/glfw3.h>
 #include <fmt/core.h>
 
-#include "MeshRenderer.hpp"
-#include "Light.hpp"
+#include "Component.hpp"
+#include "Transform.hpp"
 
 namespace Velvet
 {
@@ -16,11 +16,6 @@ namespace Velvet
 
 	class Actor
 	{
-	public:
-		static shared_ptr<Actor> PrefabCamera();
-
-		static shared_ptr<Actor> PrefabLight(LightType type = LightType::Point);
-
 	public:
 		Actor();
 

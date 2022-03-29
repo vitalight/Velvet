@@ -16,10 +16,11 @@ namespace Velvet
 	class Light : public Component
 	{
 	public:
-		Light()
+		Light(LightType _type = LightType::SpotLight)
 		{
 			Global::lights.push_back(this);
 			name = __func__;
+			type = _type;
 		}
 
 		~Light()

@@ -13,6 +13,7 @@
 
 #include "External/stb_image.h"
 #include "Mesh.hpp"
+#include "Material.hpp"
 
 namespace Velvet
 {

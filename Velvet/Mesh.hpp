@@ -7,8 +7,6 @@
 #include <GLFW/glfw3.h>
 #include <fmt/core.h>
 
-#include "Material.hpp"
-
 using namespace std;
 
 namespace Velvet
@@ -19,7 +17,7 @@ namespace Velvet
 	class Mesh
 	{
 	public:
-		// for infinite plane
+		// TODO: remove inifinite plane specific logic
 		Mesh()
 		{
 			float w = 1.0;

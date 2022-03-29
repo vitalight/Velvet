@@ -10,6 +10,7 @@
 #include "Light.hpp"
 #include "Input.hpp"
 #include "GUI.hpp"
+#include "Camera.hpp"
 
 namespace Velvet
 {
