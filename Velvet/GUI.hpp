@@ -21,6 +21,8 @@ namespace Velvet
 		float graphValues[100] = {};
 		int graphIndex = 0;
 		float graphAverage = 0.0f;
+
+		double cpuTime = 0;
 	};
 
 	class VtApp;

@@ -111,6 +111,7 @@
     <ClInclude Include="RenderPipeline.hpp" />
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="Scene.hpp" />
+    <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="VtEngine.hpp" />
     <ClInclude Include="GameInstance.hpp" />

@@ -9,6 +9,7 @@
 #include "Input.hpp"
 #include "RenderPipeline.hpp"
 #include "GUI.hpp"
+#include "Timer.hpp"
 
 using namespace Velvet;
 
@@ -123,10 +124,13 @@ void GameInstance::MainLoop()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glPolygonMode(GL_FRONT_AND_BACK, renderWireframe ? GL_LINE : GL_FILL);
 
+		Timer::StartTimer("CPU_TIME");
 		// timing
 		float current = (float)glfwGetTime();
 		deltaTime = current - lastUpdateTime;
 		lastUpdateTime = current;
+
+		m_gui->OnUpdate();
 
 		if (!pause)
 		{
@@ -143,7 +147,7 @@ void GameInstance::MainLoop()
 			}
 		}
 
-		m_gui->OnUpdate();
+		Timer::EndTimer("CPU_TIME");
 
 		m_renderPipeline->Render();
 		m_gui->Render();
@@ -151,6 +155,7 @@ void GameInstance::MainLoop()
 		// check and call events and swap the buffers
 		glfwSwapBuffers(m_window);
 		glfwPollEvents();
+
 	}
 }
 

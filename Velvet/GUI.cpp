@@ -2,6 +2,7 @@
 
 #include "Scene.hpp"
 #include "VtEngine.hpp"
+#include "Timer.hpp"
 
 using namespace Velvet;
 
@@ -142,7 +143,7 @@ void GUI::ShowOptionWindow()
 	if (ImGui::CollapsingHeader("Global", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		static bool radio = false;
-		ImGui::Checkbox("Pause Physics", &Global::game->pause);
+		ImGui::Checkbox("Pause", &Global::game->pause);
 		ImGui::Checkbox("Draw Wireframe", &Global::game->renderWireframe);
 		ImGui::Checkbox("Draw Points", &radio);
 		ImGui::Dummy(ImVec2(0.0f, 10.0f));
@@ -170,7 +171,7 @@ void GUI::ShowStatWindow()
 	ImGui::Text("Device:  %s", m_deviceName.c_str());
 	ImGui::Text("Frame:  %d", stat.frameCount);
 	ImGui::Text("Avg FrameRate:  %d FPS", stat.frameRate);
-	ImGui::Text("CPU time:  %.2f ms", 0);
+	ImGui::Text("CPU time:  %.2f ms", stat.cpuTime);
 	ImGui::Text("GPU time:  %.2f ms", 0);
 
 	ImGui::Dummy(ImVec2(0, 5));
@@ -204,6 +205,10 @@ void GUI::ShowStatWindow()
 
 void GUI::ComputeStatData(PerformanceStat& stat)
 {
+	if (Global::game->pause)
+	{
+		return;
+	}
 	static float timer1 = 0;
 	static float timer2 = 0.0;
 	const float timer1_interval = 0.2f;
@@ -215,6 +220,8 @@ void GUI::ComputeStatData(PerformanceStat& stat)
 	float deltaTimeMiliseconds = game->deltaTime * 1000;
 
 	stat.frameCount = frameCount;
+	
+	// Some variables should not be update each frame
 	timer1 += game->deltaTime;
 	timer2 += game->deltaTime;
 
@@ -232,6 +239,7 @@ void GUI::ComputeStatData(PerformanceStat& stat)
 
 		stat.deltaTime = deltaTimeMiliseconds;
 		stat.frameRate = elapsedTime > 0 ? (int)(frameCount / elapsedTime) : 0;
+		stat.cpuTime = Timer::GetTimer("CPU_TIME") * 1000;
 
 		for (int n = 0; n < IM_ARRAYSIZE(stat.graphValues); n++)
 			stat.graphAverage += stat.graphValues[n];
