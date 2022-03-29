@@ -1,13 +1,8 @@
 #include <iostream>
 
 #include "GameInstance.hpp"
-#include "Global.hpp"
-#include "Light.hpp"
-#include "Camera.hpp"
 #include "DefaultAssets.hpp"
 #include "Resource.hpp"
-#include "RenderPipeline.hpp"
-#include "Input.hpp"
 #include "Scene.hpp"
 #include "VtEngine.hpp"
 
@@ -93,7 +88,7 @@ public:
 
 		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
-		auto cube1 = game->CreateActor("Cube1");
+		auto cube1 = game->CreateActor("Sphere");
 		{
 			auto mesh = Resource::LoadMesh("sphere.obj");
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
@@ -137,11 +132,18 @@ public:
 
 		game->AddActor(Scene::InfinitePlane(game));
 
-		auto cube = Scene::ColoredCube(game);
-		cube->transform->position = glm::vec3(-1.0f, 0.5, 2.0);
-		cube->transform->scale = glm::vec3(0.25f);
-		cube->transform->rotation = glm::vec3(60, 0, 60);
+		auto cube = Scene::ColoredCube(game, glm::vec3(0.0, 1.0, 0.0));
+		cube->Initialize(glm::vec3(-1.0f, 0.5, 2.0),
+			glm::vec3(0.25f),
+			glm::vec3(60, 0, 60));
 		game->AddActor(cube);
+
+		auto cube2 = Scene::ColoredCube(game, glm::vec3(1.0, 0.0 ,0.0));
+		game->AddActor(cube2);
+
+		auto cube3 = Scene::ColoredCube(game, glm::vec3(0.0, 0.0, 1.0));
+		cube3->Initialize(glm::vec3(2.0f, 1.0f, -2.0f));
+		game->AddActor(cube2);
 	}
 };
 

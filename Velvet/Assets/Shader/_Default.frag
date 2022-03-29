@@ -2,7 +2,9 @@
 
 struct Material {
 	sampler2D diffuse;
-    
+    bool useTexture;
+    vec3 tint;
+
     float specular;
 	float smoothness;
 };
@@ -105,7 +107,8 @@ void main()
 	vec3 norm = normalize(vs.normal);
 	vec3 viewDir = normalize(_CameraPos - vs.worldPos);
     
-    vec3 diffuseColor = vec3(texture(material.diffuse, vs.uv));
+//    vec3 diffuseColor = vec3(texture(material.diffuse, vs.uv));
+    vec3 diffuseColor = material.useTexture ? vec3(texture(material.diffuse, vs.uv)) : material.tint;
 	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, vs.worldPos, vs.lightSpaceFragPos, material, diffuseColor);
 	FragColor = vec4(GammaCorrection(lighting ), 1.0);
 }

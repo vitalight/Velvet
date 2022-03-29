@@ -9,16 +9,16 @@
 
 namespace Velvet
 {
-	MeshRenderer::MeshRenderer(shared_ptr<Mesh> mesh, shared_ptr<Material> material)
-		: m_mesh(mesh), m_material(material) 
-	{
-		name = __func__;
-	}
 
 	MeshRenderer::MeshRenderer(shared_ptr<Mesh> mesh, shared_ptr<Material> material, shared_ptr<Material> shadowMaterial)
 		: m_mesh(mesh), m_material(material), m_shadowMaterial(shadowMaterial)
 	{
 		name = __func__;
+	}
+
+	void MeshRenderer::SetMaterialProperty(const MaterialProperty& materialProperty)
+	{
+		m_materialProperty = materialProperty;
 	}
 
 	// Only support spot light for now
@@ -52,6 +52,12 @@ namespace Velvet
 		// material
 		m_material->SetFloat("material.specular", m_material->specular);
 		m_material->SetFloat("material.smoothness", m_material->smoothness);
+		m_material->SetBool("material.useTexture", true);// m_material->textures.size() > 1);
+
+		if (m_materialProperty.preRendering)
+		{
+			m_materialProperty.preRendering(m_material.get());
+		}
 
 		// camera param
 		m_material->SetVec3("_CameraPos", Global::camera->transform()->position);
@@ -63,10 +69,13 @@ namespace Velvet
 		}
 
 		// texture
-		for (int i = 0; i < m_material->textures.size(); i++)
+		int i = 0;
+		for (auto tex : m_material->textures)
 		{
 			glActiveTexture(GL_TEXTURE0 + i);
-			glBindTexture(GL_TEXTURE_2D, m_material->textures[i]);
+			glBindTexture(GL_TEXTURE_2D, tex.second);
+			m_material->SetInt(tex.first, i);
+			i++;
 		}
 
 		// matrices

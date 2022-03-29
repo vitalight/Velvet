@@ -12,15 +12,16 @@
 
 #include "Mesh.hpp"
 #include "Material.hpp"
+#include "MaterialProperty.hpp"
 
 namespace Velvet
 {
 	class MeshRenderer : public Component
 	{
 	public:
-		MeshRenderer(shared_ptr<Mesh> mesh, shared_ptr<Material> material);
+		MeshRenderer(shared_ptr<Mesh> mesh, shared_ptr<Material> material, shared_ptr<Material> shadowMaterial = nullptr);
 
-		MeshRenderer(shared_ptr<Mesh> mesh, shared_ptr<Material> material, shared_ptr<Material> shadowMaterial);
+		void SetMaterialProperty(const MaterialProperty& materialProperty);
 
 		void SetupLighting(shared_ptr<Material> m_material);
 
@@ -36,5 +37,6 @@ namespace Velvet
 		shared_ptr<Mesh> m_mesh;
 		shared_ptr<Material> m_material;
 		shared_ptr<Material> m_shadowMaterial;
+		MaterialProperty m_materialProperty;
 	};
 }

@@ -104,6 +104,7 @@
     <ClInclude Include="Input.hpp" />
     <ClInclude Include="Light.hpp" />
     <ClInclude Include="Material.hpp" />
+    <ClInclude Include="MaterialProperty.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="MeshRenderer.hpp" />
     <ClInclude Include="DefaultAssets.hpp" />

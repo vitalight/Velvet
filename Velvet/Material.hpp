@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <unordered_map>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -16,7 +17,7 @@ namespace Velvet
 	class Material
 	{
 	public:
-		vector<unsigned int> textures;
+		unordered_map<string, unsigned int> textures;
 
 		Material() {}
 
@@ -78,8 +79,7 @@ namespace Velvet
 		// ------------------------------------------------------------------------
 		void SetTexture(const std::string&name, unsigned int texture)
 		{
-			SetInt(name, (int)textures.size());
-			textures.push_back(texture);
+			textures[name] = texture;
 		}
 		// ------------------------------------------------------------------------
 		void SetBool(const std::string& name, bool value) const
