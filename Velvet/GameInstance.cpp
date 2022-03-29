@@ -137,8 +137,20 @@ void GameInstance::MainLoop()
 		float current = (float)glfwGetTime();
 		deltaTime = current - lastUpdateTime;
 		lastUpdateTime = current;
+		static float fixedUpdateTimer = 0;
+		fixedUpdateTimer += deltaTime;
 
+		// Updates
 		m_gui->OnUpdate();
+
+		if (fixedUpdateTimer > fixedDeltaTime)
+		{
+			fixedUpdateTimer = 0;
+			for (const auto& go : m_actors)
+			{
+				go->FixedUpdate();
+			}
+		}
 
 		//if (!pause)
 		{

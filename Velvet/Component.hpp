@@ -18,6 +18,8 @@ namespace Velvet
 
 		virtual void Update() { }
 
+		virtual void FixedUpdate() {}
+
 		virtual void OnDestroy() {}
 
 		string name = "Component";

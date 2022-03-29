@@ -27,6 +27,8 @@ namespace Velvet
 
 		void Update();
 
+		void FixedUpdate();
+
 		void OnDestroy();
 
 		void AddComponent(shared_ptr<Component> component);

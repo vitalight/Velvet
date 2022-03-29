@@ -171,9 +171,9 @@ public:
 				{
 					cube->transform->position.y = 0.07;
 				}
-				if (cube->transform->position.length() > 3)
+				if (glm::length(cube->transform->position) > 3)
 				{
-					cube->transform->position = cube->transform->position / (float)cube->transform->position.length() * 3.0f;
+					cube->transform->position = cube->transform->position / glm::length(cube->transform->position) * 3.0f;
 				}
 			}
 			});

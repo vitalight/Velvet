@@ -153,8 +153,9 @@ void GUI::ShowOptionWindow()
 	{
 		IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "LightPos", (float*)&(Global::lights[0]->transform()->position), -5, 5, "%.2f");
 		IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "LightRot", (float*)&(Global::lights[0]->transform()->rotation), -79, 79, "%.2f");
-		static float value = 0.0;
-		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Timestep", &value, 0, 1);
+
+		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Stiffness", &Global::Sim::stiffness, 0, 50);
+		IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "Gravity", (float*)&Global::Sim::gravity, -50, 50);
 	}
 
 	ImGui::End();

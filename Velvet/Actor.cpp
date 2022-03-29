@@ -42,4 +42,12 @@ namespace Velvet
 			c->Update();
 		}
 	}
+	
+	void Actor::FixedUpdate()
+	{
+		for (const auto& c : components)
+		{
+			c->FixedUpdate();
+		}
+	}
 }
