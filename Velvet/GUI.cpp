@@ -143,8 +143,8 @@ void GUI::ShowOptionWindow()
 	if (ImGui::CollapsingHeader("Global", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		static bool radio = false;
-		ImGui::Checkbox("Pause", &Global::game->pause);
-		ImGui::Checkbox("Draw Wireframe", &Global::game->renderWireframe);
+		ImGui::Checkbox("Pause (P)", &Global::game->pause);
+		ImGui::Checkbox("Draw Wireframe (L)", &Global::game->renderWireframe);
 		ImGui::Checkbox("Draw Points", &radio);
 		ImGui::Dummy(ImVec2(0.0f, 10.0f));
 	}

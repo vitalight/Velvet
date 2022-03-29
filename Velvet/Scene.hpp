@@ -41,6 +41,8 @@ namespace Velvet
 				glm::vec3(20, 30, 0));
 			auto lightComp = light->GetComponent<Light>();
 
+			PopulateDebug(game);
+
 			//game->postUpdate.push_back([light, lightComp, game]() {
 			//	//light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
 			//	light->transform->rotation = glm::vec3(10 * sin(game->elapsedTime) - 10, 0, 0);
@@ -130,6 +132,7 @@ namespace Velvet
 			auto mat = Resource::LoadMaterial("_InfinitePlane");
 			mat->Use();
 			mat->SetTexture("_ShadowTex", game->depthFrameBuffer());
+			mat->noWireframe = true;
 			// Plane: ax + by + cz + d = 0
 			mat->SetVec4("_Plane", glm::vec4(0, 1, 0, 0));
 

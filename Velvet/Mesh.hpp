@@ -43,8 +43,8 @@ namespace Velvet
 			Initialize(m_vertices, m_normals, m_texCoords, indices, attributeSizes);
 		}
 
-		Mesh(const vector<glm::vec3>& vertices, const vector<glm::vec3>& normals, const vector<glm::vec2>& texCoords, 
-			const vector<unsigned int>& indices = vector<unsigned int>())
+		Mesh(const vector<glm::vec3>& vertices, const vector<glm::vec3>& normals = vector<glm::vec3>(),
+			const vector<glm::vec2>& texCoords = vector<glm::vec2>(), const vector<unsigned int>& indices = vector<unsigned int>())
 		{
 			Initialize(vertices, normals, texCoords, indices);
 		}

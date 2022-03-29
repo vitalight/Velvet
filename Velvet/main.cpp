@@ -101,7 +101,6 @@ public:
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			cube2->AddComponent(renderer);
 			cube2->transform->position = glm::vec3(2.0f, 0.5, 1.0);
-			cube2->transform->scale = glm::vec3(0.5f);
 		}
 
 		auto cube3 = game->CreateActor("Cube3");
@@ -110,7 +109,7 @@ public:
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			cube3->AddComponent(renderer);
 			cube3->transform->position = glm::vec3(-1.0f, 0.5, 2.0);
-			cube3->transform->scale = glm::vec3(0.25f);
+			cube3->transform->scale = glm::vec3(0.5f);
 			cube3->transform->rotation = glm::vec3(60, 0, 60);
 		}
 
@@ -188,14 +187,16 @@ public:
 	void PopulateActors(GameInstance* game)  override
 	{
 		PopulateCameraAndLight(game);
+
 		game->AddActor(Scene::InfinitePlane(game));
-		auto cube = Scene::ColoredCube(game);
-		cube->transform->scale = glm::vec3(2);
+
+		//auto cube = Scene::ColoredCube(game);
+		//cube->transform->scale = glm::vec3(2);
 
 		PopulateCloth(game);
 	}
 
-	void PopulateCloth(GameInstance* game)
+	void PopulateCloth(GameInstance* game, int resolution = 5)
 	{
 		glm::vec3 color = glm::vec3(1, 0, 0);
 
@@ -214,8 +215,9 @@ public:
 
 		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
-		shared_ptr<Actor> plane(new Actor("Plane"));
+		if (0)
 		{
+			auto cloth = make_shared<Actor>("Cloth");
 			vector<float> planeVertices = {
 				// positions            // normals         // texcoords
 				 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
@@ -227,12 +229,51 @@ public:
 				 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
 			};
 			auto mesh = make_shared<Mesh>(vector<unsigned int>{ 3, 3, 2 }, planeVertices);
+			//auto mesh = Resource::LoadMesh("cylinder.obj");
 
-			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
-			plane->AddComponent(renderer);
-			plane->Initialize(glm::vec3(0, 3.0f, 0), glm::vec3(0.2));
+			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
+			cloth->AddComponent(renderer);
+			cloth->Initialize(glm::vec3(0, 3.0f, 0), glm::vec3(0.2));
+			game->AddActor(cloth);
 		}
-		game->AddActor(plane);
+
+		{
+			auto cloth = game->CreateActor("Cloth Generated");
+			vector<glm::vec3> vertices;
+			vector<glm::vec3> normals;
+			vector<unsigned int> indices;
+
+			for (int y = 0; y <= resolution; y++)
+			{
+				for (int x = 0; x <= resolution; x++)
+				{
+					vertices.push_back(glm::vec3((float)x / (float)resolution - 0.5f, (float)y / (float)resolution - 1.0f, 0));
+					normals.push_back(glm::vec3(0, 0, 1));
+				}
+			}
+
+			auto VertexIndexAt = [resolution](int x, int y) {
+				return x * (resolution+1) + y;
+			};
+
+			for (int x = 0; x < resolution; x++)
+			{
+				for (int y = 0; y < resolution; y++)
+				{
+					indices.push_back(VertexIndexAt(x, y));
+					indices.push_back(VertexIndexAt(x + 1, y));
+					indices.push_back(VertexIndexAt(x, y + 1));
+
+					indices.push_back(VertexIndexAt(x + 1, y));
+					indices.push_back(VertexIndexAt(x + 1, y + 1));
+					indices.push_back(VertexIndexAt(x, y + 1));
+				}
+			}
+			auto mesh = make_shared<Mesh>(vertices, normals, vector<glm::vec2>(), indices);
+			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
+			cloth->AddComponent(renderer);
+			cloth->Initialize(glm::vec3(0, 2.0f, 0), glm::vec3(1.0));
+		}
 	}
 };
 

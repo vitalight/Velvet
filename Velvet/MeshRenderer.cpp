@@ -46,6 +46,10 @@ namespace Velvet
 	{
 		if (hidden)
 			return;
+		if (m_material->noWireframe && Global::game->renderWireframe)
+		{
+			return;
+		}
 
 		m_material->Use();
 
@@ -112,6 +116,11 @@ namespace Velvet
 			return;
 		}
 
+		if (m_material->doubleSided)
+		{
+			glDisable(GL_CULL_FACE);
+		}
+
 		m_shadowMaterial->Use();
 
 		m_shadowMaterial->SetMat4("_Model", actor->transform->matrix());
@@ -125,6 +134,11 @@ namespace Velvet
 		else
 		{
 			glDrawArrays(GL_TRIANGLES, 0, m_mesh->drawCount());
+		}
+
+		if (m_material->doubleSided)
+		{
+			glEnable(GL_CULL_FACE);
 		}
 	}
 

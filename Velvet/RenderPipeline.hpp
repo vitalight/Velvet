@@ -71,7 +71,7 @@ namespace Velvet
 			// --------------------------------------------------------------
 			glm::mat4 lightProjection, lightView;
 			glm::mat4 lightSpaceMatrix;
-			float near_plane = 1.0f, far_plane = 11.0f;
+			float near_plane = 1.0f, far_plane = 20.0f;
 			auto light = Global::lights[0];
 			glm::vec3 lightPos = light->position();
 			if (light->type == LightType::SpotLight)
@@ -98,6 +98,7 @@ namespace Velvet
 			glViewport(0, 0, Config::shadowWidth, Config::shadowHeight);
 			glBindFramebuffer(GL_FRAMEBUFFER, depthFrameBuffer);
 			glClear(GL_DEPTH_BUFFER_BIT);
+
 			glCullFace(GL_FRONT);
 
 			auto lightSpaceMatrix = ComputeLightMatrix();
