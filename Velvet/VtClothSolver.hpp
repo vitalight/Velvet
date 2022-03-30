@@ -42,11 +42,6 @@ namespace Velvet
 
 		void FixedUpdate() override
 		{
-			if (Global::game->pause)
-			{
-				return;
-			}
-
 			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
 			{
 				ApplyExternalForces();

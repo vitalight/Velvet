@@ -68,6 +68,7 @@ namespace Velvet
 		const float fixedDeltaTime = 1.0f / 60.0f;
 
 		bool pause = false;
+		bool step = false;
 		bool renderWireframe = false;
 		bool pendingReset = false;
 		glm::vec4 skyColor = glm::vec4(0.0f);

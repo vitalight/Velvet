@@ -102,6 +102,11 @@ void GameInstance::ProcessKeyboard(GLFWwindow* m_window)
 	{
 		pause = !pause;
 	}
+	if (Global::input->GetKeyDown(GLFW_KEY_O))
+	{
+		step = true;
+		pause = false;
+	}
 	for (int i = 0; i < 9; i++)
 	{
 		if (Global::input->GetKeyDown(GLFW_KEY_1 + i))
@@ -155,6 +160,12 @@ void GameInstance::MainLoop()
 				for (const auto& go : m_actors)
 				{
 					go->FixedUpdate();
+				}
+
+				if (step)
+				{
+					pause = true;
+					step = false;
 				}
 			}
 
