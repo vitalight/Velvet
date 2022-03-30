@@ -287,7 +287,7 @@ public:
 			auto solver = make_shared<VtClothSolver>(resolution);
 			cloth->AddComponent(solver);
 
-			cloth->Initialize(glm::vec3(0, 2.0f, 0), glm::vec3(1.0));
+			cloth->Initialize(glm::vec3(0, 2.5f, 0), glm::vec3(1.0));
 		}
 	}
 };

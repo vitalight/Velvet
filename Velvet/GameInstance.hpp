@@ -65,7 +65,7 @@ namespace Velvet
 		float elapsedTime = 0.0f;
 		float lastUpdateTime = (float)glfwGetTime();
 		float deltaTime = 0.0f;
-		const float fixedDeltaTime = 0.02f;
+		const float fixedDeltaTime = 1.0f / 60.0f;
 
 		bool pause = false;
 		bool renderWireframe = false;

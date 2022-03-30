@@ -26,7 +26,7 @@ namespace Velvet
 			m_positions[READ] = m_mesh->vertices();
 			m_numVertices = m_positions[READ].size();
 			m_translation = actor->transform->position;
-			m_timeStep = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
+			//m_timeStep = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
 			m_indices = m_mesh->indices();
 			m_colliders = Global::game->FindComponents<Collider>();
 
@@ -66,7 +66,6 @@ namespace Velvet
 
 		int READ = 0, WRITE = 1;
 
-		float m_timeStep;
 		int m_numVertices;
 		int m_resolution;
 		glm::vec3 m_translation;
@@ -81,6 +80,11 @@ namespace Velvet
 
 		vector<tuple<int, int, float>> m_distanceConstraints; // idx1, idx2, distance
 		vector<tuple<int, glm::vec3>> m_attachmentConstriants;
+
+		float timeStep()
+		{
+			return Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
+		}
 
 		void GenerateDistConstraints()
 		{
@@ -142,7 +146,7 @@ namespace Velvet
 			for (int i = 0; i < m_numVertices; i++)
 			{
 				// gravity
-				m_velocities[i] += Global::Sim::gravity * m_timeStep;
+				m_velocities[i] += Global::Sim::gravity * timeStep();
 				// damp
 				//m_velocities[i] *= (1 - Global::Sim::damping * m_timeStep);
 			}
@@ -152,13 +156,14 @@ namespace Velvet
 		{
 			for (int i = 0; i < m_numVertices; i++)
 			{
-				m_predicted[i] = m_positions[READ][i] + m_velocities[i] * m_timeStep;
+				m_predicted[i] = m_positions[READ][i] + m_velocities[i] * timeStep();
 			}
 		}
 
 		void SolveConstraints()
 		{
 			// calculate force
+			float xpbd_alpha = Global::Sim::compliance / timeStep() / timeStep();
 			for (auto c : m_distanceConstraints)
 			{
 				auto idx1 = get<0>(c);
@@ -169,13 +174,14 @@ namespace Velvet
 				float distance = glm::length(diff);
 				auto w1 = m_inverseMass[idx1];
 				auto w2 = m_inverseMass[idx2];
-				auto denom = w1 + w2;
-				if (distance > expectedDistance && denom > 0)
+
+				if (distance > expectedDistance && w1 + w2 > 0)
 				{
-					auto direction = diff / distance;
-					auto repulsion = (distance - expectedDistance) * direction * Global::Sim::stiffness;
-					m_predicted[idx1] -= w1 / denom * repulsion;
-					m_predicted[idx2] += w2 / denom * repulsion;
+					auto gradient = diff / distance;
+					auto denom = w1 + w2 + xpbd_alpha;
+					auto lambda = (distance - expectedDistance) / denom;
+					m_predicted[idx1] -= w1 * lambda * gradient;
+					m_predicted[idx2] += w2 * lambda * gradient;
 				}
 			}
 
@@ -214,7 +220,7 @@ namespace Velvet
 			// apply force and update positions
 			for (int i = 0; i < m_numVertices; i++)
 			{
-				m_velocities[i] = (m_predicted[i] - m_positions[READ][i]) / m_timeStep;
+				m_velocities[i] = (m_predicted[i] - m_positions[READ][i]) / timeStep();
 				m_positions[WRITE][i] = m_predicted[i];
 			}
 		}
