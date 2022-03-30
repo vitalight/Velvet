@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.hpp" />
+    <ClInclude Include="Collider.hpp" />
     <ClInclude Include="Config.hpp" />
     <ClInclude Include="External\stb_image.h" />
     <ClInclude Include="Actor.hpp" />

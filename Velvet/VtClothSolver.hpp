@@ -5,6 +5,7 @@
 #include "MeshRenderer.hpp"
 #include "Global.hpp"
 #include "GameInstance.hpp"
+#include "Collider.hpp"
 
 namespace Velvet
 {
@@ -27,6 +28,7 @@ namespace Velvet
 			m_translation = actor->transform->position;
 			m_timeStep = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
 			m_indices = m_mesh->indices();
+			m_colliders = Global::game->FindComponents<Collider>();
 
 			m_positions[WRITE] = vector<glm::vec3>(m_numVertices);
 			m_velocities = vector<glm::vec3>(m_numVertices);
@@ -75,6 +77,7 @@ namespace Velvet
 		vector<glm::vec3> m_predicted;
 		vector<glm::vec3> m_velocities;
 		vector<float> m_inverseMass;
+		vector<Collider*> m_colliders;
 
 		vector<tuple<int, int, float>> m_distanceConstraints; // idx1, idx2, distance
 		vector<tuple<int, glm::vec3>> m_attachmentConstriants;
@@ -176,7 +179,7 @@ namespace Velvet
 				}
 			}
 
-			// ground constraint
+			// ground collision constraint
 			for (int i = 0; i < m_numVertices; i++)
 			{
 				if (m_predicted[i].y + m_translation.y < 0)
@@ -184,6 +187,17 @@ namespace Velvet
 					m_predicted[i].y = -m_translation.y + 1e-2;
 				}
 			}
+
+			// SDF collision
+			for (int i = 0; i < m_numVertices; i++)
+			{
+				for (auto col : m_colliders)
+				{
+					auto pos = m_predicted[i] + m_translation;
+					m_predicted[i] += col->ComputeSDF(pos);
+				}
+			}
+
 
 			// fixed position constraint
 			for (const auto& c : m_attachmentConstriants)

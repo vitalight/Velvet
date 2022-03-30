@@ -215,7 +215,14 @@ public:
 			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
 			renderer->SetMaterialProperty(materialProperty);
 			sphere->AddComponent(renderer);
-			sphere->Initialize(glm::vec3(0, 0.7, -0.2), glm::vec3(0.7));
+			auto collider = make_shared<Collider>();
+			sphere->AddComponent(collider);
+			float radius = 0.6;
+			sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
+
+			game->postUpdate.push_back([sphere, game, radius]() {
+				sphere->transform->position = glm::vec3(0, radius, cos(game->elapsedTime * 2));
+				});
 		}
 
 		PopulateCloth(game);
@@ -243,12 +250,13 @@ public:
 			vector<glm::vec3> vertices;
 			vector<glm::vec3> normals;
 			vector<unsigned int> indices;
+			const float clothSize = 2.0f;
 
 			for (int y = 0; y <= resolution; y++)
 			{
 				for (int x = 0; x <= resolution; x++)
 				{
-					vertices.push_back(glm::vec3((float)x / (float)resolution - 0.5f, -(float)y / (float)resolution - 1.0f, 0));
+					vertices.push_back(clothSize * glm::vec3((float)x / (float)resolution - 0.5f, -(float)y / (float)resolution, 0));
 					normals.push_back(glm::vec3(0, 0, 1));
 				}
 			}
@@ -279,7 +287,7 @@ public:
 			auto solver = make_shared<VtClothSolver>(resolution);
 			cloth->AddComponent(solver);
 
-			cloth->Initialize(glm::vec3(0, 3.0f, 0), glm::vec3(1.0));
+			cloth->Initialize(glm::vec3(0, 2.0f, 0), glm::vec3(1.0));
 		}
 	}
 };

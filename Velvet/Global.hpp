@@ -33,13 +33,16 @@ namespace Velvet
 
 			inline int numSubsteps = 2;
 			inline int numIterations = 4;
+			inline float collisionMargin = 0.1;
 
 			inline void OnGUI()
 			{
 				IMGUI_LEFT_LABEL(ImGui::SliderInt, "Num Substeps", &numSubsteps, 1, 10);
 				IMGUI_LEFT_LABEL(ImGui::SliderInt, "Num Iterations", &numIterations, 1, 20);
+				ImGui::Separator();
 				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Stiffness", &stiffness, 0, 50);
 				IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "Gravity", (float*)&gravity, -50, 50);
+				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Collision Margin", &collisionMargin, 0, 1);
 			}
 		}
 	}
