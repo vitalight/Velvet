@@ -89,10 +89,12 @@ int VtEngine::Run()
 		"©¸{0:\-^{2}}©¼\n", "", "Hello, Velvet!", 30);
 
 	do {
-		m_game = nullptr;
+		//m_game = nullptr;
 		m_game = make_shared<GameInstance>(m_window, m_gui);
 		scenes[sceneIndex]->PopulateActors(m_game.get());
 		m_game->Run();
+		Resource::ClearCache();
+		m_gui->ClearCallback();
 	} while (m_game->pendingReset);
 
 	return 0;

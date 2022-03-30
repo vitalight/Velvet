@@ -205,6 +205,5 @@ void GameInstance::Finalize()
 	{
 		go->OnDestroy();
 	}
-	Resource::ClearCache();
 }
 

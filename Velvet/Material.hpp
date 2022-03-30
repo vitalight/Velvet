@@ -157,8 +157,8 @@ namespace Velvet
 			glUniformMatrix4fv(GetLocation(name), 1, GL_FALSE, &mat[0][0]);
 		}
 
-		float specular = 0.3f;
-		float smoothness = 50.0f;
+		float specular = 0.2f;
+		float smoothness = 100.0f;
 		bool doubleSided = false;
 		bool noWireframe = false;
 	private:

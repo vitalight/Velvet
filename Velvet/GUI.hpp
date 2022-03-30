@@ -43,6 +43,8 @@ namespace Velvet
 
 		void ShutDown();
 
+		void ClearCallback();
+
 	private:
 
 		void CustomizeStyle();

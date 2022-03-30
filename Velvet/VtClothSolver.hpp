@@ -23,14 +23,13 @@ namespace Velvet
 			auto renderer = actor->GetComponent<MeshRenderer>();
 			m_mesh = renderer->mesh();
 
-			m_positions[READ] = m_mesh->vertices();
-			m_numVertices = m_positions[READ].size();
+			m_positions = m_mesh->vertices();
+			m_numVertices = m_positions.size();
 			m_translation = actor->transform->position;
 			//m_timeStep = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
 			m_indices = m_mesh->indices();
 			m_colliders = Global::game->FindComponents<Collider>();
 
-			m_positions[WRITE] = vector<glm::vec3>(m_numVertices);
 			m_velocities = vector<glm::vec3>(m_numVertices);
 			m_predicted = vector<glm::vec3>(m_numVertices);
 			m_inverseMass = vector<float>(m_numVertices, 1.0);
@@ -51,32 +50,13 @@ namespace Velvet
 					SolveConstraints();
 				}
 				UpdatePositionsAndVelocities();
-				WRITE = 1 - WRITE;
-				READ = 1 - READ;
 			}
-			auto normals = ComputeNormals(m_positions[WRITE]);
-			m_mesh->SetVerticesAndNormals(m_positions[WRITE], normals);
+			auto normals = ComputeNormals(m_positions);
+			m_mesh->SetVerticesAndNormals(m_positions, normals);
 		}
 	
 	private:
 
-		int READ = 0, WRITE = 1;
-
-		int m_numVertices;
-		int m_resolution;
-		glm::vec3 m_translation;
-		shared_ptr<Mesh> m_mesh;
-
-		vector<glm::vec3> m_positions[2];
-		vector<unsigned int> m_indices;
-		vector<glm::vec3> m_predicted;
-		vector<glm::vec3> m_velocities;
-		vector<float> m_inverseMass;
-		vector<Collider*> m_colliders;
-
-		vector<tuple<int, int, float>> m_stretchConstraints; // idx1, idx2, distance
-		vector<tuple<int, glm::vec3>> m_attachmentConstriants; // idx1, position
-		vector<tuple<int, int, int, int, float>> m_bendingConstraints; // idx1, idx2, idx3, idx4, angle
 
 		float timeStep()
 		{
@@ -90,12 +70,12 @@ namespace Velvet
 			};
 
 			auto DistanceBetween = [this](int idx1, int idx2) {
-				return glm::length(m_positions[READ][idx1] - m_positions[READ][idx2]);
+				return glm::length(m_positions[idx1] - m_positions[idx2]);
 			};
 
-			for (int x = 0; x < m_resolution+1; x++)
+			for (int x = 0; x < m_resolution + 1; x++)
 			{
-				for (int y = 0; y < m_resolution+1; y++)
+				for (int y = 0; y < m_resolution + 1; y++)
 				{
 					int idx1, idx2;
 
@@ -113,7 +93,7 @@ namespace Velvet
 						m_stretchConstraints.push_back(make_tuple(idx1, idx2, DistanceBetween(idx1, idx2)));
 					}
 
-					if (y != m_resolution && x!=m_resolution)
+					if (y != m_resolution && x != m_resolution)
 					{
 						idx1 = VertexAt(x, y);
 						idx2 = VertexAt(x + 1, y + 1);
@@ -126,14 +106,14 @@ namespace Velvet
 				}
 			}
 		}
-	
+
 		void GenerateAttachmentConstraints()
 		{
-			vector<int> indices =  { 0, m_resolution };
+			vector<int> indices = { 0, m_resolution };
 
 			for (auto i : indices)
 			{
-				m_attachmentConstriants.push_back({ i, m_positions[READ][i] });
+				m_attachmentConstriants.push_back({ i, m_positions[i] });
 				m_inverseMass[i] = 0;
 			}
 		}
@@ -169,7 +149,7 @@ namespace Velvet
 		{
 			for (int i = 0; i < m_numVertices; i++)
 			{
-				m_predicted[i] = m_positions[READ][i] + m_velocities[i] * timeStep();
+				m_predicted[i] = m_positions[i] + m_velocities[i] * timeStep();
 			}
 		}
 
@@ -221,7 +201,7 @@ namespace Velvet
 
 				glm::vec3 n1 = glm::normalize(glm::cross(p2, p3));
 				glm::vec3 n2 = glm::normalize(glm::cross(p2, p4));
-				
+
 				float d = clamp(glm::dot(n1, n2), 0.0f, 1.0f);
 				float angle = acos(d);
 				if (angle < epsilon) continue;
@@ -229,7 +209,7 @@ namespace Velvet
 				glm::vec3 q3 = (glm::cross(p2, n2) + glm::cross(n1, p2) * d) / (glm::length(glm::cross(p2, p3)) + epsilon);
 				glm::vec3 q4 = (glm::cross(p2, n1) + glm::cross(n2, p2) * d) / (glm::length(glm::cross(p2, p4)) + epsilon);
 				glm::vec3 q2 = -(glm::cross(p3, n2) + glm::cross(n1, p3) * d) / (glm::length(glm::cross(p2, p3)) + epsilon)
-						     - (glm::cross(p4, n1) + glm::cross(n2, p4) * d) / (glm::length(glm::cross(p2, p4)) + epsilon);
+					- (glm::cross(p4, n1) + glm::cross(n2, p4) * d) / (glm::length(glm::cross(p2, p4)) + epsilon);
 				glm::vec3 q1 = -q2 - q3 - q4;
 
 				float denom = xpbd_bend + (w1 * glm::dot(q1, q1) + w2 * glm::dot(q2, q2) + w3 * glm::dot(q3, q3) + w4 * glm::dot(q4, q4));
@@ -280,8 +260,8 @@ namespace Velvet
 			// apply force and update positions
 			for (int i = 0; i < m_numVertices; i++)
 			{
-				m_velocities[i] = (m_predicted[i] - m_positions[READ][i]) / timeStep();
-				m_positions[WRITE][i] = m_predicted[i];
+				m_velocities[i] = (m_predicted[i] - m_positions[i]) / timeStep();
+				m_positions[i] = m_predicted[i];
 			}
 		}
 
@@ -309,5 +289,24 @@ namespace Velvet
 			}
 			return normals;
 		}
+
+	private:
+
+		int m_numVertices;
+		int m_resolution;
+		glm::vec3 m_translation;
+		shared_ptr<Mesh> m_mesh;
+
+		vector<glm::vec3> m_positions;
+		vector<unsigned int> m_indices;
+		vector<glm::vec3> m_predicted;
+		vector<glm::vec3> m_velocities;
+		vector<float> m_inverseMass;
+		vector<Collider*> m_colliders;
+
+		vector<tuple<int, int, float>> m_stretchConstraints; // idx1, idx2, distance
+		vector<tuple<int, glm::vec3>> m_attachmentConstriants; // idx1, position
+		vector<tuple<int, int, int, int, float>> m_bendingConstraints; // idx1, idx2, idx3, idx4, angle
+
 	};
 }

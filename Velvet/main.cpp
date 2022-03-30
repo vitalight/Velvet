@@ -145,14 +145,13 @@ public:
 		{
 			MaterialProperty materialProperty;
 			materialProperty.preRendering = [](Material* mat) {
-				//mat->SetVec3("material.tint", glm::vec3(1.0));
-				mat->SetBool("material.useTexture", true);
+				mat->SetVec3("material.tint", glm::vec3(1.0));
+				mat->SetBool("material.useTexture", false);
 			};
 
 			auto material = Resource::LoadMaterial("_Default");
 			{
 				material->Use();
-				material->SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
 				material->SetTexture("_ShadowTex", game->depthFrameBuffer());
 			}
 			auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
@@ -167,7 +166,7 @@ public:
 			float radius = 0.6;
 			sphere->Initialize(glm::vec3(0, radius, -2), glm::vec3(radius));
 
-			game->postUpdate.push_back([sphere, game, radius]() {
+			game->postUpdate.push_back([sphere, game, radius, material]() {
 				sphere->transform->position = glm::vec3(0, radius, -cos(game->elapsedTime * 2));
 				});
 		}
@@ -187,8 +186,10 @@ public:
 		MaterialProperty materialProperty;
 		materialProperty.preRendering = [color](Material* mat) {
 			mat->SetVec3("material.tint", color);
-			mat->SetBool("material.useTexture", false);
+			mat->SetBool("material.useTexture", true);
+			mat->SetTexture("material.diffuse", Resource::LoadTexture("fabric.jpg"));
 		};
+
 
 		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
@@ -196,6 +197,7 @@ public:
 			auto cloth = game->CreateActor("Cloth Generated");
 			vector<glm::vec3> vertices;
 			vector<glm::vec3> normals;
+			vector<glm::vec2> uvs;
 			vector<unsigned int> indices;
 			const float clothSize = 2.0f;
 
@@ -205,6 +207,7 @@ public:
 				{
 					vertices.push_back(clothSize * glm::vec3((float)x / (float)resolution - 0.5f, -(float)y / (float)resolution, 0));
 					normals.push_back(glm::vec3(0, 0, 1));
+					uvs.push_back(glm::vec2((float)x / (float)resolution, (float)y / (float)resolution));
 				}
 			}
 
@@ -225,7 +228,7 @@ public:
 					indices.push_back(VertexIndexAt(x + 1, y + 1));
 				}
 			}
-			auto mesh = make_shared<Mesh>(vertices, normals, vector<glm::vec2>(), indices);
+			auto mesh = make_shared<Mesh>(vertices, normals, uvs, indices);
 
 			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
 			renderer->SetMaterialProperty(materialProperty);

@@ -75,6 +75,12 @@ void GUI::Render()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
+void GUI::ClearCallback()
+{
+	m_showDebugInfo.clear();
+	m_showDebugInfoOnce.clear();
+}
+
 void GUI::ShutDown()
 {
 	ImGui_ImplOpenGL3_Shutdown();
