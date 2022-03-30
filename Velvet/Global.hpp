@@ -43,7 +43,8 @@ namespace Velvet
 			inline int numSubsteps = 3;
 			inline int numIterations = 3;
 
-			inline float compliance = 0;
+			inline float stretchCompliance = 0;
+			inline float bendCompliance = 10.0;
 			inline glm::vec3 gravity = glm::vec3(0, -9.8, 0);
 			inline float damping = 0.1f;
 			inline float collisionMargin = 0.1;
@@ -53,9 +54,11 @@ namespace Velvet
 				IMGUI_LEFT_LABEL(ImGui::SliderInt, "Num Substeps", &numSubsteps, 1, 20);
 				IMGUI_LEFT_LABEL(ImGui::SliderInt, "Num Iterations", &numIterations, 1, 20);
 				ImGui::Separator();
-				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Compliance", &compliance, 0, 0.1, "%.3f", ImGuiSliderFlags_Logarithmic);
 				IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "Gravity", (float*)&gravity, -50, 50);
 				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Collision Margin", &collisionMargin, 0, 1);
+				ImGui::Separator();
+				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Stretch Compliance", &stretchCompliance, 0, 0.1, "%.3f", ImGuiSliderFlags_Logarithmic);
+				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Bend Compliance", &bendCompliance, 0, 100.0, "%.3f", ImGuiSliderFlags_Logarithmic);
 			}
 		}
 	}

@@ -11,59 +11,6 @@ using namespace Velvet;
 
 typedef shared_ptr<Scene> ScenePtr;
 
-class SceneRotatingLight : public Scene
-{
-public:
-	SceneRotatingLight() { name = "Basic / Rotating Light"; }
-
-	void PopulateActors(GameInstance* game) override
-	{
-		Scene::PopulateCameraAndLight(game);
-		game->skyColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
-
-		//=====================================
-		// 3. Objects
-		//=====================================
-		auto material = Resource::LoadMaterial("_Default");
-		{
-			material->Use();
-			material->SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
-			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
-			material->SetBool("material.useTexture", true);
-		}
-		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
-
-		shared_ptr<Actor> plane(new Actor("Plane"));
-		{
-			vector<float> planeVertices = {
-				// positions            // normals         // texcoords
-				 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-				-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-				-10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-
-				-10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-				 10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-				 10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
-			};
-			auto mesh = make_shared<Mesh>(vector<unsigned int>{ 3, 3, 2 }, planeVertices);
-
-			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
-			plane->AddComponent(renderer);
-			plane->transform->position = glm::vec3(0, -0.1f, 0);
-		}
-		game->AddActor(plane);
-
-		shared_ptr<Actor> cube(new Actor("Cube"));
-		{
-			auto mesh = Resource::LoadMesh("cube.obj");
-			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
-			cube->AddComponent(renderer);
-		}
-		game->AddActor(cube);
-
-	}
-};
-
 class ScenePremitiveRendering : public Scene
 {
 public:
@@ -273,9 +220,9 @@ public:
 					indices.push_back(VertexIndexAt(x + 1, y));
 					indices.push_back(VertexIndexAt(x, y + 1));
 
+					indices.push_back(VertexIndexAt(x, y + 1));
 					indices.push_back(VertexIndexAt(x + 1, y));
 					indices.push_back(VertexIndexAt(x + 1, y + 1));
-					indices.push_back(VertexIndexAt(x, y + 1));
 				}
 			}
 			auto mesh = make_shared<Mesh>(vertices, normals, vector<glm::vec2>(), indices);
@@ -308,7 +255,6 @@ int main()
 	vector<ScenePtr> scenes = {
 		ScenePtr(new SceneSimpleCloth()),
 		ScenePtr(new SceneColoredCubes()),
-		ScenePtr(new SceneRotatingLight()),
 		ScenePtr(new ScenePremitiveRendering()),
 	};
 	engine->SetScenes(scenes);
