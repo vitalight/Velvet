@@ -98,11 +98,18 @@ namespace Velvet
 			return m_positions;
 		}
 
-		void SetVertices(const vector<glm::vec3>& vertices)
+		const vector<unsigned int>& indices() const
 		{
+			return m_indices;
+		}
+
+		void SetVerticesAndNormals(const vector<glm::vec3>& vertices, const vector<glm::vec3>& normals)
+		{
+			auto size = vertices.size() * sizeof(glm::vec3);
 			m_positions = vertices;
 			glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-			glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(glm::vec3), vertices.data());
+			glBufferSubData(GL_ARRAY_BUFFER, 0, size, vertices.data());
+			glBufferSubData(GL_ARRAY_BUFFER, size, size, normals.data());
 		}
 
 	private:

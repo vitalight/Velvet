@@ -104,7 +104,7 @@ vec3 GammaCorrection(vec3 color)
 
 void main()
 {
-	vec3 norm = normalize(vs.normal);
+	vec3 norm = gl_FrontFacing ? normalize(vs.normal) : -normalize(vs.normal);
 	vec3 viewDir = normalize(_CameraPos - vs.worldPos);
     
 //    vec3 diffuseColor = vec3(texture(material.diffuse, vs.uv));

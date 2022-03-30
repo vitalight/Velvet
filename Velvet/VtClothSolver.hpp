@@ -25,7 +25,8 @@ namespace Velvet
 			m_positions[READ] = m_mesh->vertices();
 			m_numVertices = m_positions[READ].size();
 			m_translation = actor->transform->position;
-			m_timeStep = Global::game->fixedDeltaTime;
+			m_timeStep = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
+			m_indices = m_mesh->indices();
 
 			m_positions[WRITE] = vector<glm::vec3>(m_numVertices);
 			m_velocities = vector<glm::vec3>(m_numVertices);
@@ -41,10 +42,20 @@ namespace Velvet
 				return;
 			}
 
-			ApplyExternalForces();
-			EstimatePositions();
-			SolveConstraints();
-			UpdatePositionsAndVelocities();
+			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
+			{
+				ApplyExternalForces();
+				EstimatePositions();
+				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
+				{
+					SolveConstraints();
+				}
+				UpdatePositionsAndVelocities();
+				WRITE = 1 - WRITE;
+				READ = 1 - READ;
+			}
+			auto normals = ComputeNormals(m_positions[WRITE]);
+			m_mesh->SetVerticesAndNormals(m_positions[WRITE], normals);
 		}
 	
 	private:
@@ -56,6 +67,7 @@ namespace Velvet
 		glm::vec3 m_translation;
 		shared_ptr<Mesh> m_mesh;
 		vector<glm::vec3> m_positions[2];
+		vector<unsigned int> m_indices;
 		vector<glm::vec3> m_predicted;
 		vector<glm::vec3> m_velocities;
 		vector<tuple<int, int, float>> m_distanceConstraints; // idx1, idx2, distance
@@ -149,7 +161,7 @@ namespace Velvet
 			{
 				if (m_predicted[i].y + m_translation.y < 0)
 				{
-					m_predicted[i].y = -m_translation.y + 1e-5;
+					m_predicted[i].y = -m_translation.y + 1e-2;
 				}
 			}
 
@@ -167,10 +179,31 @@ namespace Velvet
 				m_velocities[i] = m_predicted[i] - m_positions[READ][i];
 				m_positions[WRITE][i] = m_predicted[i];
 			}
+		}
 
-			m_mesh->SetVertices(m_positions[WRITE]);
-			WRITE = 1 - WRITE;
-			READ = 1 - READ;
+		vector<glm::vec3> ComputeNormals(const vector<glm::vec3> positions)
+		{
+			vector<glm::vec3> normals(positions.size());
+			for (int i = 0; i < m_indices.size(); i += 3)
+			{
+				auto idx1 = m_indices[i];
+				auto idx2 = m_indices[i + 1];
+				auto idx3 = m_indices[i + 2];
+
+				auto p1 = positions[idx1];
+				auto p2 = positions[idx2];
+				auto p3 = positions[idx3];
+
+				auto normal = glm::cross(p2 - p1, p3 - p1);
+				normals[idx1] += normal;
+				normals[idx2] += normal;
+				normals[idx3] += normal;
+			}
+			for (int i = 0; i < normals.size(); i++)
+			{
+				normals[i] = glm::normalize(normals[i]);
+			}
+			return normals;
 		}
 	};
 }
