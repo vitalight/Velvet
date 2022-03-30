@@ -59,6 +59,7 @@ namespace Velvet
 		vector<function<void(double, double)>> onMouseScroll;
 		vector<function<void(double, double)>> onMouseMove;
 		vector<function<void()>> postUpdate;
+		vector<function<void()>> godUpdate; // update when main logic is paused (for debugging purpose)
 
 		int frameCount = 0;
 		float elapsedTime = 0.0f;

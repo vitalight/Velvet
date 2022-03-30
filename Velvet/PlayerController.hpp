@@ -26,9 +26,10 @@ namespace Velvet
 			//Global::graphics->onMouseScroll.push_back(OnMouseScroll);
 
 			Global::game->onMouseMove.push_back(OnMouseMove);
+			Global::game->godUpdate.push_back(GodUpdate);
 		}
 
-		void Update() override
+		static void GodUpdate()
 		{
 			const auto& camera = Global::camera;
 
@@ -57,11 +58,6 @@ namespace Velvet
 
 				currentSpeed = Helper::Lerp(currentSpeed, targetSpeed, Global::game->deltaTime * 10);
 				trans->position += currentSpeed * speedScalar * Global::game->deltaTime;
-
-				GUI::RegisterDebugOnce([trans]() {
-					ImGui::Text(fmt::format("CamPosition = {}", trans->position).c_str());
-					ImGui::Text(fmt::format("CamRotation = {}", trans->rotation).c_str());
-					});
 			}
 			else
 			{

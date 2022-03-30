@@ -137,6 +137,8 @@ void GameInstance::MainLoop()
 		// timing
 		float current = (float)glfwGetTime();
 		deltaTime = current - lastUpdateTime;
+		// avoid deltaTime being too large 
+		deltaTime = deltaTime > 0.2 ? 0.2 : deltaTime; 
 		lastUpdateTime = current;
 
 		// Updates
@@ -167,6 +169,11 @@ void GameInstance::MainLoop()
 			{
 				callback();
 			}
+		}
+
+		for (auto callback : godUpdate)
+		{
+			callback();
 		}
 
 		Timer::EndTimer("CPU_TIME");
