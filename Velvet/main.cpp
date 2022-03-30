@@ -27,9 +27,9 @@ public:
 		auto material = Resource::LoadMaterial("_Default");
 		{
 			material->Use();
-
-			material->SetTexture("material->diffuse", Resource::LoadTexture("wood.png"));
+			material->SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
 			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
+			material->SetBool("material.useTexture", true);
 		}
 		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
@@ -81,8 +81,9 @@ public:
 		{
 			material->Use();
 
-			material->SetTexture("material->diffuse", Resource::LoadTexture("wood.png"));
+			material->SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
 			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
+			material->SetBool("material.useTexture", true);
 		}
 
 		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
@@ -194,18 +195,39 @@ public:
 		//auto cube = Scene::ColoredCube(game);
 		//cube->transform->scale = glm::vec3(2);
 
+		{
+			MaterialProperty materialProperty;
+			materialProperty.preRendering = [](Material* mat) {
+				//mat->SetVec3("material.tint", glm::vec3(1.0));
+				mat->SetBool("material.useTexture", true);
+			};
+
+			auto material = Resource::LoadMaterial("_Default");
+			{
+				material->Use();
+				material->SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
+				material->SetTexture("_ShadowTex", game->depthFrameBuffer());
+			}
+			auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
+
+			auto sphere = game->CreateActor("Sphere");
+			auto mesh = Resource::LoadMesh("sphere.obj");
+			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
+			renderer->SetMaterialProperty(materialProperty);
+			sphere->AddComponent(renderer);
+			sphere->Initialize(glm::vec3(0, 0.7, -0.2), glm::vec3(0.7));
+		}
+
 		PopulateCloth(game);
 	}
 
 	void PopulateCloth(GameInstance* game, int resolution = 10)
 	{
-		glm::vec3 color = glm::vec3(1, 0, 0);
+		glm::vec3 color = glm::vec3(0.0f, 0.5f, 1.0f);
 
 		auto material = Resource::LoadMaterial("_Default");
 		material->Use();
 		material->SetTexture("_ShadowTex", game->depthFrameBuffer());
-		material->SetVec3("material.tint", color);
-		material->SetBool("material.useTexture", false);
 		material->doubleSided = true;
 
 		MaterialProperty materialProperty;

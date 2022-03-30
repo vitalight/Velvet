@@ -56,7 +56,7 @@ namespace Velvet
 		// material
 		m_material->SetFloat("material.specular", m_material->specular);
 		m_material->SetFloat("material.smoothness", m_material->smoothness);
-		m_material->SetBool("material.useTexture", true);// m_material->textures.size() > 1);
+		//m_material->SetBool("material.useTexture", true);// m_material->textures.size() > 1);
 
 		if (m_materialProperty.preRendering)
 		{

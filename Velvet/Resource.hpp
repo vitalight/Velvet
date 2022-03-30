@@ -187,6 +187,12 @@ namespace Velvet
 			return code;
 		}
 
+		static void ClearCache()
+		{
+			// only mat needs to be clear
+			matCache.clear();
+		}
+
 	private:
 		static inline glm::vec3 AdaptVector(const aiVector3D& input)
 		{

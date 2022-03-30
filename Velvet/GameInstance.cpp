@@ -11,6 +11,7 @@
 #include "GUI.hpp"
 #include "Timer.hpp"
 #include "VtEngine.hpp"
+#include "Resource.hpp"
 
 using namespace Velvet;
 
@@ -185,5 +186,6 @@ void GameInstance::Finalize()
 	{
 		go->OnDestroy();
 	}
+	Resource::ClearCache();
 }
 
