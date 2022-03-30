@@ -6,7 +6,6 @@
 
 #include "GameInstance.hpp"
 #include "Component.hpp"
-#include "Config.hpp"
 #include "Light.hpp"
 #include "Input.hpp"
 #include "GUI.hpp"
@@ -36,7 +35,7 @@ namespace Velvet
 			if (camera)
 			{
 				const auto& trans = camera->transform();
-				const float speedScalar = Config::cameraTranslateSpeed; // adjust accordingly
+				const float speedScalar = Global::Config::cameraTranslateSpeed; // adjust accordingly
 
 				static glm::vec3 currentSpeed(0);
 				glm::vec3 targetSpeed(0);
@@ -82,7 +81,7 @@ namespace Velvet
 
 		static void OnMouseMove(double xpos, double ypos)
 		{
-			static float lastX = Config::screenWidth / 2, lastY = Config::screenHeight / 2;
+			static float lastX = Global::Config::screenWidth / 2, lastY = Global::Config::screenHeight / 2;
 
 			bool shouldRotate = Global::input->GetMouse(GLFW_MOUSE_BUTTON_RIGHT);
 
@@ -93,8 +92,8 @@ namespace Velvet
 
 				float xoffset = (float)xpos - lastX;
 				float yoffset = lastY - (float)ypos;
-				xoffset *= Config::cameraRotateSensitivity;
-				yoffset *= Config::cameraRotateSensitivity;
+				xoffset *= Global::Config::cameraRotateSensitivity;
+				yoffset *= Global::Config::cameraRotateSensitivity;
 				yaw += xoffset;
 				pitch = clamp(pitch + yoffset, -89.0f, 89.0f);
 

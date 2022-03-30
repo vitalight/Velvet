@@ -5,7 +5,6 @@
 #include <fmt/color.h>
 
 #include "Scene.hpp"
-#include "Config.hpp"
 #include "GUI.hpp"
 #include "GameInstance.hpp"
 #include "Input.hpp"
@@ -28,7 +27,7 @@ VtEngine::VtEngine()
 	// Multi-sample Anti-aliasing
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
-	m_window = glfwCreateWindow(Config::screenWidth, Config::screenHeight, "Velvet", NULL, NULL);
+	m_window = glfwCreateWindow(Global::Config::screenWidth, Global::Config::screenHeight, "Velvet", NULL, NULL);
 
 	if (m_window == NULL)
 	{
@@ -58,7 +57,7 @@ VtEngine::VtEngine()
 		fmt::print("Failed to initialize GLAD\n");
 		return;
 	}
-	glViewport(0, 0, Config::screenWidth, Config::screenHeight);
+	glViewport(0, 0, Global::Config::screenWidth, Global::Config::screenHeight);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);

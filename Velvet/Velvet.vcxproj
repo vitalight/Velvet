@@ -96,7 +96,6 @@
   <ItemGroup>
     <ClInclude Include="Camera.hpp" />
     <ClInclude Include="Collider.hpp" />
-    <ClInclude Include="Config.hpp" />
     <ClInclude Include="External\stb_image.h" />
     <ClInclude Include="Actor.hpp" />
     <ClInclude Include="Component.hpp" />
@@ -120,8 +119,6 @@
     <ClInclude Include="Helper.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Shader\BlinnPhong.frag" />
-    <None Include="Assets\Shader\BlinnPhong.vert" />
     <None Include="Assets\Shader\_Default.frag" />
     <None Include="Assets\Shader\_Default.vert" />
     <None Include="Assets\Shader\_Light.frag" />

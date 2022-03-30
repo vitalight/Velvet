@@ -5,7 +5,6 @@
 #include "Camera.hpp"
 #include "Actor.hpp"
 #include "Light.hpp"
-#include "Config.hpp"
 
 namespace Velvet
 {

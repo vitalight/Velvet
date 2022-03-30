@@ -218,17 +218,17 @@ public:
 			auto collider = make_shared<Collider>();
 			sphere->AddComponent(collider);
 			float radius = 0.6;
-			sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
+			sphere->Initialize(glm::vec3(0, radius, -2), glm::vec3(radius));
 
 			game->postUpdate.push_back([sphere, game, radius]() {
-				sphere->transform->position = glm::vec3(0, radius, cos(game->elapsedTime * 2));
+				sphere->transform->position = glm::vec3(0, radius, -cos(game->elapsedTime * 2));
 				});
 		}
 
 		PopulateCloth(game);
 	}
 
-	void PopulateCloth(GameInstance* game, int resolution = 10)
+	void PopulateCloth(GameInstance* game, int resolution = 16)
 	{
 		glm::vec3 color = glm::vec3(0.0f, 0.5f, 1.0f);
 

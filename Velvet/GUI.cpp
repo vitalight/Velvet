@@ -193,7 +193,7 @@ void GUI::ShowStatWindow()
 			{
 				callback();
 			}
-			//if (!Global::game->pause)
+			if (!Global::game->pause)
 			{
 				m_showDebugInfoOnce.clear();
 			}

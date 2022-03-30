@@ -9,7 +9,6 @@
 #include "Component.hpp"
 #include "Global.hpp"
 #include "Actor.hpp"
-#include "Config.hpp"
 
 using namespace std;
 

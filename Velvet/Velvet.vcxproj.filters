@@ -66,12 +66,6 @@
     <ClInclude Include="Component.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
-    <ClInclude Include="Global.hpp">
-      <Filter>Graphics\Include</Filter>
-    </ClInclude>
-    <ClInclude Include="Config.hpp">
-      <Filter>Graphics\Include</Filter>
-    </ClInclude>
     <ClInclude Include="Input.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
@@ -124,6 +118,7 @@
     <ClInclude Include="Collider.hpp">
       <Filter>Physics</Filter>
     </ClInclude>
+    <ClInclude Include="Global.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shader\_Default.frag">
@@ -136,12 +131,6 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="Assets\Shader\_Light.vert">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Assets\Shader\BlinnPhong.frag">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Assets\Shader\BlinnPhong.vert">
       <Filter>Shader</Filter>
     </None>
     <None Include="Assets\Shader\_ShadowDepth.frag">

@@ -23,6 +23,19 @@ namespace Velvet
 
 		inline std::vector<Light*> lights;
 
+		namespace Config
+		{
+			// Controls how fast the camera moves
+			const float cameraTranslateSpeed = 5.0f;
+			const float cameraRotateSensitivity = 0.15f;
+
+			const unsigned int screenWidth = 1600;
+			const unsigned int screenHeight = 900;
+
+			const unsigned int shadowWidth = 1024;
+			const unsigned int shadowHeight = 1024;
+		}
+
 		namespace Sim
 		{
 			#define IMGUI_LEFT_LABEL(func, label, ...) (ImGui::TextUnformatted(label), ImGui::SameLine(), func("##" label, __VA_ARGS__))

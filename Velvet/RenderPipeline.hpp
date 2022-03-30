@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GameInstance.hpp"
-#include "Config.hpp"
 #include "Light.hpp"
 #include "MeshRenderer.hpp"
 
@@ -77,7 +76,7 @@ namespace Velvet
 			if (light->type == LightType::SpotLight)
 			{
 				// note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
-				lightProjection = glm::perspective(glm::radians(90.0f), (GLfloat)Config::shadowWidth / (GLfloat)Config::shadowHeight, 
+				lightProjection = glm::perspective(glm::radians(90.0f), (GLfloat)Global::Config::shadowWidth / (GLfloat)Global::Config::shadowHeight,
 					near_plane, far_plane);
 			}
 			else
@@ -95,7 +94,7 @@ namespace Velvet
 				return;
 
 			auto originalWindowSize = Global::game->windowSize();
-			glViewport(0, 0, Config::shadowWidth, Config::shadowHeight);
+			glViewport(0, 0, Global::Config::shadowWidth, Global::Config::shadowHeight);
 			glBindFramebuffer(GL_FRAMEBUFFER, depthFrameBuffer);
 			glClear(GL_DEPTH_BUFFER_BIT);
 
