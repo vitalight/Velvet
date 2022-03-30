@@ -31,8 +31,10 @@ namespace Velvet
 			m_positions[WRITE] = vector<glm::vec3>(m_numVertices);
 			m_velocities = vector<glm::vec3>(m_numVertices);
 			m_predicted = vector<glm::vec3>(m_numVertices);
+			m_inverseMass = vector<float>(m_numVertices, 1.0);
 
 			GenerateDistConstraints();
+			GenerateAttachmentConstraints();
 		}
 
 		void FixedUpdate() override
@@ -64,14 +66,18 @@ namespace Velvet
 
 		float m_timeStep;
 		int m_numVertices;
+		int m_resolution;
 		glm::vec3 m_translation;
 		shared_ptr<Mesh> m_mesh;
+
 		vector<glm::vec3> m_positions[2];
 		vector<unsigned int> m_indices;
 		vector<glm::vec3> m_predicted;
 		vector<glm::vec3> m_velocities;
+		vector<float> m_inverseMass;
+
 		vector<tuple<int, int, float>> m_distanceConstraints; // idx1, idx2, distance
-		int m_resolution;
+		vector<tuple<int, glm::vec3>> m_attachmentConstriants;
 
 		void GenerateDistConstraints()
 		{
@@ -117,6 +123,17 @@ namespace Velvet
 			}
 		}
 	
+		void GenerateAttachmentConstraints()
+		{
+			vector<int> indices =  { 0, m_resolution };
+
+			for (auto i : indices)
+			{
+				m_attachmentConstriants.push_back({ i, m_positions[READ][i] });
+				m_inverseMass[i] = 0;
+			}
+		}
+
 		void ApplyExternalForces()
 		{
 			for (int i = 0; i < m_numVertices; i++)
@@ -124,7 +141,7 @@ namespace Velvet
 				// gravity
 				m_velocities[i] += Global::Sim::gravity * m_timeStep;
 				// damp
-				m_velocities[i] *= (1 - Global::Sim::damping * m_timeStep);
+				//m_velocities[i] *= (1 - Global::Sim::damping * m_timeStep);
 			}
 		}
 
@@ -147,12 +164,15 @@ namespace Velvet
 
 				glm::vec3 diff = m_predicted[idx1] - m_predicted[idx2];
 				float distance = glm::length(diff);
-				if (distance > expectedDistance)
+				auto w1 = m_inverseMass[idx1];
+				auto w2 = m_inverseMass[idx2];
+				auto denom = w1 + w2;
+				if (distance > expectedDistance && denom > 0)
 				{
 					auto direction = diff / distance;
-					auto repulsion = 0.5f * (distance - expectedDistance) * direction * Global::Sim::stiffness;
-					m_predicted[idx1] -= repulsion;
-					m_predicted[idx2] += repulsion;
+					auto repulsion = (distance - expectedDistance) * direction * Global::Sim::stiffness;
+					m_predicted[idx1] -= w1 / denom * repulsion;
+					m_predicted[idx2] += w2 / denom * repulsion;
 				}
 			}
 
@@ -166,8 +186,12 @@ namespace Velvet
 			}
 
 			// fixed position constraint
-			m_predicted[0] = m_positions[READ][0];
-			m_predicted[m_resolution] = m_positions[READ][m_resolution];
+			for (const auto& c : m_attachmentConstriants)
+			{
+				int idx = get<0>(c);
+				glm::vec attachPos = get<1>(c);
+				m_predicted[idx] = attachPos;
+			}
 
 		}
 
@@ -176,7 +200,7 @@ namespace Velvet
 			// apply force and update positions
 			for (int i = 0; i < m_numVertices; i++)
 			{
-				m_velocities[i] = m_predicted[i] - m_positions[READ][i];
+				m_velocities[i] = (m_predicted[i] - m_positions[READ][i]) / m_timeStep;
 				m_positions[WRITE][i] = m_predicted[i];
 			}
 		}
