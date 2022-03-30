@@ -33,14 +33,14 @@ namespace Velvet
 				unsigned int baseN = (stride >= 6) ? baseV + 3 : baseV;
 				unsigned int baseT = baseN + 3;
 
-				m_vertices.push_back(glm::vec3(packedVertices[baseV + 0], packedVertices[baseV + 1], packedVertices[baseV + 2]));
+				m_positions.push_back(glm::vec3(packedVertices[baseV + 0], packedVertices[baseV + 1], packedVertices[baseV + 2]));
 				if (stride >= 6)
 				{
 					m_normals.push_back(glm::vec3(packedVertices[baseN + 0], packedVertices[baseN + 1], packedVertices[baseN + 2]));
 				}
 				m_texCoords.push_back(glm::vec2(packedVertices[baseT + 0], packedVertices[baseT + 1]));
 			}
-			Initialize(m_vertices, m_normals, m_texCoords, indices, attributeSizes);
+			Initialize(m_positions, m_normals, m_texCoords, indices, attributeSizes);
 		}
 
 		Mesh(const vector<glm::vec3>& vertices, const vector<glm::vec3>& normals = vector<glm::vec3>(),
@@ -89,24 +89,24 @@ namespace Velvet
 			}
 			else
 			{
-				return (unsigned int)m_vertices.size();
+				return (unsigned int)m_positions.size();
 			}
 		}
 
 		const vector<glm::vec3>& vertices() const
 		{
-			return m_vertices;
+			return m_positions;
 		}
 
 		void SetVertices(const vector<glm::vec3>& vertices)
 		{
-			m_vertices = vertices;
+			m_positions = vertices;
 			glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 			glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(glm::vec3), vertices.data());
 		}
 
 	private:
-		vector<glm::vec3> m_vertices;
+		vector<glm::vec3> m_positions;
 		vector<glm::vec3> m_normals;
 		vector<glm::vec2> m_texCoords;
 		vector<unsigned int> m_indices;
@@ -118,7 +118,7 @@ namespace Velvet
 		void Initialize(const vector<glm::vec3>& vertices, const vector<glm::vec3>& normals, const vector<glm::vec2>& texCoords,
 			const vector<unsigned int>& indices, vector<unsigned int> attributeSizes = {})
 		{
-			m_vertices = vertices;
+			m_positions = vertices;
 			m_normals = normals;
 			m_texCoords = texCoords;
 			m_indices = indices;
@@ -171,7 +171,7 @@ namespace Velvet
 				//fmt::print("glVertexAttribPointer({}, {}, GL_FLOAT, GL_FALSE, size * sizeof(float), {}\n",
 				//	i, size, current);
 				glEnableVertexAttribArray(i);
-				current += size * sizeof(float) * m_vertices.size();
+				current += size * sizeof(float) * m_positions.size();
 			}
 		}
 	};

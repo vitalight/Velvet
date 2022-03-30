@@ -197,7 +197,7 @@ public:
 		PopulateCloth(game);
 	}
 
-	void PopulateCloth(GameInstance* game, int resolution = 3)
+	void PopulateCloth(GameInstance* game, int resolution = 10)
 	{
 		glm::vec3 color = glm::vec3(1, 0, 0);
 

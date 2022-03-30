@@ -22,8 +22,9 @@ namespace Velvet
 
 		namespace Sim
 		{
-			inline float stiffness = 15.0f;
-			inline glm::vec3 gravity = glm::vec3(0, -1, 0);
+			inline float stiffness = 1.0f;
+			inline glm::vec3 gravity = glm::vec3(0, -9.8, 0);
+			inline float damping = 0.1f;
 		}
 	}
 }
