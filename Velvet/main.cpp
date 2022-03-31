@@ -18,7 +18,7 @@ public:
 
 	void PopulateActors(GameInstance* game) override
 	{
-		Scene::PopulateCameraAndLight(game);
+		Scene::SpawnCameraAndLight(game);
 
 		//=====================================
 		// 3. Objects
@@ -62,7 +62,7 @@ public:
 			cube3->transform->rotation = glm::vec3(60, 0, 60);
 		}
 
-		game->AddActor(Scene::InfinitePlane(game));
+		SpawnInfinitePlane(game);
 	}
 };
 
@@ -73,14 +73,14 @@ public:
 
 	void PopulateActors(GameInstance* game)  override
 	{
-		Scene::PopulateCameraAndLight(game);
+		Scene::SpawnCameraAndLight(game);
 
-		game->AddActor(Scene::InfinitePlane(game));
+		Scene::SpawnInfinitePlane(game);
+
 		{
-			auto whiteCube = Scene::ColoredCube(game, glm::vec3(1.0, 1.0, 1.0));
+			auto whiteCube = SpawnColoredCube(game, glm::vec3(1.0, 1.0, 1.0));
 			whiteCube->Initialize(glm::vec3(0, 0.25, 0),
 				glm::vec3(2, 0.5f, 2));
-			game->AddActor(whiteCube);
 		}
 
 		vector<glm::vec3> colors = {
@@ -98,10 +98,9 @@ public:
 		for (int i = 0; i < 50; i++)
 		{
 			glm::vec3 color = colors[Helper::Random(0, colors.size())];
-			auto cube = Scene::ColoredCube(game, color);
+			auto cube = SpawnColoredCube(game, color);
 			cube->Initialize(glm::vec3(Helper::Random(-3.0f, 3.0f), Helper::Random(0.3f, 0.5f), Helper::Random(-3.0f, 3.0f)), 
 				glm::vec3(0.3));
-			game->AddActor(cube);
 			cubes.push_back(cube);
 			velocities.push_back(glm::vec3(0.0));
 		}
@@ -135,11 +134,11 @@ public:
 
 	void PopulateActors(GameInstance* game)  override
 	{
-		PopulateCameraAndLight(game);
+		SpawnCameraAndLight(game);
 
-		game->AddActor(Scene::InfinitePlane(game));
+		SpawnInfinitePlane(game);
 
-		auto sphere = PopulateSphere(game);
+		auto sphere = SpawnSphere(game);
 		float radius = 0.6;
 		sphere->Initialize(glm::vec3(0, radius, -1), glm::vec3(radius));
 		game->postUpdate.push_back([sphere, game, radius]() {
@@ -149,7 +148,7 @@ public:
 			});
 
 		int clothResolution = 16;
-		auto cloth = PopulateCloth(game, clothResolution);
+		auto cloth = SpawnCloth(game, clothResolution);
 		cloth->Initialize(glm::vec3(0, 2.5f, 0), glm::vec3(1.0));
 		cloth->GetComponent<VtClothSolver>()->SetAttachedIndices({ 0, clothResolution });
 	}
@@ -162,11 +161,11 @@ public:
 
 	void PopulateActors(GameInstance* game)  override
 	{
-		PopulateCameraAndLight(game);
+		SpawnCameraAndLight(game);
 
-		game->AddActor(Scene::InfinitePlane(game));
+		SpawnInfinitePlane(game);
 
-		auto sphere = PopulateSphere(game);
+		auto sphere = SpawnSphere(game);
 		float radius = 0.6;
 		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
 		game->postUpdate.push_back([sphere, game, radius]() {
@@ -176,7 +175,7 @@ public:
 			});
 
 		int clothResolution = 16;
-		auto cloth = PopulateCloth(game, clothResolution);
+		auto cloth = SpawnCloth(game, clothResolution);
 		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
 		//cloth->GetComponent<VtClothSolver>()->SetAttachedIndices({ 0, clothResolution });
 	}

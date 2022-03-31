@@ -382,7 +382,6 @@ namespace Velvet
 			float distanceToView = 0;
 			for (int i = 0; i < m_positions.size(); i++)
 			{
-				// TODO: translation
 				const auto& position = m_positions[i];
 				float distanceToRay = glm::length(glm::cross(ray.direction, position - ray.origin));
 				if (distanceToRay < minDistanceToRay)

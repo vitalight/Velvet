@@ -23,12 +23,12 @@ namespace Velvet
 		virtual void PopulateActors(GameInstance* game) = 0;
 
 	protected:
-		void PopulateCameraAndLight(GameInstance* game)
+		void SpawnCameraAndLight(GameInstance* game)
 		{
 			//=====================================
 			// 1. Camera
 			//=====================================
-			auto camera = game->AddActor(PrefabCamera());
+			auto camera = SpawnCamera(game);
 			camera->Initialize(glm::vec3(0.35, 3.3, 7.2),
 				glm::vec3(1),
 				glm::vec3(-21, 2.25, 0));
@@ -37,13 +37,13 @@ namespace Velvet
 			// 2. Light
 			//=====================================
 
-			auto light = game->AddActor(PrefabLight());
+			auto light = SpawnLight(game);
 			light->Initialize(glm::vec3(2.5f, 5.0f, 2.5f), 
 				glm::vec3(0.2f),
 				glm::vec3(20, 30, 0));
 			auto lightComp = light->GetComponent<Light>();
 
-			PopulateDebug(game);
+			SpawnDebug(game);
 
 			//game->postUpdate.push_back([light, lightComp, game]() {
 			//	//light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
@@ -68,7 +68,7 @@ namespace Velvet
 			//	});
 		}
 	
-		void PopulateDebug(GameInstance* game)
+		void SpawnDebug(GameInstance* game)
 		{
 			auto quad = game->CreateActor("Debug Quad");
 			{
@@ -104,8 +104,10 @@ namespace Velvet
 			}
 		}
 	
-		shared_ptr<Actor> PopulateCloth(GameInstance* game, int resolution = 16)
+		shared_ptr<Actor> SpawnCloth(GameInstance* game, int resolution = 16)
 		{
+			auto cloth = game->CreateActor("Cloth Generated");
+
 			auto material = Resource::LoadMaterial("_Default");
 			material->Use();
 			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
@@ -121,7 +123,6 @@ namespace Velvet
 
 			auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
-			auto cloth = game->CreateActor("Cloth Generated");
 			{
 				vector<glm::vec3> vertices;
 				vector<glm::vec3> normals;
@@ -168,8 +169,9 @@ namespace Velvet
 			return cloth;
 		}
 
-		shared_ptr<Actor> PopulateSphere(GameInstance* game)
+		shared_ptr<Actor> SpawnSphere(GameInstance* game)
 		{
+			auto sphere = game->CreateActor("Sphere");
 			MaterialProperty materialProperty;
 			materialProperty.preRendering = [](Material* mat) {
 				mat->SetVec3("material.tint", glm::vec3(1.0));
@@ -183,7 +185,6 @@ namespace Velvet
 			}
 			auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
-			auto sphere = game->CreateActor("Sphere");
 			auto mesh = Resource::LoadMesh("sphere.obj");
 			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
 			renderer->SetMaterialProperty(materialProperty);
@@ -193,23 +194,22 @@ namespace Velvet
 			return sphere;
 		}
 
-		// TODO: add by default
-		shared_ptr<Actor> PrefabLight()
+		shared_ptr<Actor> SpawnLight(GameInstance* game)
 		{
+			auto actor = game->CreateActor("Prefab Light");
 			auto mesh = Resource::LoadMesh("cylinder.obj");
 			auto material = Resource::LoadMaterial("Assets/Shader/_Light");
 			auto renderer = make_shared<MeshRenderer>(mesh, material);
 			auto light = make_shared<Light>();
-			auto actor = make_shared<Actor>("Prefab Light");
 
 			actor->AddComponent(renderer);
 			actor->AddComponent(light);
 			return actor;
 		}
 
-		shared_ptr<Actor> PrefabCamera()
+		shared_ptr<Actor> SpawnCamera(GameInstance* game)
 		{
-			auto actor = make_shared<Actor>("Prefab Camera");
+			auto actor = game->CreateActor("Prefab Camera");
 			auto camera = make_shared<Camera>();
 			auto controller = make_shared<PlayerController>();
 			actor->AddComponent(camera);
@@ -217,9 +217,9 @@ namespace Velvet
 			return actor;
 		}
 
-		shared_ptr<Actor> InfinitePlane(GameInstance* game)
+		shared_ptr<Actor> SpawnInfinitePlane(GameInstance* game)
 		{
-			auto infPlane = make_shared<Actor>("Infinite Plane");
+			auto infPlane = game->CreateActor("Infinite Plane");
 
 			auto mat = Resource::LoadMaterial("_InfinitePlane");
 			mat->Use();
@@ -238,8 +238,9 @@ namespace Velvet
 			return infPlane;
 		}
 	
-		shared_ptr<Actor> ColoredCube(GameInstance* game, glm::vec3 color = glm::vec3(1.0f))
+		shared_ptr<Actor> SpawnColoredCube(GameInstance* game, glm::vec3 color = glm::vec3(1.0f))
 		{
+			auto cube = game->CreateActor("Cube");
 			auto material = Resource::LoadMaterial("_Default");
 			material->Use();
 			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
@@ -255,7 +256,6 @@ namespace Velvet
 			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
 			renderer->SetMaterialProperty(materialProperty);
 
-			auto cube = game->CreateActor("Cube");
 			cube->AddComponent(renderer);
 			return cube;
 		}
