@@ -45,14 +45,14 @@ namespace Velvet
 			m_mesh = renderer->mesh();
 
 			m_positions = m_mesh->vertices();
+			m_numVertices = m_positions.size();
 			glm::mat4 modelMatrix = actor->transform->matrix();
-			for (int i = 0; i < m_positions.size(); i++)
+			for (int i = 0; i < m_numVertices; i++)
 			{
 				m_positions[i] = modelMatrix * glm::vec4(m_positions[i], 1.0f);
 			}
 			actor->transform->Reset();
 
-			m_numVertices = m_positions.size();
 			m_indices = m_mesh->indices();
 			m_colliders = Global::game->FindComponents<Collider>();
 
@@ -60,9 +60,11 @@ namespace Velvet
 			m_predicted = vector<glm::vec3>(m_numVertices);
 			m_inverseMass = vector<float>(m_numVertices, 1.0);
 
-			GenerateStretchConstraints();
-			GenerateAttachmentConstraints(m_attachedIndices);
-			GenerateBendingConstraints();
+			m_particleDiameter = glm::length(m_positions[0] - m_positions[m_resolution + 1]);
+
+			GenerateStretch();
+			GenerateAttachment(m_attachedIndices);
+			GenerateBending();
 		}
 
 		void Update() override
@@ -76,24 +78,29 @@ namespace Velvet
 			{
 				ApplyExternalForces();
 				EstimatePositions();
+				GenerateSelfCollision();
 				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
 				{
-					SolveConstraints();
+					SolveStretch();
+					SolveBending();
+					SolveGroundCollision();
+					//SolveSelfCollision();
+					SolveParticleCollision();
+					SolveSDFCollision();
+
+					// always final constraint
+					SolveAttachment();
 				}
 				UpdatePositionsAndVelocities();
 			}
+
 			auto normals = ComputeNormals(m_positions);
 			m_mesh->SetVerticesAndNormals(m_positions, normals);
 		}
 	
-	private:
+	private: // Generate constraints
 
-		float timeStep()
-		{
-			return Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
-		}
-
-		void GenerateStretchConstraints()
+		void GenerateStretch()
 		{
 			auto VertexAt = [this](int x, int y) {
 				return x * (m_resolution + 1) + y;
@@ -137,7 +144,7 @@ namespace Velvet
 			}
 		}
 
-		void GenerateAttachmentConstraints(vector<int> indices)
+		void GenerateAttachment(vector<int> indices)
 		{
 			for (auto i : indices)
 			{
@@ -146,7 +153,7 @@ namespace Velvet
 			}
 		}
 
-		void GenerateBendingConstraints()
+		void GenerateBending()
 		{
 			// HACK: not for every kind of mesh
 			for (int i = 0; i < m_indices.size(); i += 6)
@@ -161,6 +168,13 @@ namespace Velvet
 				m_bendingConstraints.push_back(make_tuple(idx1, idx2, idx3, idx4, angle));
 			}
 		}
+
+		void GenerateSelfCollision()
+		{
+
+		}
+
+	private: // Core physics
 
 		void ApplyExternalForces()
 		{
@@ -181,10 +195,9 @@ namespace Velvet
 			}
 		}
 
-		void SolveConstraints()
+		void SolveStretch()
 		{
 			float xpbd_stretch = Global::Sim::stretchCompliance / timeStep() / timeStep();
-			float epsilon = 1e-6;
 
 			for (auto c : m_stretchConstraints)
 			{
@@ -197,7 +210,7 @@ namespace Velvet
 				auto w1 = m_inverseMass[idx1];
 				auto w2 = m_inverseMass[idx2];
 
-				if (distance > expectedDistance && w1 + w2 > 0)
+				if (w1 + w2 > 0)
 				{
 					auto gradient = diff / distance;
 					auto denom = w1 + w2 + xpbd_stretch;
@@ -206,7 +219,11 @@ namespace Velvet
 					m_predicted[idx2] += w2 * lambda * gradient;
 				}
 			}
+		}
 
+		void SolveBending()
+		{
+			const float epsilon = 1e-6;
 			float xpbd_bend = Global::Sim::bendCompliance / timeStep() / timeStep();
 			for (auto c : m_bendingConstraints)
 			{
@@ -254,16 +271,21 @@ namespace Velvet
 				m_predicted[idx3] += w3 * lambda * q3;
 				m_predicted[idx4] += w4 * lambda * q4;
 			}
+		}
 
-			// ground collision constraint
+		void SolveGroundCollision()
+		{
 			for (int i = 0; i < m_numVertices; i++)
 			{
-				if (m_predicted[i].y  < 0)
+				if (m_predicted[i].y < 1e-2)
 				{
 					m_predicted[i].y = 1e-2;
 				}
 			}
+		}
 
+		void SolveSDFCollision()
+		{
 			// SDF collision
 			for (int i = 0; i < m_numVertices; i++)
 			{
@@ -273,7 +295,10 @@ namespace Velvet
 					m_predicted[i] += col->ComputeSDF(pos);
 				}
 			}
+		}
 
+		void SolveAttachment()
+		{
 			for (const auto& c : m_attachmentConstriants)
 			{
 				int idx = get<0>(c);
@@ -281,7 +306,48 @@ namespace Velvet
 				float mass = m_inverseMass[idx];
 				m_predicted[idx] = attachPos;
 			}
+		}
 
+		void SolveSelfCollision()
+		{
+			for (const auto& c : m_selfCollisionConstraints)
+			{
+				auto [idx1, idx2, idx3, idx4] = c;
+				auto q = m_predicted[idx1];
+				auto p1 = m_predicted[idx2];
+				auto p2 = m_predicted[idx3];
+				auto p3 = m_predicted[idx4];
+
+				float constraint = glm::dot(q - p1, glm::normalize(glm::cross(p2 - p1, p3 - p1))) - Global::Sim::collisionMargin;
+			}
+		}
+
+		void SolveParticleCollision()
+		{
+			for (int i = 0; i < m_numVertices; i++)
+			{
+				for (int j = i + 1; j < m_numVertices; j++)
+				{
+					auto idx1 = i;
+					auto idx2 = j;
+					auto expectedDistance = m_particleDiameter;
+
+					glm::vec3 diff = m_predicted[idx1] - m_predicted[idx2];
+					float distance = glm::length(diff);
+					auto w1 = m_inverseMass[idx1];
+					auto w2 = m_inverseMass[idx2];
+
+					if (distance < expectedDistance && w1 + w2 > 0)
+					{
+						auto gradient = diff / distance;
+						auto denom = w1 + w2;
+						auto lambda = (distance - expectedDistance) / denom;
+						auto common = lambda * gradient;
+						m_predicted[idx1] -= w1 * common;
+						m_predicted[idx2] += w2 * common;
+					}
+				}
+			}
 		}
 
 		void UpdatePositionsAndVelocities()
@@ -294,7 +360,13 @@ namespace Velvet
 			}
 		}
 
-		// local space?
+	private: // Utility functions
+		
+		float timeStep()
+		{
+			return Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
+		}
+
 		vector<glm::vec3> ComputeNormals(const vector<glm::vec3> positions)
 		{
 			vector<glm::vec3> normals(positions.size());
@@ -380,7 +452,7 @@ namespace Velvet
 			int result = -1;
 			float minDistanceToRay = FLT_MAX;
 			float distanceToView = 0;
-			for (int i = 0; i < m_positions.size(); i++)
+			for (int i = 0; i < m_numVertices; i++)
 			{
 				const auto& position = m_positions[i];
 				float distanceToRay = glm::length(glm::cross(ray.direction, position - ray.origin));
@@ -398,6 +470,7 @@ namespace Velvet
 
 		int m_numVertices;
 		int m_resolution;
+		float m_particleDiameter;
 		vector<int> m_attachedIndices;
 		shared_ptr<Mesh> m_mesh;
 
@@ -411,6 +484,6 @@ namespace Velvet
 		vector<tuple<int, int, float>> m_stretchConstraints; // idx1, idx2, distance
 		vector<tuple<int, glm::vec3>> m_attachmentConstriants; // idx1, position
 		vector<tuple<int, int, int, int, float>> m_bendingConstraints; // idx1, idx2, idx3, idx4, angle
-
+		vector<tuple<int, int, int, int>> m_selfCollisionConstraints; // idx1, triangle(idx2, idx3, idx4)
 	};
 }
