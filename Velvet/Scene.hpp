@@ -10,6 +10,8 @@
 #include "PlayerController.hpp"
 #include "MeshRenderer.hpp"
 #include "MaterialProperty.hpp"
+#include "Collider.hpp"
+#include "VtClothSolver.hpp"
 
 namespace Velvet
 {
@@ -102,6 +104,96 @@ namespace Velvet
 			}
 		}
 	
+		shared_ptr<Actor> PopulateCloth(GameInstance* game, int resolution = 16)
+		{
+			auto material = Resource::LoadMaterial("_Default");
+			material->Use();
+			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
+			material->doubleSided = true;
+
+			MaterialProperty materialProperty;
+			materialProperty.preRendering = [](Material* mat) {
+				mat->SetVec3("material.tint", glm::vec3(0.0f, 0.5f, 1.0f));
+				mat->SetBool("material.useTexture", true);
+				mat->SetTexture("material.diffuse", Resource::LoadTexture("fabric.jpg"));
+				mat->specular = 0.01f;
+			};
+
+			auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
+
+			auto cloth = game->CreateActor("Cloth Generated");
+			{
+				vector<glm::vec3> vertices;
+				vector<glm::vec3> normals;
+				vector<glm::vec2> uvs;
+				vector<unsigned int> indices;
+				const float clothSize = 2.0f;
+
+				for (int y = 0; y <= resolution; y++)
+				{
+					for (int x = 0; x <= resolution; x++)
+					{
+						vertices.push_back(clothSize * glm::vec3((float)x / (float)resolution - 0.5f, -(float)y / (float)resolution, 0));
+						normals.push_back(glm::vec3(0, 0, 1));
+						uvs.push_back(glm::vec2((float)x / (float)resolution, (float)y / (float)resolution));
+					}
+				}
+
+				auto VertexIndexAt = [resolution](int x, int y) {
+					return x * (resolution + 1) + y;
+				};
+
+				for (int x = 0; x < resolution; x++)
+				{
+					for (int y = 0; y < resolution; y++)
+					{
+						indices.push_back(VertexIndexAt(x, y));
+						indices.push_back(VertexIndexAt(x + 1, y));
+						indices.push_back(VertexIndexAt(x, y + 1));
+
+						indices.push_back(VertexIndexAt(x, y + 1));
+						indices.push_back(VertexIndexAt(x + 1, y));
+						indices.push_back(VertexIndexAt(x + 1, y + 1));
+					}
+				}
+				auto mesh = make_shared<Mesh>(vertices, normals, uvs, indices);
+
+				auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
+				renderer->SetMaterialProperty(materialProperty);
+				cloth->AddComponent(renderer);
+
+				auto solver = make_shared<VtClothSolver>(resolution);
+				cloth->AddComponent(solver);
+			}
+			return cloth;
+		}
+
+		shared_ptr<Actor> PopulateSphere(GameInstance* game)
+		{
+			MaterialProperty materialProperty;
+			materialProperty.preRendering = [](Material* mat) {
+				mat->SetVec3("material.tint", glm::vec3(1.0));
+				mat->SetBool("material.useTexture", false);
+			};
+
+			auto material = Resource::LoadMaterial("_Default");
+			{
+				material->Use();
+				material->SetTexture("_ShadowTex", game->depthFrameBuffer());
+			}
+			auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
+
+			auto sphere = game->CreateActor("Sphere");
+			auto mesh = Resource::LoadMesh("sphere.obj");
+			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
+			renderer->SetMaterialProperty(materialProperty);
+			sphere->AddComponent(renderer);
+			auto collider = make_shared<Collider>();
+			sphere->AddComponent(collider);
+			return sphere;
+		}
+
+		// TODO: add by default
 		shared_ptr<Actor> PrefabLight()
 		{
 			auto mesh = Resource::LoadMesh("cylinder.obj");

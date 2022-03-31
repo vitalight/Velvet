@@ -110,6 +110,7 @@ void GameInstance::ProcessKeyboard(GLFWwindow* m_window)
 	}
 	for (int i = 0; i < 9; i++)
 	{
+		// TODO: triggered repeately on restart
 		if (Global::input->GetKeyDown(GLFW_KEY_1 + i))
 		{
 			Global::engine->SwitchScene(i);

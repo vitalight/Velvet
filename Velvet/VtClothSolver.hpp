@@ -33,6 +33,11 @@ namespace Velvet
 			m_resolution = resolution;
 		}
 
+		void SetAttachedIndices(vector<int> indices)
+		{
+			m_attachedIndices = indices;
+		}
+
 		void Start() override
 		{
 			fmt::print("Info(VtClothSolver): Start\n");
@@ -56,7 +61,7 @@ namespace Velvet
 			m_inverseMass = vector<float>(m_numVertices, 1.0);
 
 			GenerateStretchConstraints();
-			GenerateAttachmentConstraints();
+			GenerateAttachmentConstraints(m_attachedIndices);
 			GenerateBendingConstraints();
 		}
 
@@ -132,10 +137,8 @@ namespace Velvet
 			}
 		}
 
-		void GenerateAttachmentConstraints()
+		void GenerateAttachmentConstraints(vector<int> indices)
 		{
-			vector<int> indices = { 0, m_resolution };
-
 			for (auto i : indices)
 			{
 				m_attachmentConstriants.push_back({ i, m_positions[i]});
@@ -396,6 +399,7 @@ namespace Velvet
 
 		int m_numVertices;
 		int m_resolution;
+		vector<int> m_attachedIndices;
 		shared_ptr<Mesh> m_mesh;
 
 		vector<glm::vec3> m_positions;

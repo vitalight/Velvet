@@ -139,111 +139,49 @@ public:
 
 		game->AddActor(Scene::InfinitePlane(game));
 
-		//auto cube = Scene::ColoredCube(game);
-		//cube->transform->scale = glm::vec3(2);
+		auto sphere = PopulateSphere(game);
+		float radius = 0.6;
+		sphere->Initialize(glm::vec3(0, radius, -1), glm::vec3(radius));
+		game->postUpdate.push_back([sphere, game, radius]() {
+			static float time = 0;
+			time += game->deltaTime;
+			sphere->transform->position = glm::vec3(0, radius, -cos(time * 2));
+			});
 
-		{
-			MaterialProperty materialProperty;
-			materialProperty.preRendering = [](Material* mat) {
-				mat->SetVec3("material.tint", glm::vec3(1.0));
-				mat->SetBool("material.useTexture", false);
-			};
-
-			auto material = Resource::LoadMaterial("_Default");
-			{
-				material->Use();
-				material->SetTexture("_ShadowTex", game->depthFrameBuffer());
-			}
-			auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
-
-			auto sphere = game->CreateActor("Sphere");
-			auto mesh = Resource::LoadMesh("sphere.obj");
-			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
-			renderer->SetMaterialProperty(materialProperty);
-			sphere->AddComponent(renderer);
-			auto collider = make_shared<Collider>();
-			sphere->AddComponent(collider);
-			float radius = 0.6;
-			sphere->Initialize(glm::vec3(0, radius, -1), glm::vec3(radius));
-
-			game->postUpdate.push_back([sphere, game, radius, material]() {
-				static float time = 0;
-				time += game->deltaTime;
-				sphere->transform->position = glm::vec3(0, radius, -cos(time * 2));
-				});
-		}
-
-		PopulateCloth(game);
-	}
-
-	void PopulateCloth(GameInstance* game, int resolution = 16)
-	{
-		glm::vec3 color = glm::vec3(0.0f, 0.5f, 1.0f);
-
-		auto material = Resource::LoadMaterial("_Default");
-		material->Use();
-		material->SetTexture("_ShadowTex", game->depthFrameBuffer());
-		material->doubleSided = true;
-
-		MaterialProperty materialProperty;
-		materialProperty.preRendering = [color](Material* mat) {
-			mat->SetVec3("material.tint", color);
-			mat->SetBool("material.useTexture", true);
-			mat->SetTexture("material.diffuse", Resource::LoadTexture("fabric.jpg"));
-			mat->specular = 0.01f;
-		};
-
-
-		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
-
-		{
-			auto cloth = game->CreateActor("Cloth Generated");
-			vector<glm::vec3> vertices;
-			vector<glm::vec3> normals;
-			vector<glm::vec2> uvs;
-			vector<unsigned int> indices;
-			const float clothSize = 2.0f;
-
-			for (int y = 0; y <= resolution; y++)
-			{
-				for (int x = 0; x <= resolution; x++)
-				{
-					vertices.push_back(clothSize * glm::vec3((float)x / (float)resolution - 0.5f, -(float)y / (float)resolution, 0));
-					normals.push_back(glm::vec3(0, 0, 1));
-					uvs.push_back(glm::vec2((float)x / (float)resolution, (float)y / (float)resolution));
-				}
-			}
-
-			auto VertexIndexAt = [resolution](int x, int y) {
-				return x * (resolution+1) + y;
-			};
-
-			for (int x = 0; x < resolution; x++)
-			{
-				for (int y = 0; y < resolution; y++)
-				{
-					indices.push_back(VertexIndexAt(x, y));
-					indices.push_back(VertexIndexAt(x + 1, y));
-					indices.push_back(VertexIndexAt(x, y + 1));
-
-					indices.push_back(VertexIndexAt(x, y + 1));
-					indices.push_back(VertexIndexAt(x + 1, y));
-					indices.push_back(VertexIndexAt(x + 1, y + 1));
-				}
-			}
-			auto mesh = make_shared<Mesh>(vertices, normals, uvs, indices);
-
-			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
-			renderer->SetMaterialProperty(materialProperty);
-			cloth->AddComponent(renderer);
-
-			auto solver = make_shared<VtClothSolver>(resolution);
-			cloth->AddComponent(solver);
-
-			cloth->Initialize(glm::vec3(0, 2.5f, 0), glm::vec3(1.0));
-		}
+		int clothResolution = 16;
+		auto cloth = PopulateCloth(game, clothResolution);
+		cloth->Initialize(glm::vec3(0, 2.5f, 0), glm::vec3(1.0));
+		cloth->GetComponent<VtClothSolver>()->SetAttachedIndices({ 0, clothResolution });
 	}
 };
+
+class SceneClothCollision : public Scene
+{
+public:
+	SceneClothCollision() { name = "Cloth / SelfCollision"; }
+
+	void PopulateActors(GameInstance* game)  override
+	{
+		PopulateCameraAndLight(game);
+
+		game->AddActor(Scene::InfinitePlane(game));
+
+		auto sphere = PopulateSphere(game);
+		float radius = 0.6;
+		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
+		game->postUpdate.push_back([sphere, game, radius]() {
+			//static float time = 0;
+			//time += game->deltaTime;
+			//sphere->transform->position = glm::vec3(0, radius, -cos(time * 2));
+			});
+
+		int clothResolution = 16;
+		auto cloth = PopulateCloth(game, clothResolution);
+		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
+		//cloth->GetComponent<VtClothSolver>()->SetAttachedIndices({ 0, clothResolution });
+	}
+};
+
 
 int main()
 {
@@ -259,6 +197,7 @@ int main()
 	//=====================================
 	
 	vector<ScenePtr> scenes = {
+		ScenePtr(new SceneClothCollision()),
 		ScenePtr(new SceneSimpleCloth()),
 		ScenePtr(new SceneColoredCubes()),
 		ScenePtr(new ScenePremitiveRendering()),
