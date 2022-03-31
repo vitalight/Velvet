@@ -9,8 +9,6 @@
 
 using namespace Velvet;
 
-typedef shared_ptr<Scene> ScenePtr;
-
 class ScenePremitiveRendering : public Scene
 {
 public:
@@ -157,7 +155,7 @@ public:
 class SceneClothCollision : public Scene
 {
 public:
-	SceneClothCollision() { name = "Cloth / SelfCollision"; }
+	SceneClothCollision() { name = "Cloth / Self Collision"; }
 
 	void PopulateActors(GameInstance* game)  override
 	{
@@ -187,19 +185,17 @@ int main()
 	//=====================================
 	// 1. Create graphics
 	//=====================================
-	//shared_ptr<GameInstance> graphics(new GameInstance());
-	//graphics.skyColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f);
 	auto engine = make_shared<VtEngine>();
 
 	//=====================================
 	// 2. Instantiate actors
 	//=====================================
 	
-	vector<ScenePtr> scenes = {
-		ScenePtr(new SceneClothCollision()),
-		ScenePtr(new SceneSimpleCloth()),
-		ScenePtr(new SceneColoredCubes()),
-		ScenePtr(new ScenePremitiveRendering()),
+	vector<shared_ptr<Scene>> scenes = {
+		make_shared<SceneClothCollision>(),
+		make_shared<SceneSimpleCloth>(),
+		make_shared<SceneColoredCubes>(),
+		make_shared<ScenePremitiveRendering>(),
 	};
 	engine->SetScenes(scenes);
 

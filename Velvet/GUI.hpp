@@ -15,6 +15,7 @@ namespace Velvet
 		float deltaTime = 0;
 		int frameRate = 0;
 		int frameCount = 0;
+		int physicsFrameCount = 0;
 
 		float graphValues[100] = {};
 		int graphIndex = 0;

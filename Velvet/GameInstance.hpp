@@ -16,7 +16,6 @@ namespace Velvet
 	using namespace std;
 
 	class Light;
-	class Input;
 	class RenderPipeline;
 	class GUI;
 	class Scene;
@@ -63,11 +62,14 @@ namespace Velvet
 		vector<function<void()>> onFinalize;
 
 		int frameCount = 0;
+		int physicsFrameCount = 0;
 		float elapsedTime = 0.0f;
 		float lastUpdateTime = (float)glfwGetTime();
 		float deltaTime = 0.0f;
 		const float fixedDeltaTime = 1.0f / 60.0f;
 
+		bool renderGUI = true;
+		bool playAnimation = true;
 		bool pause = false;
 		bool step = false;
 		bool renderWireframe = false;
@@ -82,7 +84,6 @@ namespace Velvet
 	private:
 		GLFWwindow* m_window = nullptr;
 		shared_ptr<GUI> m_gui;
-		shared_ptr<Input> m_input;
 
 		vector<shared_ptr<Actor>> m_actors;
 		shared_ptr<RenderPipeline> m_renderPipeline;

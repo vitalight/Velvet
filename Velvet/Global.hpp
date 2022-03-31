@@ -40,8 +40,6 @@ namespace Velvet
 		{
 			#define IMGUI_LEFT_LABEL(func, label, ...) (ImGui::TextUnformatted(label), ImGui::SameLine(), func("##" label, __VA_ARGS__))
 
-			inline bool playAnimation = false;
-
 			inline int numSubsteps = 3;
 			inline int numIterations = 3;
 

@@ -23,7 +23,6 @@ GameInstance::GameInstance(GLFWwindow* window, shared_ptr<GUI> gui)
 	m_window = window;
 	m_gui = gui;
 	m_renderPipeline = make_shared<RenderPipeline>();
-	m_input = make_shared<Input>(window);
 }
 
 shared_ptr<Actor> GameInstance::AddActor(shared_ptr<Actor> actor)
@@ -110,11 +109,24 @@ void GameInstance::ProcessKeyboard(GLFWwindow* m_window)
 	}
 	for (int i = 0; i < 9; i++)
 	{
-		// TODO: triggered repeately on restart
 		if (Global::input->GetKeyDown(GLFW_KEY_1 + i))
-		{
+		{	
 			Global::engine->SwitchScene(i);
 		}
+	}
+	if (Global::input->GetKeyDown(GLFW_KEY_SPACE))
+	{
+		// play anim
+		playAnimation = !playAnimation;
+	}
+	if (Global::input->GetKeyDown(GLFW_KEY_H))
+	{
+		// hide ui
+		renderGUI = !renderGUI;
+	}
+	if (Global::input->GetKeyDown(GLFW_KEY_R))
+	{
+		Global::engine->Reset();
 	}
 }
 
@@ -149,7 +161,10 @@ void GameInstance::MainLoop()
 		lastUpdateTime = current;
 
 		// Updates
-		m_gui->OnUpdate();
+		if (renderGUI)
+		{
+			m_gui->OnUpdate();
+		}
 
 		if (!pause)
 		{
@@ -159,6 +174,7 @@ void GameInstance::MainLoop()
 			if (fixedUpdateTimer > fixedDeltaTime)
 			{
 				fixedUpdateTimer = 0;
+				physicsFrameCount++;
 				for (const auto& go : m_actors)
 				{
 					go->FixedUpdate();
@@ -179,7 +195,7 @@ void GameInstance::MainLoop()
 				go->Update();
 			}
 
-			if (Global::Sim::playAnimation)
+			if (playAnimation)
 			{
 				for (const auto& callback : postUpdate)
 				{
@@ -188,7 +204,7 @@ void GameInstance::MainLoop()
 			}
 		}
 
-		m_input->OnUpdate();
+		Global::input->OnUpdate();
 
 		for (auto callback : godUpdate)
 		{
@@ -198,7 +214,7 @@ void GameInstance::MainLoop()
 		Timer::EndTimer("CPU_TIME");
 
 		m_renderPipeline->Render();
-		m_gui->Render();
+		if (renderGUI) m_gui->Render();
 
 		// check and call events and swap the buffers
 		glfwSwapBuffers(m_window);

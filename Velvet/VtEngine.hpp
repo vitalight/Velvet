@@ -15,6 +15,7 @@ namespace Velvet
 	class Scene;
 	class GUI;
 	class GameInstance;
+	class Input;
 
 	class VtEngine
 	{
@@ -36,6 +37,6 @@ namespace Velvet
 		GLFWwindow* m_window = nullptr;
 		shared_ptr<GUI> m_gui;
 		shared_ptr<GameInstance> m_game;
-
+		shared_ptr<Input> m_input;
 	};
 }

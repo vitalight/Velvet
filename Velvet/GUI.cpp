@@ -140,7 +140,7 @@ void GUI::ShowOptionWindow()
 
 	ImGui::PushItemWidth(-FLT_MIN);
 
-	if (ImGui::Button("Reset", ImVec2(-FLT_MIN, 0)))
+	if (ImGui::Button("Reset (R)", ImVec2(-FLT_MIN, 0)))
 	{
 		Global::engine->Reset();
 	}
@@ -149,10 +149,10 @@ void GUI::ShowOptionWindow()
 	if (ImGui::CollapsingHeader("Global", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		static bool radio = false;
+		//ImGui::Checkbox("Draw Points", &radio);
 		ImGui::Checkbox("Pause (P, O)", &Global::game->pause);
 		ImGui::Checkbox("Draw Wireframe (L)", &Global::game->renderWireframe);
-		ImGui::Checkbox("Draw Points", &radio);
-		ImGui::Checkbox("Play Animation", &Global::Sim::playAnimation);
+		ImGui::Checkbox("Play Animation (Space)", &Global::game->playAnimation);
 		ImGui::Dummy(ImVec2(0.0f, 10.0f));
 	}
 
@@ -177,7 +177,7 @@ void GUI::ShowStatWindow()
 	ComputeStatData(stat);
 
 	ImGui::Text("Device:  %s", m_deviceName.c_str());
-	ImGui::Text("Frame:  %d", stat.frameCount);
+	ImGui::Text("Frame:  %d; Physics Frame:%d", stat.frameCount, stat.physicsFrameCount);
 	ImGui::Text("Avg FrameRate:  %d FPS", stat.frameRate);
 	ImGui::Text("CPU time:  %.2f ms", stat.cpuTime);
 	ImGui::Text("GPU time:  %.2f ms", 0);
@@ -227,6 +227,7 @@ void GUI::ComputeStatData(PerformanceStat& stat)
 	float deltaTimeMiliseconds = game->deltaTime * 1000;
 
 	stat.frameCount = frameCount;
+	stat.physicsFrameCount = game->physicsFrameCount;
 	
 	// Some variables should not be update each frame
 	timer1 += game->deltaTime;
