@@ -151,5 +151,8 @@
     <None Include="Assets\Shader\_InfinitePlane.vert">
       <Filter>Shader</Filter>
     </None>
+    <None Include="SpatialHash.hpp">
+      <Filter>Physics</Filter>
+    </None>
   </ItemGroup>
 </Project>

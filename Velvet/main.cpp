@@ -9,6 +9,8 @@
 
 using namespace Velvet;
 
+// TODO: shadow material by default
+
 class ScenePremitiveRendering : public Scene
 {
 public:

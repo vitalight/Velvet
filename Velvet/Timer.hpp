@@ -17,11 +17,25 @@ namespace Velvet
 			times[label] = CurrentTime();
 		}
 
-		static double EndTimer(string label)
+		static double EndTimer(string label, int frame = -1)
 		{
+			double time = CurrentTime() - times[label];
+			if (frame == -1)
+			{
+				frame = Global::game->frameCount;
+			}
+
 			if (times.count(label))
 			{
-				history[label] = CurrentTime() - times[label];
+				if (frames.count(label) && frame > frames[label])
+				{
+					history[label] = time;
+				}
+				else
+				{
+					history[label] += time;
+				}
+				frames[label] = frame;
 				return history[label];
 			}
 			else
@@ -31,6 +45,7 @@ namespace Velvet
 			}
 		}
 
+		// returns time in seconds
 		static double GetTimer(string label)
 		{
 			if (history.count(label))
@@ -52,5 +67,6 @@ namespace Velvet
 
 		inline static unordered_map<string, double> times;
 		inline static unordered_map<string, double> history;
+		inline static unordered_map<string, int> frames;
 	};
 }

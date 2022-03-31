@@ -129,6 +129,7 @@
     <None Include="Assets\Shader\_ShadowDepth.vert" />
     <None Include="Assets\Shader\_InfinitePlane.frag" />
     <None Include="Assets\Shader\_InfinitePlane.vert" />
+    <None Include="SpatialHash.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

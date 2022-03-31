@@ -9,6 +9,10 @@
 #include "Camera.hpp"
 #include "Input.hpp"
 #include "GUI.hpp"
+#include "SpatialHash.hpp"
+#include "Timer.hpp"
+
+//#define NAIVE
 
 namespace Velvet
 {
@@ -61,6 +65,7 @@ namespace Velvet
 			m_inverseMass = vector<float>(m_numVertices, 1.0);
 
 			m_particleDiameter = glm::length(m_positions[0] - m_positions[m_resolution + 1]);
+			m_spatialHash = make_shared<SpatialHash>(m_particleDiameter, m_numVertices);
 
 			GenerateStretch();
 			GenerateAttachment(m_attachedIndices);
@@ -74,24 +79,30 @@ namespace Velvet
 
 		void FixedUpdate() override
 		{
+			float frameTime = Global::game->fixedDeltaTime;
+			float substepTime = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
+
+			EstimatePositions(frameTime);
+			m_spatialHash->HashObjects(m_predicted);
+
 			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
 			{
-				ApplyExternalForces();
-				EstimatePositions();
-				GenerateSelfCollision();
+				ApplyExternalForces(substepTime);
+				EstimatePositions(substepTime);
+				//GenerateSelfCollision();
 				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
 				{
-					SolveStretch();
-					SolveBending();
-					SolveGroundCollision();
+					SolveStretch(substepTime);
+					SolveBending(substepTime);
+
 					//SolveSelfCollision();
 					SolveParticleCollision();
 					SolveSDFCollision();
+					SolveGroundCollision();
 
-					// always final constraint
 					SolveAttachment();
 				}
-				UpdatePositionsAndVelocities();
+				UpdatePositionsAndVelocities(substepTime);
 			}
 
 			auto normals = ComputeNormals(m_positions);
@@ -176,28 +187,28 @@ namespace Velvet
 
 	private: // Core physics
 
-		void ApplyExternalForces()
+		void ApplyExternalForces(float deltaTime)
 		{
 			for (int i = 0; i < m_numVertices; i++)
 			{
 				// gravity
-				m_velocities[i] += Global::Sim::gravity * timeStep();
+				m_velocities[i] += Global::Sim::gravity * deltaTime;
 				// damp
 				//m_velocities[i] *= (1 - Global::Sim::damping * m_timeStep);
 			}
 		}
 
-		void EstimatePositions()
+		void EstimatePositions(float deltaTime)
 		{
 			for (int i = 0; i < m_numVertices; i++)
 			{
-				m_predicted[i] = m_positions[i] + m_velocities[i] * timeStep();
+				m_predicted[i] = m_positions[i] + m_velocities[i] * deltaTime;
 			}
 		}
 
-		void SolveStretch()
+		void SolveStretch(float deltaTime)
 		{
-			float xpbd_stretch = Global::Sim::stretchCompliance / timeStep() / timeStep();
+			float xpbd_stretch = Global::Sim::stretchCompliance / deltaTime/ deltaTime;
 
 			for (auto c : m_stretchConstraints)
 			{
@@ -212,7 +223,7 @@ namespace Velvet
 
 				if (w1 + w2 > 0)
 				{
-					auto gradient = diff / distance;
+					auto gradient = diff / (distance + k_epsilon);
 					auto denom = w1 + w2 + xpbd_stretch;
 					auto lambda = (distance - expectedDistance) / denom;
 					m_predicted[idx1] -= w1 * lambda * gradient;
@@ -221,10 +232,9 @@ namespace Velvet
 			}
 		}
 
-		void SolveBending()
+		void SolveBending(float deltaTime)
 		{
-			const float epsilon = 1e-6;
-			float xpbd_bend = Global::Sim::bendCompliance / timeStep() / timeStep();
+			float xpbd_bend = Global::Sim::bendCompliance / deltaTime / deltaTime;
 			for (auto c : m_bendingConstraints)
 			{
 				// tri(idx1, idx3, idx2) and tri(idx1, idx2, idx4)
@@ -249,16 +259,16 @@ namespace Velvet
 
 				float d = clamp(glm::dot(n1, n2), 0.0f, 1.0f);
 				float angle = acos(d);
-				if (angle < epsilon) continue;
+				if (angle < k_epsilon) continue;
 
-				glm::vec3 q3 = (glm::cross(p2, n2) + glm::cross(n1, p2) * d) / (glm::length(glm::cross(p2, p3)) + epsilon);
-				glm::vec3 q4 = (glm::cross(p2, n1) + glm::cross(n2, p2) * d) / (glm::length(glm::cross(p2, p4)) + epsilon);
-				glm::vec3 q2 = -(glm::cross(p3, n2) + glm::cross(n1, p3) * d) / (glm::length(glm::cross(p2, p3)) + epsilon)
-					- (glm::cross(p4, n1) + glm::cross(n2, p4) * d) / (glm::length(glm::cross(p2, p4)) + epsilon);
+				glm::vec3 q3 = (glm::cross(p2, n2) + glm::cross(n1, p2) * d) / (glm::length(glm::cross(p2, p3)) + k_epsilon);
+				glm::vec3 q4 = (glm::cross(p2, n1) + glm::cross(n2, p2) * d) / (glm::length(glm::cross(p2, p4)) + k_epsilon);
+				glm::vec3 q2 = -(glm::cross(p3, n2) + glm::cross(n1, p3) * d) / (glm::length(glm::cross(p2, p3)) + k_epsilon)
+					- (glm::cross(p4, n1) + glm::cross(n2, p4) * d) / (glm::length(glm::cross(p2, p4)) + k_epsilon);
 				glm::vec3 q1 = -q2 - q3 - q4;
 
 				float denom = xpbd_bend + (w1 * glm::dot(q1, q1) + w2 * glm::dot(q2, q2) + w3 * glm::dot(q3, q3) + w4 * glm::dot(q4, q4));
-				if (denom < epsilon) continue; // ?
+				if (denom < k_epsilon) continue; // ?
 				float lambda = sqrt(1.0f - d * d) * (angle - expectedAngle) / denom;
 
 				//if (isnan(lambda) || glm::all(glm::isnan(q1)) || glm::all(glm::isnan(q2)) || glm::all(glm::isnan(q3)) || glm::all(glm::isnan(q4)))
@@ -326,8 +336,10 @@ namespace Velvet
 		{
 			for (int i = 0; i < m_numVertices; i++)
 			{
-				for (int j = i + 1; j < m_numVertices; j++)
+				const auto neighbors = m_spatialHash->GetNeighbors(i);
+				for (int j : neighbors)
 				{
+					if (i >= j) continue;
 					auto idx1 = i;
 					auto idx2 = j;
 					auto expectedDistance = m_particleDiameter;
@@ -339,7 +351,7 @@ namespace Velvet
 
 					if (distance < expectedDistance && w1 + w2 > 0)
 					{
-						auto gradient = diff / distance;
+						auto gradient = diff / (distance + k_epsilon);
 						auto denom = w1 + w2;
 						auto lambda = (distance - expectedDistance) / denom;
 						auto common = lambda * gradient;
@@ -350,23 +362,18 @@ namespace Velvet
 			}
 		}
 
-		void UpdatePositionsAndVelocities()
+		void UpdatePositionsAndVelocities(float deltaTime)
 		{
 			// apply force and update positions
 			for (int i = 0; i < m_numVertices; i++)
 			{
-				m_velocities[i] = (m_predicted[i] - m_positions[i]) / timeStep();
+				m_velocities[i] = (m_predicted[i] - m_positions[i]) / deltaTime;
 				m_positions[i] = m_predicted[i];
 			}
 		}
 
 	private: // Utility functions
 		
-		float timeStep()
-		{
-			return Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
-		}
-
 		vector<glm::vec3> ComputeNormals(const vector<glm::vec3> positions)
 		{
 			vector<glm::vec3> normals(positions.size());
@@ -468,11 +475,14 @@ namespace Velvet
 
 	private:
 
+		const float k_epsilon = 1e-6;
+
 		int m_numVertices;
 		int m_resolution;
 		float m_particleDiameter;
 		vector<int> m_attachedIndices;
 		shared_ptr<Mesh> m_mesh;
+		shared_ptr<SpatialHash> m_spatialHash;
 
 		vector<glm::vec3> m_positions;
 		vector<unsigned int> m_indices;
