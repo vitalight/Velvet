@@ -40,9 +40,14 @@ namespace Velvet
 			m_mesh = renderer->mesh();
 
 			m_positions = m_mesh->vertices();
+			glm::mat4 modelMatrix = actor->transform->matrix();
+			for (int i = 0; i < m_positions.size(); i++)
+			{
+				m_positions[i] = modelMatrix * glm::vec4(m_positions[i], 1.0f);
+			}
+			actor->transform->Reset();
+
 			m_numVertices = m_positions.size();
-			m_translation = actor->transform->position;
-			//m_timeStep = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
 			m_indices = m_mesh->indices();
 			m_colliders = Global::game->FindComponents<Collider>();
 
@@ -250,9 +255,9 @@ namespace Velvet
 			// ground collision constraint
 			for (int i = 0; i < m_numVertices; i++)
 			{
-				if (m_predicted[i].y + m_translation.y < 0)
+				if (m_predicted[i].y  < 0)
 				{
-					m_predicted[i].y = -m_translation.y + 1e-2;
+					m_predicted[i].y = 1e-2;
 				}
 			}
 
@@ -261,7 +266,7 @@ namespace Velvet
 			{
 				for (auto col : m_colliders)
 				{
-					auto pos = m_predicted[i] + m_translation;
+					auto pos = m_predicted[i];
 					m_predicted[i] += col->ComputeSDF(pos);
 				}
 			}
@@ -286,6 +291,7 @@ namespace Velvet
 			}
 		}
 
+		// local space?
 		vector<glm::vec3> ComputeNormals(const vector<glm::vec3> positions)
 		{
 			vector<glm::vec3> normals(positions.size());
@@ -337,7 +343,7 @@ namespace Velvet
 				glm::vec3 target = ray.origin + ray.direction * collision.distanceToOrigin;
 
 				auto& c = m_attachmentConstriants[constraintIdx];
-				get<1>(c) = target - m_translation;
+				get<1>(c) = target;
 			}
 
 			bool shouldReleaseObject = Global::input->GetMouseUp(GLFW_MOUSE_BUTTON_LEFT);
@@ -374,7 +380,7 @@ namespace Velvet
 			for (int i = 0; i < m_positions.size(); i++)
 			{
 				// TODO: translation
-				const auto& position = m_positions[i] + m_translation;
+				const auto& position = m_positions[i];
 				float distanceToRay = glm::length(glm::cross(ray.direction, position - ray.origin));
 				if (distanceToRay < minDistanceToRay)
 				{
@@ -390,7 +396,6 @@ namespace Velvet
 
 		int m_numVertices;
 		int m_resolution;
-		glm::vec3 m_translation;
 		shared_ptr<Mesh> m_mesh;
 
 		vector<glm::vec3> m_positions;
