@@ -7,7 +7,6 @@
 #include "Scene.hpp"
 #include "GUI.hpp"
 #include "GameInstance.hpp"
-#include "Input.hpp"
 
 using namespace Velvet;
 
@@ -67,7 +66,6 @@ VtEngine::VtEngine()
 
 	// setup members
 	m_gui = make_shared<GUI>(m_window);
-	m_input = make_shared<Input>(m_window);
 }
 
 VtEngine::~VtEngine()

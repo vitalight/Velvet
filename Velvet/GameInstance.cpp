@@ -23,6 +23,7 @@ GameInstance::GameInstance(GLFWwindow* window, shared_ptr<GUI> gui)
 	m_window = window;
 	m_gui = gui;
 	m_renderPipeline = make_shared<RenderPipeline>();
+	m_input = make_shared<Input>(window);
 }
 
 shared_ptr<Actor> GameInstance::AddActor(shared_ptr<Actor> actor)
@@ -176,11 +177,17 @@ void GameInstance::MainLoop()
 			{
 				go->Update();
 			}
-			for (const auto& callback : postUpdate)
+
+			if (Global::Sim::playAnimation)
 			{
-				callback();
+				for (const auto& callback : postUpdate)
+				{
+					callback();
+				}
 			}
 		}
+
+		m_input->OnUpdate();
 
 		for (auto callback : godUpdate)
 		{

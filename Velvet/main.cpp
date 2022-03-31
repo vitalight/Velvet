@@ -164,10 +164,12 @@ public:
 			auto collider = make_shared<Collider>();
 			sphere->AddComponent(collider);
 			float radius = 0.6;
-			sphere->Initialize(glm::vec3(0, radius, -2), glm::vec3(radius));
+			sphere->Initialize(glm::vec3(0, radius, -1), glm::vec3(radius));
 
 			game->postUpdate.push_back([sphere, game, radius, material]() {
-				sphere->transform->position = glm::vec3(0, radius, -cos(game->elapsedTime * 2));
+				static float time = 0;
+				time += game->deltaTime;
+				sphere->transform->position = glm::vec3(0, radius, -cos(time * 2));
 				});
 		}
 
@@ -188,6 +190,7 @@ public:
 			mat->SetVec3("material.tint", color);
 			mat->SetBool("material.useTexture", true);
 			mat->SetTexture("material.diffuse", Resource::LoadTexture("fabric.jpg"));
+			mat->specular = 0.01f;
 		};
 
 

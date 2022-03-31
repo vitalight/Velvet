@@ -152,6 +152,7 @@ void GUI::ShowOptionWindow()
 		ImGui::Checkbox("Pause (P, O)", &Global::game->pause);
 		ImGui::Checkbox("Draw Wireframe (L)", &Global::game->renderWireframe);
 		ImGui::Checkbox("Draw Points", &radio);
+		ImGui::Checkbox("Play Animation", &Global::Sim::playAnimation);
 		ImGui::Dummy(ImVec2(0.0f, 10.0f));
 	}
 

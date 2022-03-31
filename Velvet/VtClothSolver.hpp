@@ -6,9 +6,25 @@
 #include "Global.hpp"
 #include "GameInstance.hpp"
 #include "Collider.hpp"
+#include "Camera.hpp"
+#include "Input.hpp"
+#include "GUI.hpp"
 
 namespace Velvet
 {
+	struct Ray
+	{
+		glm::vec3 origin;
+		glm::vec3 direction;
+	};
+
+	struct RaycastCollision
+	{
+		bool collide = false;
+		int objectIndex;
+		float distanceToOrigin;
+	};
+
 	class VtClothSolver : public Component
 	{
 	public:
@@ -39,6 +55,11 @@ namespace Velvet
 			GenerateBendingConstraints();
 		}
 
+		void Update() override
+		{
+			HandleMouseInteraction();
+		}
+
 		void FixedUpdate() override
 		{
 			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
@@ -56,7 +77,6 @@ namespace Velvet
 		}
 	
 	private:
-
 
 		float timeStep()
 		{
@@ -113,7 +133,7 @@ namespace Velvet
 
 			for (auto i : indices)
 			{
-				m_attachmentConstriants.push_back({ i, m_positions[i] });
+				m_attachmentConstriants.push_back({ i, m_positions[i]});
 				m_inverseMass[i] = 0;
 			}
 		}
@@ -250,6 +270,7 @@ namespace Velvet
 			{
 				int idx = get<0>(c);
 				glm::vec attachPos = get<1>(c);
+				float mass = m_inverseMass[idx];
 				m_predicted[idx] = attachPos;
 			}
 
@@ -288,6 +309,81 @@ namespace Velvet
 				normals[i] = glm::normalize(normals[i]);
 			}
 			return normals;
+		}
+
+		void HandleMouseInteraction()
+		{
+			static bool isGrabbing = false;
+			static int constraintIdx = 0;
+			static RaycastCollision collision;
+
+			bool shouldPickObject = Global::input->GetMouseDown(GLFW_MOUSE_BUTTON_LEFT);
+			if (shouldPickObject)
+			{
+				Ray ray = GetMouseRay();
+				collision = FindClosestVertexToRay(ray);
+
+				if (collision.collide)
+				{
+					isGrabbing = true;
+					m_attachmentConstriants.push_back(make_tuple(collision.objectIndex, m_positions[collision.objectIndex]));
+					constraintIdx = m_attachmentConstriants.size() - 1;
+				}
+			}
+
+			if (!shouldPickObject && isGrabbing)
+			{
+				Ray ray = GetMouseRay();
+				glm::vec3 target = ray.origin + ray.direction * collision.distanceToOrigin;
+
+				auto& c = m_attachmentConstriants[constraintIdx];
+				get<1>(c) = target - m_translation;
+			}
+
+			bool shouldReleaseObject = Global::input->GetMouseUp(GLFW_MOUSE_BUTTON_LEFT);
+			if (shouldReleaseObject && isGrabbing)
+			{
+				isGrabbing = false;
+				m_attachmentConstriants.pop_back();
+			}
+		}
+
+		Ray GetMouseRay()
+		{
+			glm::vec2 screenPos = Global::input->GetMousePos();
+			// [0, 1]
+			auto normalizedScreenPos = 2.0f * screenPos / glm::vec2(Global::Config::screenWidth, Global::Config::screenHeight) - 1.0f;
+			normalizedScreenPos.y = -normalizedScreenPos.y;
+
+			glm::mat4 invVP = glm::inverse(Global::camera->projection() * Global::camera->view());
+			glm::vec4 nearPointRaw = invVP * glm::vec4(normalizedScreenPos, 0, 1);
+			glm::vec4 farPointRaw = invVP * glm::vec4(normalizedScreenPos, 1, 1);
+
+			glm::vec3 nearPoint = glm::vec3(nearPointRaw.x, nearPointRaw.y, nearPointRaw.z) / nearPointRaw.w;
+			glm::vec3 farPoint = glm::vec3(farPointRaw.x, farPointRaw.y, farPointRaw.z) / farPointRaw.w;
+			glm::vec3 direction = glm::normalize(farPoint - nearPoint);
+
+			return Ray{ nearPoint, direction };
+		}
+
+		RaycastCollision FindClosestVertexToRay(Ray ray)
+		{
+			int result = -1;
+			float minDistanceToRay = FLT_MAX;
+			float distanceToView = 0;
+			for (int i = 0; i < m_positions.size(); i++)
+			{
+				// TODO: translation
+				const auto& position = m_positions[i] + m_translation;
+				float distanceToRay = glm::length(glm::cross(ray.direction, position - ray.origin));
+				if (distanceToRay < minDistanceToRay)
+				{
+					result = i;
+					minDistanceToRay = distanceToRay;
+					distanceToView = glm::dot(ray.direction, position - ray.origin);
+				}
+			}
+			return RaycastCollision{ minDistanceToRay < 0.2, result, distanceToView };
 		}
 
 	private:

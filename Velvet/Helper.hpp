@@ -12,6 +12,14 @@ struct fmt::formatter<glm::vec3> : fmt::formatter<std::string> {
 	}
 };
 
+template <>
+struct fmt::formatter<glm::vec2> : fmt::formatter<std::string> {
+	auto format(glm::vec2 p, format_context& ctx) {
+		return formatter<std::string>::format(
+			fmt::format("[{:.2f}, {:.2f}]", p.x, p.y), ctx);
+	}
+};
+
 namespace Velvet
 {
 	namespace Helper

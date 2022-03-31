@@ -82,6 +82,7 @@ namespace Velvet
 	private:
 		GLFWwindow* m_window = nullptr;
 		shared_ptr<GUI> m_gui;
+		shared_ptr<Input> m_input;
 
 		vector<shared_ptr<Actor>> m_actors;
 		shared_ptr<RenderPipeline> m_renderPipeline;
