@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "VtEngine.hpp"
-#include "VtClothSolver.hpp"
+#include "VtClothObject.hpp"
 #include "GameInstance.hpp"
 #include "Resource.hpp"
 #include "Scene.hpp"
@@ -9,7 +9,7 @@
 
 using namespace Velvet;
 
-// TODO: shadow material by default
+// TODO(Render): shadow material by default (add option for castShadow)
 
 class ScenePremitiveRendering : public Scene
 {
@@ -150,7 +150,7 @@ public:
 		int clothResolution = 16;
 		auto cloth = SpawnCloth(game, clothResolution);
 		cloth->Initialize(glm::vec3(0, 2.5f, 0), glm::vec3(1.0));
-		cloth->GetComponent<VtClothSolver>()->SetAttachedIndices({ 0, clothResolution });
+		cloth->GetComponent<VtClothObject>()->SetAttachedIndices({ 0, clothResolution });
 	}
 };
 
@@ -168,16 +168,10 @@ public:
 		auto sphere = SpawnSphere(game);
 		float radius = 0.6;
 		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
-		game->postUpdate.push_back([sphere, game, radius]() {
-			//static float time = 0;
-			//time += game->deltaTime;
-			//sphere->transform->position = glm::vec3(0, radius, -cos(time * 2));
-			});
 
 		int clothResolution = 16;
 		auto cloth = SpawnCloth(game, clothResolution);
 		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
-		//cloth->GetComponent<VtClothSolver>()->SetAttachedIndices({ 0, clothResolution });
 	}
 };
 

@@ -16,22 +16,21 @@
 
 namespace Velvet
 {
-	struct Ray
-	{
-		glm::vec3 origin;
-		glm::vec3 direction;
-	};
-
-	struct RaycastCollision
-	{
-		bool collide = false;
-		int objectIndex;
-		float distanceToOrigin;
-	};
-
-	class VtClothSolver : public Component
+	class VtClothSolver
 	{
 	public:
+		// SimBuffer Begin
+		vector<glm::vec3> m_positions;
+		vector<glm::vec3> m_predicted;
+		vector<glm::vec3> m_velocities;
+		vector<float> m_inverseMass;
+
+		vector<tuple<int, int, float>> m_stretchConstraints; // idx1, idx2, distance
+		vector<tuple<int, glm::vec3>> m_attachmentConstriants; // idx1, position
+		vector<tuple<int, int, int, int, float>> m_bendingConstraints; // idx1, idx2, idx3, idx4, angle
+		vector<tuple<int, int, int, int>> m_selfCollisionConstraints; // idx1, triangle(idx2, idx3, idx4)
+		// SimBuffer End
+
 		VtClothSolver(int resolution)
 		{
 			m_resolution = resolution;
@@ -42,20 +41,17 @@ namespace Velvet
 			m_attachedIndices = indices;
 		}
 
-		void Start() override
+		void Initialize(shared_ptr<Mesh> mesh, glm::mat4 modelMatrix)
 		{
 			fmt::print("Info(VtClothSolver): Start\n");
-			auto renderer = actor->GetComponent<MeshRenderer>();
-			m_mesh = renderer->mesh();
+			m_mesh = mesh;
 
 			m_positions = m_mesh->vertices();
 			m_numVertices = m_positions.size();
-			glm::mat4 modelMatrix = actor->transform->matrix();
 			for (int i = 0; i < m_numVertices; i++)
 			{
 				m_positions[i] = modelMatrix * glm::vec4(m_positions[i], 1.0f);
 			}
-			actor->transform->Reset();
 
 			m_indices = m_mesh->indices();
 			m_colliders = Global::game->FindComponents<Collider>();
@@ -72,16 +68,12 @@ namespace Velvet
 			GenerateBending();
 		}
 
-		void Update() override
-		{
-			HandleMouseInteraction();
-		}
-
-		void FixedUpdate() override
+		void Simulate()
 		{
 			float frameTime = Global::game->fixedDeltaTime;
 			float substepTime = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
 
+			ApplyExternalForces(frameTime);
 			EstimatePositions(frameTime);
 			m_spatialHash->HashObjects(m_predicted);
 
@@ -108,7 +100,7 @@ namespace Velvet
 			auto normals = ComputeNormals(m_positions);
 			m_mesh->SetVerticesAndNormals(m_positions, normals);
 		}
-	
+
 	private: // Generate constraints
 
 		void GenerateStretch()
@@ -208,8 +200,6 @@ namespace Velvet
 
 		void SolveStretch(float deltaTime)
 		{
-			float xpbd_stretch = Global::Sim::stretchCompliance / deltaTime/ deltaTime;
-
 			for (auto c : m_stretchConstraints)
 			{
 				auto idx1 = get<0>(c);
@@ -224,7 +214,8 @@ namespace Velvet
 				if (w1 + w2 > 0)
 				{
 					auto gradient = diff / (distance + k_epsilon);
-					auto denom = w1 + w2 + xpbd_stretch;
+					// compliance is zero, therefore XPBD=PBD
+					auto denom = w1 + w2;
 					auto lambda = (distance - expectedDistance) / denom;
 					m_predicted[idx1] -= w1 * lambda * gradient;
 					m_predicted[idx2] += w2 * lambda * gradient;
@@ -399,80 +390,6 @@ namespace Velvet
 			return normals;
 		}
 
-		void HandleMouseInteraction()
-		{
-			static bool isGrabbing = false;
-			static int constraintIdx = 0;
-			static RaycastCollision collision;
-
-			bool shouldPickObject = Global::input->GetMouseDown(GLFW_MOUSE_BUTTON_LEFT);
-			if (shouldPickObject)
-			{
-				Ray ray = GetMouseRay();
-				collision = FindClosestVertexToRay(ray);
-
-				if (collision.collide)
-				{
-					isGrabbing = true;
-					m_attachmentConstriants.push_back(make_tuple(collision.objectIndex, m_positions[collision.objectIndex]));
-					constraintIdx = m_attachmentConstriants.size() - 1;
-				}
-			}
-
-			if (!shouldPickObject && isGrabbing)
-			{
-				Ray ray = GetMouseRay();
-				glm::vec3 target = ray.origin + ray.direction * collision.distanceToOrigin;
-
-				auto& c = m_attachmentConstriants[constraintIdx];
-				get<1>(c) = target;
-			}
-
-			bool shouldReleaseObject = Global::input->GetMouseUp(GLFW_MOUSE_BUTTON_LEFT);
-			if (shouldReleaseObject && isGrabbing)
-			{
-				isGrabbing = false;
-				m_attachmentConstriants.pop_back();
-			}
-		}
-
-		Ray GetMouseRay()
-		{
-			glm::vec2 screenPos = Global::input->GetMousePos();
-			// [0, 1]
-			auto normalizedScreenPos = 2.0f * screenPos / glm::vec2(Global::Config::screenWidth, Global::Config::screenHeight) - 1.0f;
-			normalizedScreenPos.y = -normalizedScreenPos.y;
-
-			glm::mat4 invVP = glm::inverse(Global::camera->projection() * Global::camera->view());
-			glm::vec4 nearPointRaw = invVP * glm::vec4(normalizedScreenPos, 0, 1);
-			glm::vec4 farPointRaw = invVP * glm::vec4(normalizedScreenPos, 1, 1);
-
-			glm::vec3 nearPoint = glm::vec3(nearPointRaw.x, nearPointRaw.y, nearPointRaw.z) / nearPointRaw.w;
-			glm::vec3 farPoint = glm::vec3(farPointRaw.x, farPointRaw.y, farPointRaw.z) / farPointRaw.w;
-			glm::vec3 direction = glm::normalize(farPoint - nearPoint);
-
-			return Ray{ nearPoint, direction };
-		}
-
-		RaycastCollision FindClosestVertexToRay(Ray ray)
-		{
-			int result = -1;
-			float minDistanceToRay = FLT_MAX;
-			float distanceToView = 0;
-			for (int i = 0; i < m_numVertices; i++)
-			{
-				const auto& position = m_positions[i];
-				float distanceToRay = glm::length(glm::cross(ray.direction, position - ray.origin));
-				if (distanceToRay < minDistanceToRay)
-				{
-					result = i;
-					minDistanceToRay = distanceToRay;
-					distanceToView = glm::dot(ray.direction, position - ray.origin);
-				}
-			}
-			return RaycastCollision{ minDistanceToRay < 0.2, result, distanceToView };
-		}
-
 	private:
 
 		const float k_epsilon = 1e-6;
@@ -480,20 +397,12 @@ namespace Velvet
 		int m_numVertices;
 		int m_resolution;
 		float m_particleDiameter;
+
+		vector<unsigned int> m_indices;
+		vector<Collider*> m_colliders;
 		vector<int> m_attachedIndices;
+
 		shared_ptr<Mesh> m_mesh;
 		shared_ptr<SpatialHash> m_spatialHash;
-
-		vector<glm::vec3> m_positions;
-		vector<unsigned int> m_indices;
-		vector<glm::vec3> m_predicted;
-		vector<glm::vec3> m_velocities;
-		vector<float> m_inverseMass;
-		vector<Collider*> m_colliders;
-
-		vector<tuple<int, int, float>> m_stretchConstraints; // idx1, idx2, distance
-		vector<tuple<int, glm::vec3>> m_attachmentConstriants; // idx1, position
-		vector<tuple<int, int, int, int, float>> m_bendingConstraints; // idx1, idx2, idx3, idx4, angle
-		vector<tuple<int, int, int, int>> m_selfCollisionConstraints; // idx1, triangle(idx2, idx3, idx4)
 	};
 }

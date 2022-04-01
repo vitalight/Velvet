@@ -119,6 +119,9 @@
       <Filter>Physics</Filter>
     </ClInclude>
     <ClInclude Include="Global.hpp" />
+    <ClInclude Include="VtClothObject.hpp">
+      <Filter>Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shader\_Default.frag">

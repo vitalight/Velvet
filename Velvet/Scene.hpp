@@ -11,7 +11,7 @@
 #include "MeshRenderer.hpp"
 #include "MaterialProperty.hpp"
 #include "Collider.hpp"
-#include "VtClothSolver.hpp"
+#include "VtClothObject.hpp"
 
 namespace Velvet
 {
@@ -163,8 +163,8 @@ namespace Velvet
 				renderer->SetMaterialProperty(materialProperty);
 				cloth->AddComponent(renderer);
 
-				auto solver = make_shared<VtClothSolver>(resolution);
-				cloth->AddComponent(solver);
+				auto clothObj = make_shared<VtClothObject>(resolution);
+				cloth->AddComponent(clothObj);
 			}
 			return cloth;
 		}
