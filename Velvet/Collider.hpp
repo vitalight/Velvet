@@ -9,8 +9,35 @@ namespace Velvet
 	class Collider : public Component
 	{
 	public:
-		// specific for sphere, return repulsion
+		int m_sphereOrPlane = 0;
+
+		Collider(bool sphereOrPlane)
+		{
+			m_sphereOrPlane = sphereOrPlane;
+		}
+
 		virtual glm::vec3 ComputeSDF(glm::vec3 position)
+		{
+			if (m_sphereOrPlane)
+			{
+				return ComputePlaneSDF(position);
+			}
+			else
+			{
+				return ComputeSphereSDF(position);
+			}
+		}
+
+		virtual glm::vec3 ComputePlaneSDF(glm::vec3 position)
+		{
+			if (position.y < Global::Sim::collisionMargin)
+			{
+				return glm::vec3(0, Global::Sim::collisionMargin - position.y, 0);
+			}
+			return glm::vec3(0);
+		}
+
+		virtual glm::vec3 ComputeSphereSDF(glm::vec3 position)
 		{
 			auto mypos = actor->transform->position;
 			float radius = actor->transform->scale.x + Global::Sim::collisionMargin;

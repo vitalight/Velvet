@@ -60,7 +60,7 @@ namespace Velvet
 			m_predicted = vector<glm::vec3>(m_numVertices);
 			m_inverseMass = vector<float>(m_numVertices, 1.0);
 
-			m_particleDiameter = glm::length(m_positions[0] - m_positions[m_resolution + 1]);
+			m_particleDiameter = glm::length(m_positions[0] - m_positions[m_resolution + 1]) * 0.95;
 			m_spatialHash = make_shared<SpatialHash>(m_particleDiameter, m_numVertices);
 
 			GenerateStretch();
@@ -72,6 +72,9 @@ namespace Velvet
 		{
 			float frameTime = Global::game->fixedDeltaTime;
 			float substepTime = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
+
+			// Pre-stablization pass [Unified particle physics for real-time applications (4.4)]
+			SolveSDFCollision(m_positions);
 
 			ApplyExternalForces(frameTime);
 			EstimatePositions(frameTime);
@@ -88,9 +91,9 @@ namespace Velvet
 					SolveBending(substepTime);
 
 					//SolveSelfCollision();
-					SolveParticleCollision();
-					SolveSDFCollision();
-					SolveGroundCollision();
+					if (!Global::Sim::debug)
+						SolveParticleCollision();
+					SolveSDFCollision(m_predicted);
 
 					SolveAttachment();
 				}
@@ -185,8 +188,6 @@ namespace Velvet
 			{
 				// gravity
 				m_velocities[i] += Global::Sim::gravity * deltaTime;
-				// damp
-				//m_velocities[i] *= (1 - Global::Sim::damping * m_timeStep);
 			}
 		}
 
@@ -211,7 +212,9 @@ namespace Velvet
 				auto w1 = m_inverseMass[idx1];
 				auto w2 = m_inverseMass[idx2];
 
-				if (w1 + w2 > 0)
+				// We use unilateral constraints instead of bilateral constraints
+				// Otherwise the cloth may not look well after collision
+				if (distance > expectedDistance && w1 + w2 > 0)
 				{
 					auto gradient = diff / (distance + k_epsilon);
 					// compliance is zero, therefore XPBD=PBD
@@ -276,40 +279,29 @@ namespace Velvet
 			}
 		}
 
-		void SolveGroundCollision()
-		{
-			for (int i = 0; i < m_numVertices; i++)
-			{
-				if (m_predicted[i].y < 1e-2)
-				{
-					m_predicted[i].y = 1e-2;
-				}
-			}
-		}
-
-		void SolveSDFCollision()
+		void SolveSDFCollision(vector<glm::vec3>& positions) const
 		{
 			// SDF collision
 			for (int i = 0; i < m_numVertices; i++)
 			{
 				for (auto col : m_colliders)
 				{
-					auto pos = m_predicted[i];
+					auto pos = positions[i];
 					glm::vec3 correction = col->ComputeSDF(pos);
-					m_predicted[i] += correction;
+					positions[i] += correction;
 					float correctionLength = glm::length(correction);
 
 					// HACK: treat SDF as static
 					if (Global::Sim::friction > 0 && correctionLength > 0)
 					{
-						glm::vec3 relativeVelocity = m_predicted[i] - m_positions[i];
+						glm::vec3 relativeVelocity = positions[i] - m_positions[i];
 						glm::vec3 correctionNorm = correction  / correctionLength;
 
 						glm::vec3 tangentialVelocity = relativeVelocity - correctionNorm * glm::dot(relativeVelocity, correctionNorm);
 						float tangentialLength = glm::length(tangentialVelocity);
 						float maxTangential = correctionLength * Global::Sim::friction;
 
-						m_predicted[i] -= tangentialVelocity * min(maxTangential / tangentialLength, 1.0f);
+						positions[i] -= tangentialVelocity * min(maxTangential / tangentialLength, 1.0f);
 					}
 				}
 			}
@@ -375,7 +367,9 @@ namespace Velvet
 			// apply force and update positions
 			for (int i = 0; i < m_numVertices; i++)
 			{
-				m_velocities[i] = (m_predicted[i] - m_positions[i]) / deltaTime;
+				//m_velocities[i] = (m_predicted[i] - m_positions[i]) / deltaTime;
+				// damp
+				m_velocities[i] = (m_predicted[i] - m_positions[i]) / deltaTime * (1 - Global::Sim::damping * deltaTime);
 				m_positions[i] = m_predicted[i];
 			}
 		}

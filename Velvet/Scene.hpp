@@ -189,7 +189,7 @@ namespace Velvet
 			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
 			renderer->SetMaterialProperty(materialProperty);
 			sphere->AddComponent(renderer);
-			auto collider = make_shared<Collider>();
+			auto collider = make_shared<Collider>(false);
 			sphere->AddComponent(collider);
 			return sphere;
 		}
@@ -233,8 +233,10 @@ namespace Velvet
 			const vector<unsigned int> indices = { 2,1,0, 3, 0, 1 };
 
 			auto mesh = make_shared<Mesh>(vertices, vector<glm::vec3>(), vector<glm::vec2>(), indices);
-			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, mat));
+			auto renderer = make_shared<MeshRenderer>(mesh, mat);
 			infPlane->AddComponent(renderer);
+			auto collider = make_shared<Collider>(true);
+			infPlane->AddComponent(collider);
 			return infPlane;
 		}
 	
