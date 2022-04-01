@@ -250,7 +250,8 @@ namespace Velvet
 
 				float d = clamp(glm::dot(n1, n2), 0.0f, 1.0f);
 				float angle = acos(d);
-				if (angle < k_epsilon) continue;
+				// cross product for two equal vector produces NAN
+				if (angle < k_epsilon || isnan(d)) continue;
 
 				glm::vec3 q3 = (glm::cross(p2, n2) + glm::cross(n1, p2) * d) / (glm::length(glm::cross(p2, p3)) + k_epsilon);
 				glm::vec3 q4 = (glm::cross(p2, n1) + glm::cross(n2, p2) * d) / (glm::length(glm::cross(p2, p4)) + k_epsilon);
@@ -271,6 +272,7 @@ namespace Velvet
 				m_predicted[idx2] += w2 * lambda * q2;
 				m_predicted[idx3] += w3 * lambda * q3;
 				m_predicted[idx4] += w4 * lambda * q4;
+
 			}
 		}
 
@@ -388,6 +390,19 @@ namespace Velvet
 				normals[i] = glm::normalize(normals[i]);
 			}
 			return normals;
+		}
+
+		inline bool CheckNAN(const vector<glm::vec3> positions)
+		{
+			for (int i = 0; i < positions.size(); i++)
+			{
+				if (glm::any(glm::isnan(positions[i])))
+				{
+					fmt::print("NAN position detected\n");
+					return true;
+				}
+			}
+			return false;
 		}
 
 	private:

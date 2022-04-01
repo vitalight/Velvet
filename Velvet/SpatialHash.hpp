@@ -108,7 +108,7 @@ namespace Velvet
 		inline int HashCoords(int x, int y, int z)
 		{
 			int h = (x * 92837111) ^ (y * 689287499) ^ (z * 283923481);	// fantasy function
-			return abs(h) % m_tableSize;
+			return abs(h % m_tableSize); 
 		}
 
 		inline int HashPosition(glm::vec3 position)
