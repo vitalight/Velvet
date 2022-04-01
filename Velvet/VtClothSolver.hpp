@@ -295,7 +295,22 @@ namespace Velvet
 				for (auto col : m_colliders)
 				{
 					auto pos = m_predicted[i];
-					m_predicted[i] += col->ComputeSDF(pos);
+					glm::vec3 correction = col->ComputeSDF(pos);
+					m_predicted[i] += correction;
+					float correctionLength = glm::length(correction);
+
+					// HACK: treat SDF as static
+					if (Global::Sim::friction > 0 && correctionLength > 0)
+					{
+						glm::vec3 relativeVelocity = m_predicted[i] - m_positions[i];
+						glm::vec3 correctionNorm = correction  / correctionLength;
+
+						glm::vec3 tangentialVelocity = relativeVelocity - correctionNorm * glm::dot(relativeVelocity, correctionNorm);
+						float tangentialLength = glm::length(tangentialVelocity);
+						float maxTangential = correctionLength * Global::Sim::friction;
+
+						m_predicted[i] -= tangentialVelocity * min(maxTangential / tangentialLength, 1.0f);
+					}
 				}
 			}
 		}

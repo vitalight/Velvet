@@ -46,7 +46,9 @@ namespace Velvet
 			inline float bendCompliance = 10.0;
 			inline glm::vec3 gravity = glm::vec3(0, -9.8, 0);
 			inline float damping = 0.1f;
-			inline float collisionMargin = 0.1;
+			inline float collisionMargin = 0.05;
+
+			inline float friction = 0.1f;
 
 			inline void OnGUI()
 			{
@@ -54,6 +56,7 @@ namespace Velvet
 				IMGUI_LEFT_LABEL(ImGui::SliderInt, "Num Iterations", &numIterations, 1, 20);
 				ImGui::Separator();
 				IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "Gravity", (float*)&gravity, -50, 50);
+				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "friction", &friction, 0, 1);
 				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Collision Margin", &collisionMargin, 0, 1);
 				ImGui::Separator();
 				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Bend Compliance", &bendCompliance, 0, 100.0, "%.3f", ImGuiSliderFlags_Logarithmic);
