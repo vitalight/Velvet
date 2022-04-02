@@ -91,8 +91,7 @@ namespace Velvet
 					SolveBending(substepTime);
 
 					//SolveSelfCollision();
-					if (!Global::Sim::debug)
-						SolveParticleCollision();
+					SolveParticleCollision();
 					SolveSDFCollision(m_predicted);
 
 					SolveAttachment();

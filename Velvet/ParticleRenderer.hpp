@@ -78,6 +78,11 @@ namespace Velvet
 			{
 				return;
 			}
+			if (m_shadowMaterial == nullptr)
+			{
+				return;
+			}
+
 			m_shadowMaterial->Use();
 			m_shadowMaterial->SetFloat("_ParticleRadius", m_cloth->solver()->particleDiameter() * 0.5f);
 			MeshRenderer::RenderShadow(lightMatrix);
