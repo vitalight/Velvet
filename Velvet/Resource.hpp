@@ -149,11 +149,19 @@ namespace Velvet
 			}
 			string vertexCode = LoadText(defaultMaterialPath + path + ".vert");
 			if (vertexCode.length() == 0) vertexCode = LoadText(path + ".vert");
-			if (vertexCode.length() == 0) fmt::print("Error(Resource): material.vertex not found ({})\n", path);
+			if (vertexCode.length() == 0)
+			{
+				fmt::print("Error(Resource): material.vertex not found ({})\n", path);
+				exit(-1);
+			}
 
 			string fragmentCode = LoadText(defaultMaterialPath + path + ".frag");
 			if (fragmentCode.length() == 0) fragmentCode = LoadText(path + ".frag");
-			if (fragmentCode.length() == 0) fmt::print("Error(Resource): material.fragment not found ({})\n", path);
+			if (fragmentCode.length() == 0)
+			{
+				fmt::print("Error(Resource): material.fragment not found ({})\n", path);
+				exit(-1);
+			}
 
 			auto result = make_shared<Material>(vertexCode, fragmentCode);
 			matCache[path] = result;

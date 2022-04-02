@@ -5,6 +5,8 @@
 
 #include "Transform.hpp"
 
+#define SET_COMPONENT_NAME name = __func__
+
 namespace Velvet
 {
 	using namespace std;
@@ -27,5 +29,7 @@ namespace Velvet
 		Actor* actor = nullptr;
 
 		shared_ptr<Transform> transform();
+
+		bool enabled = true;
 	};
 }

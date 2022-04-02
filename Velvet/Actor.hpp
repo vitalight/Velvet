@@ -46,6 +46,21 @@ namespace Velvet
 			return result;
 		}
 
+		template <typename T>
+		enable_if_t<is_base_of<Component, T>::value, vector<T*>> GetComponents()
+		{
+			vector<T*> result;
+			for (auto c : components)
+			{
+				auto item = dynamic_cast<T*>(c.get());
+				if (item)
+				{
+					result.push_back(item);
+				}
+			}
+			return result;
+		}
+
 	public:
 		shared_ptr<Transform> transform = make_shared<Transform>(Transform(this));
 		vector<shared_ptr<Component>> components;

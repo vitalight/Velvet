@@ -13,6 +13,7 @@ namespace Velvet
 
 		Collider(bool sphereOrPlane)
 		{
+			name = __func__;
 			m_sphereOrPlane = sphereOrPlane;
 		}
 

@@ -24,6 +24,7 @@ namespace Velvet
 	public:
 		VtClothObject(int resolution)
 		{
+			SET_COMPONENT_NAME;
 			m_solver = make_shared<VtClothSolver>(resolution);
 		}
 
@@ -48,6 +49,11 @@ namespace Velvet
 		{
 			UpdateGrappedVertex();
 			m_solver->Simulate();
+		}
+
+		shared_ptr<VtClothSolver> solver() const
+		{
+			return m_solver;
 		}
 
 	private:

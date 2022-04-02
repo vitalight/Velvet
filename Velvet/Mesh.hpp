@@ -112,11 +112,32 @@ namespace Velvet
 			glBufferSubData(GL_ARRAY_BUFFER, size, size, normals.data());
 		}
 
+		// Used for instanced rendering
+		void SetupExtraAttributes(const vector<unsigned int>& extraSizes) const
+		{
+			size_t current = 0;
+			for (int i = 0; i < m_attributeSizes.size(); i++)
+			{
+				int size = m_attributeSizes[i];
+				current += size * sizeof(float) * m_positions.size();
+			}
+			for (int i = 0; i < extraSizes.size(); i++)
+			{
+				int size = extraSizes[i];
+				int actualIndex = m_attributeSizes.size() + i;
+				glVertexAttribPointer(actualIndex, size, GL_FLOAT, GL_FALSE, size * sizeof(float),
+					(void*)(current));
+				glEnableVertexAttribArray(actualIndex);
+				current += size * sizeof(float) * m_positions.size();
+			}
+		}
+
 	private:
 		vector<glm::vec3> m_positions;
 		vector<glm::vec3> m_normals;
 		vector<glm::vec2> m_texCoords;
 		vector<unsigned int> m_indices;
+		vector<unsigned int> m_attributeSizes;
 
 		unsigned int m_VAO = 0;
 		unsigned int m_VBO = 0;
@@ -136,6 +157,8 @@ namespace Velvet
 				if (normals.size() > 0) attributeSizes.push_back(3u);
 				if (texCoords.size() > 0) attributeSizes.push_back(2u);
 			}
+
+			m_attributeSizes = attributeSizes;
 
 			// 1. bind Vertex Array Object
 			glGenVertexArrays(1, &m_VAO);

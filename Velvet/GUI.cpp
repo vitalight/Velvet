@@ -9,6 +9,7 @@ using namespace Velvet;
 inline GUI* g_Gui;
 
 #define IMGUI_LEFT_LABEL(func, label, ...) (ImGui::TextUnformatted(label), ImGui::SameLine(), func("##" label, __VA_ARGS__))
+#define SHORTCUT_BOOL(key, variable) if (Global::input->GetKeyDown(key)) variable = !variable
 
 void GUI::RegisterDebug(function<void()> callback)
 {
@@ -149,10 +150,14 @@ void GUI::ShowOptionWindow()
 	if (ImGui::CollapsingHeader("Global", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		static bool radio = false;
-		//ImGui::Checkbox("Draw Points", &radio);
 		ImGui::Checkbox("Pause (P, O)", &Global::game->pause);
+		Global::input->ToggleOnKeyDown(GLFW_KEY_P, Global::game->pause);
+		ImGui::Checkbox("Draw Particles (K)", &Global::Sim::drawParticles);
+		Global::input->ToggleOnKeyDown(GLFW_KEY_K, Global::Sim::drawParticles);
 		ImGui::Checkbox("Draw Wireframe (L)", &Global::game->renderWireframe);
+		Global::input->ToggleOnKeyDown(GLFW_KEY_L, Global::game->renderWireframe);
 		ImGui::Checkbox("Play Animation (Space)", &Global::game->playAnimation);
+		Global::input->ToggleOnKeyDown(GLFW_KEY_SPACE, Global::game->playAnimation);
 		ImGui::Dummy(ImVec2(0.0f, 10.0f));
 	}
 

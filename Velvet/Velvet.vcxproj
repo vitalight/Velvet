@@ -107,6 +107,7 @@
     <ClInclude Include="MaterialProperty.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="MeshRenderer.hpp" />
+    <ClInclude Include="ParticleRenderer.hpp" />
     <ClInclude Include="PlayerController.hpp" />
     <ClInclude Include="RenderPipeline.hpp" />
     <ClInclude Include="Resource.hpp" />
@@ -122,6 +123,10 @@
   <ItemGroup>
     <None Include="Assets\Shader\_Default.frag" />
     <None Include="Assets\Shader\_Default.vert" />
+    <None Include="Assets\Shader\_InstancedDefault.frag" />
+    <None Include="Assets\Shader\_InstancedDefault.vert" />
+    <None Include="Assets\Shader\_InstancedShadowDepth.frag" />
+    <None Include="Assets\Shader\_InstancedShadowDepth.vert" />
     <None Include="Assets\Shader\_Light.frag" />
     <None Include="Assets\Shader\_Light.vert" />
     <None Include="Assets\Shader\_ShadowDebug.frag" />

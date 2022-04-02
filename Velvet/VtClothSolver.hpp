@@ -104,6 +104,11 @@ namespace Velvet
 			m_mesh->SetVerticesAndNormals(m_positions, normals);
 		}
 
+		float particleDiameter() const
+		{
+			return m_particleDiameter;
+		}
+
 	private: // Generate constraints
 
 		void GenerateStretch()

@@ -42,10 +42,10 @@ namespace Velvet
 			vector<T*> result;
 			for (auto actor : m_actors)
 			{
-				auto component = actor->GetComponent<T>();
-				if (component != nullptr)
+				auto component = actor->GetComponents<T>();
+				if (component.size() > 0)
 				{
-					result.push_back(component);
+					result.insert(result.end(), component.begin(), component.end());
 				}
 			}
 			return result;

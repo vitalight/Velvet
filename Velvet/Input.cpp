@@ -29,6 +29,14 @@ bool Input::GetKeyDown(int key)
 	return !m_keyOnce[key] && m_keyNow[key];
 }
 
+void Input::ToggleOnKeyDown(int key, bool& variable)
+{
+	if (GetKeyDown(key))
+	{
+		variable = !variable;
+	}
+}
+
 // Returns true during the frame the user releases the key.
 bool Input::GetKeyUp(int key)
 {

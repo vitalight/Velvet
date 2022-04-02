@@ -90,17 +90,11 @@ void GameInstance::ProcessScroll(GLFWwindow* m_window, double xoffset, double yo
 
 void GameInstance::ProcessKeyboard(GLFWwindow* m_window)
 {
+	Global::input->ToggleOnKeyDown(GLFW_KEY_H, renderGUI);
+
 	if (Global::input->GetKey(GLFW_KEY_ESCAPE))
 	{
 		glfwSetWindowShouldClose(m_window, true);
-	}
-	if (Global::input->GetKeyDown(GLFW_KEY_L))
-	{
-		renderWireframe = !renderWireframe;
-	}
-	if (Global::input->GetKeyDown(GLFW_KEY_P))
-	{
-		pause = !pause;
 	}
 	if (Global::input->GetKeyDown(GLFW_KEY_O))
 	{
@@ -113,16 +107,6 @@ void GameInstance::ProcessKeyboard(GLFWwindow* m_window)
 		{	
 			Global::engine->SwitchScene(i);
 		}
-	}
-	if (Global::input->GetKeyDown(GLFW_KEY_SPACE))
-	{
-		// play anim
-		playAnimation = !playAnimation;
-	}
-	if (Global::input->GetKeyDown(GLFW_KEY_H))
-	{
-		// hide ui
-		renderGUI = !renderGUI;
 	}
 	if (Global::input->GetKeyDown(GLFW_KEY_R))
 	{

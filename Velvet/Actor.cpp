@@ -47,7 +47,10 @@ namespace Velvet
 	{
 		for (const auto& c : components)
 		{
-			c->FixedUpdate();
+			if (c->enabled)
+			{
+				c->FixedUpdate();
+			}
 		}
 	}
 }

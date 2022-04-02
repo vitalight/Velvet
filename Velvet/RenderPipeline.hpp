@@ -104,7 +104,10 @@ namespace Velvet
 
 			for (auto r : renderers)
 			{
-				r->RenderShadow(lightSpaceMatrix);
+				if (r->enabled)
+				{
+					r->RenderShadow(lightSpaceMatrix);
+				}
 			}
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -121,7 +124,10 @@ namespace Velvet
 
 			for (auto r : renderers)
 			{
-				r->Render(lightSpaceMatrix);
+				if (r->enabled)
+				{
+					r->Render(lightSpaceMatrix);
+				}
 			}
 		}
 	};

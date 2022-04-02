@@ -162,7 +162,6 @@ public:
 	void PopulateActors(GameInstance* game)  override
 	{
 		SpawnCameraAndLight(game);
-
 		SpawnInfinitePlane(game);
 
 		auto sphere = SpawnSphere(game);

@@ -19,26 +19,30 @@ namespace Velvet
 	class MeshRenderer : public Component
 	{
 	public:
+		// TODO: use boolean for castShadow
 		MeshRenderer(shared_ptr<Mesh> mesh, shared_ptr<Material> material, shared_ptr<Material> shadowMaterial = nullptr);
 
 		void SetMaterialProperty(const MaterialProperty& materialProperty);
 
-		void SetupLighting(shared_ptr<Material> m_material);
+		virtual void Render(glm::mat4 lightMatrix);
 
-		void Render(glm::mat4 lightMatrix);
+		virtual void RenderShadow(glm::mat4 lightMatrix);
 
-		void RenderShadow(glm::mat4 lightMatrix);
+		void DrawCall();
 
 		shared_ptr<Material> material() const;
-
-		bool hidden = false;
 
 		shared_ptr<Mesh> mesh() const
 		{
 			return m_mesh;
 		}
 
-	private:
+
+	protected:
+
+		void SetupLighting(shared_ptr<Material> m_material);
+
+		int m_numInstances = 0;
 		shared_ptr<Mesh> m_mesh;
 		shared_ptr<Material> m_material;
 		shared_ptr<Material> m_shadowMaterial;

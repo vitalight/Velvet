@@ -122,6 +122,9 @@
     <ClInclude Include="VtClothObject.hpp">
       <Filter>Physics</Filter>
     </ClInclude>
+    <ClInclude Include="ParticleRenderer.hpp">
+      <Filter>Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shader\_Default.frag">
@@ -156,6 +159,18 @@
     </None>
     <None Include="SpatialHash.hpp">
       <Filter>Physics</Filter>
+    </None>
+    <None Include="Assets\Shader\_InstancedDefault.frag">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\_InstancedDefault.vert">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\_InstancedShadowDepth.frag">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\_InstancedShadowDepth.vert">
+      <Filter>Shader</Filter>
     </None>
   </ItemGroup>
 </Project>

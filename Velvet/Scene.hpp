@@ -12,6 +12,7 @@
 #include "MaterialProperty.hpp"
 #include "Collider.hpp"
 #include "VtClothObject.hpp"
+#include "ParticleRenderer.hpp"
 
 namespace Velvet
 {
@@ -93,12 +94,12 @@ namespace Velvet
 				auto quadMesh = make_shared<Mesh>(attributes, quadVertices);
 				shared_ptr<MeshRenderer> renderer(new MeshRenderer(quadMesh, debugMat));
 				quad->AddComponent(renderer);
-				renderer->hidden = true;
+				renderer->enabled = false;
 
 				game->postUpdate.push_back([renderer]() {
 					if (Global::input->GetKeyDown(GLFW_KEY_X))
 					{
-						renderer->hidden = !renderer->hidden;
+						renderer->enabled = !renderer->enabled;
 					}
 					});
 			}
@@ -161,10 +162,14 @@ namespace Velvet
 
 				auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
 				renderer->SetMaterialProperty(materialProperty);
+				// TODO: batched add component
 				cloth->AddComponent(renderer);
 
 				auto clothObj = make_shared<VtClothObject>(resolution);
 				cloth->AddComponent(clothObj);
+
+				auto prenderer = make_shared<ParticleRenderer>();
+				cloth->AddComponent(prenderer);
 			}
 			return cloth;
 		}

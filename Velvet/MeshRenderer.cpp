@@ -43,8 +43,6 @@ namespace Velvet
 
 	void MeshRenderer::Render(glm::mat4 lightMatrix)
 	{
-		if (hidden)
-			return;
 		if (m_material->noWireframe && Global::game->renderWireframe)
 		{
 			return;
@@ -83,29 +81,12 @@ namespace Velvet
 
 		// matrices
 		m_material->SetMat4("_Model", actor->transform->matrix());
+
 		m_material->SetMat4("_View", Global::camera->view());
 		m_material->SetMat4("_Projection", Global::camera->projection());
 		m_material->SetMat4("_WorldToLight", lightMatrix);
 
-		if (m_material->doubleSided)
-		{
-			glDisable(GL_CULL_FACE);
-		}
-
-		glBindVertexArray(m_mesh->VAO());
-		if (m_mesh->useIndices())
-		{
-			glDrawElements(GL_TRIANGLES, m_mesh->drawCount(), GL_UNSIGNED_INT, 0);
-		}
-		else
-		{
-			glDrawArrays(GL_TRIANGLES, 0, m_mesh->drawCount());
-		}
-
-		if (m_material->doubleSided)
-		{
-			glEnable(GL_CULL_FACE);
-		}
+		DrawCall();
 	}	
 
 	void MeshRenderer::RenderShadow(glm::mat4 lightMatrix)
@@ -115,24 +96,44 @@ namespace Velvet
 			return;
 		}
 
+		m_shadowMaterial->Use();
+
+		m_shadowMaterial->SetMat4("_Model", actor->transform->matrix());
+
+		m_shadowMaterial->SetMat4("_WorldToLight", lightMatrix);
+
+		DrawCall();
+	}
+
+	void MeshRenderer::DrawCall()
+	{
 		if (m_material->doubleSided)
 		{
 			glDisable(GL_CULL_FACE);
 		}
 
-		m_shadowMaterial->Use();
-
-		m_shadowMaterial->SetMat4("_Model", actor->transform->matrix());
-		m_shadowMaterial->SetMat4("_WorldToLight", lightMatrix);
-
 		glBindVertexArray(m_mesh->VAO());
 		if (m_mesh->useIndices())
 		{
-			glDrawElements(GL_TRIANGLES, m_mesh->drawCount(), GL_UNSIGNED_INT, 0);
+			if (m_numInstances > 0)
+			{
+				glDrawElementsInstanced(GL_TRIANGLES, m_mesh->drawCount(), GL_UNSIGNED_INT, 0, m_numInstances);
+			}
+			else
+			{
+				glDrawElements(GL_TRIANGLES, m_mesh->drawCount(), GL_UNSIGNED_INT, 0);
+			}
 		}
 		else
 		{
-			glDrawArrays(GL_TRIANGLES, 0, m_mesh->drawCount());
+			if (m_numInstances > 0)
+			{
+				glDrawArraysInstanced(GL_TRIANGLES, 0, m_mesh->drawCount(), m_numInstances);
+			}
+			else
+			{
+				glDrawArrays(GL_TRIANGLES, 0, m_mesh->drawCount());
+			}
 		}
 
 		if (m_material->doubleSided)

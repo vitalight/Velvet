@@ -21,6 +21,8 @@ namespace Velvet
 		// Returns true during the frame the user starts pressing down the key.
 		bool GetKeyDown(int key);
 
+		void ToggleOnKeyDown(int key, bool& variable);
+
 		// Returns true during the frame the user releases the key.
 		bool GetKeyUp(int key);
 

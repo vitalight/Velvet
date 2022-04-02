@@ -50,6 +50,7 @@ namespace Velvet
 
 			inline float friction = 0.1f;
 			inline bool debug = false;
+			inline bool drawParticles = false;
 
 			inline void OnGUI()
 			{
