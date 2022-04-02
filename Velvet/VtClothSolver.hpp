@@ -283,6 +283,7 @@ namespace Velvet
 			}
 		}
 
+
 		void SolveSDFCollision(vector<glm::vec3>& positions) const
 		{
 			// SDF collision
@@ -293,20 +294,10 @@ namespace Velvet
 					auto pos = positions[i];
 					glm::vec3 correction = col->ComputeSDF(pos);
 					positions[i] += correction;
-					float correctionLength = glm::length(correction);
 
-					// HACK: treat SDF as static
-					if (Global::Sim::friction > 0 && correctionLength > 0)
-					{
-						glm::vec3 relativeVelocity = positions[i] - m_positions[i];
-						glm::vec3 correctionNorm = correction  / correctionLength;
-
-						glm::vec3 tangentialVelocity = relativeVelocity - correctionNorm * glm::dot(relativeVelocity, correctionNorm);
-						float tangentialLength = glm::length(tangentialVelocity);
-						float maxTangential = correctionLength * Global::Sim::friction;
-
-						positions[i] -= tangentialVelocity * min(maxTangential / tangentialLength, 1.0f);
-					}
+					glm::vec3 relativeVelocity = positions[i] - m_positions[i];
+					auto friction = ComputeFriction(correction, relativeVelocity);
+					positions[i] += friction;
 				}
 			}
 		}
@@ -361,6 +352,11 @@ namespace Velvet
 						auto common = lambda * gradient;
 						m_predicted[idx1] -= w1 * common;
 						m_predicted[idx2] += w2 * common;
+
+						glm::vec3 relativeVelocity = (m_predicted[idx1] - m_positions[idx1]) - (m_predicted[idx2] - m_positions[idx2]);
+						auto friction = ComputeFriction(common, relativeVelocity);
+						m_predicted[idx1] += w1 * friction;
+						m_predicted[idx2] -= w2 * friction;
 					}
 				}
 			}
@@ -379,7 +375,24 @@ namespace Velvet
 		}
 
 	private: // Utility functions
-		
+
+		glm::vec3 ComputeFriction(glm::vec3 correction, glm::vec3 relativeVelocity) const
+		{
+			glm::vec3 friction = glm::vec3(0);
+			float correctionLength = glm::length(correction);
+			if (Global::Sim::friction > 0 && correctionLength > 0)
+			{
+				glm::vec3 correctionNorm = correction / correctionLength;
+
+				glm::vec3 tangentialVelocity = relativeVelocity - correctionNorm * glm::dot(relativeVelocity, correctionNorm);
+				float tangentialLength = glm::length(tangentialVelocity);
+				float maxTangential = correctionLength * Global::Sim::friction;
+
+				friction = -tangentialVelocity * min(maxTangential / tangentialLength, 1.0f);
+			}
+			return friction;
+		}
+
 		vector<glm::vec3> ComputeNormals(const vector<glm::vec3> positions)
 		{
 			vector<glm::vec3> normals(positions.size());
