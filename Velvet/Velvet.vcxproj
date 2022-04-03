@@ -116,6 +116,7 @@
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="VtClothObject.hpp" />
     <ClInclude Include="VtClothSolver.hpp" />
+    <ClInclude Include="VtClothSolverGPU.hpp" />
     <ClInclude Include="VtEngine.hpp" />
     <ClInclude Include="GameInstance.hpp" />
     <ClInclude Include="Helper.hpp" />

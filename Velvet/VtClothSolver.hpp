@@ -12,8 +12,6 @@
 #include "SpatialHash.hpp"
 #include "Timer.hpp"
 
-//#define NAIVE
-
 namespace Velvet
 {
 	class VtClothSolver
@@ -282,7 +280,6 @@ namespace Velvet
 
 			}
 		}
-
 
 		void SolveSDFCollision(vector<glm::vec3>& positions) const
 		{

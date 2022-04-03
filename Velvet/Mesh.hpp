@@ -57,9 +57,9 @@ namespace Velvet
 			{
 				glDeleteBuffers(1, &m_EBO);
 			}
-			if (m_VBO > 0)
+			if (m_VBOs[0] > 0)
 			{
-				glDeleteBuffers(1, &m_VBO);
+				glDeleteBuffers(3, &m_VBOs[0]);
 			}
 			if (m_VAO > 0)
 			{
@@ -107,29 +107,11 @@ namespace Velvet
 		{
 			auto size = vertices.size() * sizeof(glm::vec3);
 			m_positions = vertices;
-			glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-			glBufferSubData(GL_ARRAY_BUFFER, 0, size, vertices.data());
-			glBufferSubData(GL_ARRAY_BUFFER, size, size, normals.data());
-		}
-
-		// Used for instanced rendering
-		void SetupExtraAttributes(const vector<unsigned int>& extraSizes) const
-		{
-			size_t current = 0;
-			for (int i = 0; i < m_attributeSizes.size(); i++)
-			{
-				int size = m_attributeSizes[i];
-				current += size * sizeof(float) * m_positions.size();
-			}
-			for (int i = 0; i < extraSizes.size(); i++)
-			{
-				int size = extraSizes[i];
-				int actualIndex = m_attributeSizes.size() + i;
-				glVertexAttribPointer(actualIndex, size, GL_FLOAT, GL_FALSE, size * sizeof(float),
-					(void*)(current));
-				glEnableVertexAttribArray(actualIndex);
-				current += size * sizeof(float) * m_positions.size();
-			}
+			m_normals = normals;
+			glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[0]);
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_DYNAMIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[1]);
+			glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), normals.data(), GL_DYNAMIC_DRAW);
 		}
 
 	private:
@@ -137,10 +119,9 @@ namespace Velvet
 		vector<glm::vec3> m_normals;
 		vector<glm::vec2> m_texCoords;
 		vector<unsigned int> m_indices;
-		vector<unsigned int> m_attributeSizes;
 
 		unsigned int m_VAO = 0;
-		unsigned int m_VBO = 0;
+		unsigned int m_VBOs[3];
 		unsigned int m_EBO = 0;
 
 		void Initialize(const vector<glm::vec3>& vertices, const vector<glm::vec3>& normals, const vector<glm::vec2>& texCoords,
@@ -151,32 +132,43 @@ namespace Velvet
 			m_texCoords = texCoords;
 			m_indices = indices;
 
-			if (attributeSizes.size() == 0)
-			{
-				if (vertices.size() > 0) attributeSizes.push_back(3u);
-				if (normals.size() > 0) attributeSizes.push_back(3u);
-				if (texCoords.size() > 0) attributeSizes.push_back(2u);
-			}
-
-			m_attributeSizes = attributeSizes;
-
 			// 1. bind Vertex Array Object
 			glGenVertexArrays(1, &m_VAO);
 			glBindVertexArray(m_VAO);
 
-			glGenBuffers(1, &m_VBO);
+			glGenBuffers(3, &m_VBOs[0]);
 
 			// 2. copy our vertices array in a buffer for OpenGL to use
 			size_t size[] = { vertices.size() * sizeof(glm::vec3),
 				normals.size() * sizeof(glm::vec3),
 				texCoords.size() * sizeof(glm::vec2) };
 
-			glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-			glBufferData(GL_ARRAY_BUFFER, size[0] + size[1] + size[2], NULL, GL_STATIC_DRAW);
-
-			glBufferSubData(GL_ARRAY_BUFFER, 0, size[0], vertices.data());
-			glBufferSubData(GL_ARRAY_BUFFER, size[0], size[1], normals.data());
-			glBufferSubData(GL_ARRAY_BUFFER, size[0] + size[1], size[2], texCoords.data());
+			int vboIndex = 0;
+			if (vertices.size()) 
+			{
+				glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[vboIndex]);
+				glBufferData(GL_ARRAY_BUFFER, size[0], vertices.data(), GL_STATIC_DRAW);
+				glVertexAttribPointer(vboIndex, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+				glEnableVertexAttribArray(vboIndex);
+				vboIndex++;
+			}
+			if (normals.size())
+			{
+				glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[vboIndex]);
+				glBufferData(GL_ARRAY_BUFFER, size[1], normals.data(), GL_STATIC_DRAW);
+				glVertexAttribPointer(vboIndex, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+				glEnableVertexAttribArray(vboIndex);
+				vboIndex++;
+			}
+			if (texCoords.size())
+			{
+				glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[vboIndex]);
+				glBufferData(GL_ARRAY_BUFFER, size[2], texCoords.data(), GL_STATIC_DRAW);
+				glVertexAttribPointer(vboIndex, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+				glEnableVertexAttribArray(vboIndex);
+				vboIndex++;
+			}
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 			// 3. copy our index array in a element buffer for OpenGL to use
 			if (useIndices())
@@ -187,7 +179,7 @@ namespace Velvet
 			}
 
 			// 4. then set the vertex attributes pointers
-			SetupAttributes(attributeSizes);
+			//SetupAttributes(attributeSizes);
 		}
 
 		void SetupAttributes(const vector<unsigned int>& attributeSizes) const
@@ -196,12 +188,9 @@ namespace Velvet
 			for (int i = 0; i < attributeSizes.size(); i++)
 			{
 				int size = attributeSizes[i];
-				glVertexAttribPointer(i, size, GL_FLOAT, GL_FALSE, size * sizeof(float),
-					(void*)(current));
-				//fmt::print("glVertexAttribPointer({}, {}, GL_FLOAT, GL_FALSE, size * sizeof(float), {}\n",
-				//	i, size, current);
+				glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[i]);
+				glVertexAttribPointer(i, size, GL_FLOAT, GL_FALSE, size * sizeof(float), 0);
 				glEnableVertexAttribArray(i);
-				current += size * sizeof(float) * m_positions.size();
 			}
 		}
 	};

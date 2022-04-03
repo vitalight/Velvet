@@ -103,6 +103,8 @@ namespace Velvet
 		void SetFloat(const std::string& name, float value) const
 		{
 			Use();
+			auto err = glGetError();
+			if (err != GL_NO_ERROR) fmt::print("Error: {}\n", err);
 			glUniform1f(GetLocation(name), value);
 		}
 		// ------------------------------------------------------------------------
