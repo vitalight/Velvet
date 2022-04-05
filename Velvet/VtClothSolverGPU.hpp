@@ -27,10 +27,12 @@ namespace Velvet
 			m_numParticles = (int)mesh->vertices().size();
 
 			m_positions.RegisterBuffer(mesh->verticesVBO());
-			m_velocities.Resize(m_numParticles);
+			m_velocities.resize(m_numParticles);
+			m_predicted.resize(m_numParticles);
+			m_inverseMass.resize(m_numParticles, 1.0f);
 
 			m_positions.Map();
-			InitializePositions(m_positions.raw(), m_numParticles, modelMatrix);
+			InitializePositions(m_positions.data(), m_numParticles, modelMatrix);
 			m_positions.Unmap();
 		}
 
@@ -45,12 +47,24 @@ namespace Velvet
 			m_params.deltaTime = Global::game->deltaTime;
 
 			SetSimulationParams(&m_params);
-			ApplyExternalForces(m_positions.raw(), m_velocities.raw(), m_numParticles);
-
+			ApplyExternalForces(m_positions.data(), m_velocities.data(), m_numParticles);
+			//SolveStretch(m_predicted.raw(), m_stretchIndices.raw(), m_stretchLengths.raw(), m_inverseMass.raw(), m_numStretchConstraints);
+			
 			// unmap buffer object
 			m_positions.Unmap();
+			//cudaDeviceSynchronize();
 		}
 
+	public:
+		void AddStretch(int idx1, int idx2)
+		{
+			auto DistanceBetween = [this](int idx1, int idx2) {
+				return glm::length(m_positions[idx1] - m_positions[idx2]);
+			};
+			m_stretchIndices.push_back(idx1);
+			m_stretchIndices.push_back(idx2);
+			m_stretchLengths.push_back(DistanceBetween(idx1, idx2));
+		}
 	private:
 
 		SimulationParams m_params;
@@ -58,5 +72,11 @@ namespace Velvet
 
 		VtBuffer<glm::vec3> m_positions;
 		VtBuffer<glm::vec3> m_velocities;
+		VtBuffer<glm::vec3> m_predicted;
+
+		VtBuffer<int> m_stretchIndices;
+		VtBuffer<float> m_stretchLengths;
+		VtBuffer<float> m_inverseMass;
+
 	};
 }

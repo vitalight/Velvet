@@ -85,10 +85,13 @@ int VtEngine::Run()
 {
 	do 
 	{
+#pragma warning( push )
+#pragma warning( disable : 4129)
 		fmt::print(fg(fmt::color::green),
 			"©°{0:\-^{2}}©´\n"
 			"©¦{1: ^{2}}©¦\n"
 			"©¸{0:\-^{2}}©¼\n", "", "Hello, Velvet!", 30);
+#pragma warning( pop ) 
 
 		m_game = make_shared<GameInstance>(m_window, m_gui);
 		scenes[sceneIndex]->PopulateActors(m_game.get());

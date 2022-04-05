@@ -18,14 +18,18 @@ namespace Velvet
 		float deltaTime;
 	};
 
-	void inline AllocateArray(void** devPtr, size_t size)
+	template<class T>
+	inline T* VtAllocBuffer(int elementCount)
 	{
-		checkCudaErrors(cudaMalloc(devPtr, size));
+		T* devPtr = nullptr;
+		checkCudaErrors(cudaMallocManaged((void**)&devPtr, elementCount * sizeof(T)));
+		cudaDeviceSynchronize(); // this is necessary, otherwise realloc can cause crash
+		return devPtr;
 	}
 
-	void inline FreeArray(void* devPtr)
+	void inline VtFreeBuffer(void* buffer)
 	{
-		checkCudaErrors(cudaFree(devPtr));
+		checkCudaErrors(cudaFree(buffer));
 	}
 
 	void SetSimulationParams(SimulationParams* hostParams);
@@ -34,4 +38,5 @@ namespace Velvet
 
 	void ApplyExternalForces(glm::vec3* positions, glm::vec3* velocities, uint numParticles);
 
+	void SolveStretch(glm::vec3* predicted, int* stretchIndices, float* stretchLengths, float* inverseMass, uint numConstraints);
 }
