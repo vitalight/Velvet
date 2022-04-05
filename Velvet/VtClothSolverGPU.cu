@@ -1,6 +1,7 @@
 #include "VtClothSolverGPU.cuh"
 
 #include <tuple>
+#include <fmt/format.h>
 
 #include "helper_cuda.h"
 
@@ -8,6 +9,8 @@ using namespace std;
 
 namespace Velvet
 {
+	__device__ __constant__ SimulationParams d_params;
+
 	void AllocateArray(void** devPtr, size_t size)
 	{
 		checkCudaErrors(cudaMalloc(devPtr, size));
@@ -16,6 +19,11 @@ namespace Velvet
 	void FreeArray(void* devPtr)
 	{
 		checkCudaErrors(cudaFree(devPtr));
+	}
+
+	void SetSimulationParams(SimulationParams* hostParams)
+	{
+		checkCudaErrors(cudaMemcpyToSymbol(d_params, hostParams, sizeof(SimulationParams)));
 	}
 
 	struct TransformFunctor
@@ -35,29 +43,16 @@ namespace Velvet
 		thrust::transform(d_positions, d_positions + count, d_positions, TransformFunctor(modelMatrix));
 	}
 
-	struct ApplyExternalForcesFunctor1
-	{
-		const glm::vec3 force;
-		ApplyExternalForcesFunctor1(glm::vec3 _force) : force(_force) {}
-
-		__host__ __device__
-			glm::vec3 operator()(const glm::vec3 velocities) const {
-			return velocities + force;
-		}
-	};
-
-
 	__global__
-	void ApplyExternalForces_Impl(glm::vec3* positions, glm::vec3* velocities, uint numParticles)
+	void ApplyExternalForces_Impl(glm::vec3* positions, glm::vec3* velocities)
 	{
 		uint id = blockIdx.x * blockDim.x + threadIdx.x;
 
-		if (id < numParticles)
+		if (id < d_params.numParticles)
 		{
 			glm::vec3 gravity = glm::vec3(0, -10, 0);
-			float dt = 1.0f / 60.0f;
-			velocities[id] += gravity * dt;
-			positions[id] += velocities[id] * dt;
+			velocities[id] += d_params.gravity * d_params.deltaTime;
+			positions[id] += velocities[id] * d_params.deltaTime;
 		}
 	}
 
@@ -65,14 +60,21 @@ namespace Velvet
 
 	void ComputeGridSize(uint n, uint &numBlocks, uint &numThreads)
 	{
+		if (n == 0)
+		{
+			fmt::print("Error(Solver): numParticles is 0\n");
+			numBlocks = 0;
+			numThreads = 0;
+			return;
+		}
 		numThreads = min(n, blockSize);
 		numBlocks = (n % numThreads != 0) ? (n / numThreads + 1) : (n / numThreads);
 	}
 
-	void ApplyExternalForces(glm::vec3* positions, glm::vec3* velocities, uint count)
+	void ApplyExternalForces(glm::vec3* positions, glm::vec3* velocities, uint numParticles)
 	{
 		uint numBlocks, numThreads;
-		ComputeGridSize(count, numBlocks, numThreads);
-		ApplyExternalForces_Impl <<< numBlocks, numThreads >>> (positions, velocities, count);
+		ComputeGridSize(numParticles, numBlocks, numThreads);
+		ApplyExternalForces_Impl <<< numBlocks, numThreads >>> (positions, velocities);
 	}
 }

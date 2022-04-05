@@ -48,14 +48,13 @@ namespace Velvet
 			size_t num_bytes;
 			checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&positions, &num_bytes,
 				m_cudaVboResource));
-			//printf("CUDA mapped VBO: May access %ld bytes\n", num_bytes);
 
-			// execute the kernel
-			//    dim3 block(8, 8, 1);
-			//    dim3 grid(mesh_width / block.x, mesh_height / block.y, 1);
-			//    kernel<<< grid, block>>>(dptr, mesh_width, mesh_height, g_fAnim);
+			// launch kernel
+			m_params.gravity = Global::Sim::gravity;
+			m_params.numParticles = m_numParticles;
+			m_params.deltaTime = Global::game->deltaTime;
 
-			//launch_kernel(dptr, mesh_width, mesh_height, g_fAnim);
+			SetSimulationParams(&m_params);
 			ApplyExternalForces(positions, m_velocities, m_numParticles);
 
 			// unmap buffer object
@@ -73,6 +72,7 @@ namespace Velvet
 
 	private:
 
+		SimulationParams m_params;
 		uint m_numParticles;
 		glm::vec3* m_velocities;
 		GLuint m_vbo;
