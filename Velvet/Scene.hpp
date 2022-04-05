@@ -163,14 +163,10 @@ namespace Velvet
 
 				auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
 				renderer->SetMaterialProperty(materialProperty);
-				// TODO: batched add component
-				cloth->AddComponent(renderer);
-
 				auto clothObj = make_shared<VtClothObjectGPU>(resolution);
-				cloth->AddComponent(clothObj);
-
 				auto prenderer = make_shared<ParticleRenderer>();
-				cloth->AddComponent(prenderer);
+
+				cloth->AddComponents({ renderer, clothObj, prenderer });
 			}
 			return cloth;
 		}
@@ -194,9 +190,8 @@ namespace Velvet
 			auto mesh = Resource::LoadMesh("sphere.obj");
 			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
 			renderer->SetMaterialProperty(materialProperty);
-			sphere->AddComponent(renderer);
 			auto collider = make_shared<Collider>(false);
-			sphere->AddComponent(collider);
+			sphere->AddComponents({ renderer, collider });
 			return sphere;
 		}
 
@@ -208,8 +203,7 @@ namespace Velvet
 			auto renderer = make_shared<MeshRenderer>(mesh, material);
 			auto light = make_shared<Light>();
 
-			actor->AddComponent(renderer);
-			actor->AddComponent(light);
+			actor->AddComponents({ renderer, light });
 			return actor;
 		}
 
@@ -218,8 +212,7 @@ namespace Velvet
 			auto actor = game->CreateActor("Prefab Camera");
 			auto camera = make_shared<Camera>();
 			auto controller = make_shared<PlayerController>();
-			actor->AddComponent(camera);
-			actor->AddComponent(controller);
+			actor->AddComponents({ camera, controller });
 			return actor;
 		}
 
@@ -240,9 +233,8 @@ namespace Velvet
 
 			auto mesh = make_shared<Mesh>(vertices, vector<glm::vec3>(), vector<glm::vec2>(), indices);
 			auto renderer = make_shared<MeshRenderer>(mesh, mat);
-			infPlane->AddComponent(renderer);
 			auto collider = make_shared<Collider>(true);
-			infPlane->AddComponent(collider);
+			infPlane->AddComponents({ renderer, collider });
 			return infPlane;
 		}
 	

@@ -27,6 +27,14 @@ namespace Velvet
 		components.push_back(component);
 	}
 
+	void Actor::AddComponents(const initializer_list<shared_ptr<Component>>& newComponents)
+	{
+		for (const auto& c : newComponents)
+		{
+			AddComponent(c);
+		}
+	}
+
 	void Actor::OnDestroy()
 	{
 		for (const auto& c : components)
