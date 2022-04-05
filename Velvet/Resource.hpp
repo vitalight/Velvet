@@ -199,6 +199,7 @@ namespace Velvet
 		{
 			// only mat needs to be clear
 			matCache.clear();
+			meshCache.clear();
 		}
 
 	private:

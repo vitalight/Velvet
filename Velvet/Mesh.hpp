@@ -57,9 +57,9 @@ namespace Velvet
 			{
 				glDeleteBuffers(1, &m_EBO);
 			}
-			if (m_VBOs[0] > 0)
+			if (m_VBOs.size() > 0)
 			{
-				glDeleteBuffers(3, &m_VBOs[0]);
+				glDeleteBuffers(m_VBOs.size(), &m_VBOs[0]);
 			}
 			if (m_VAO > 0)
 			{
@@ -124,6 +124,28 @@ namespace Velvet
 			glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), normals.data(), GL_DYNAMIC_DRAW);
 		}
 
+		GLuint AllocateVBO(unsigned int floatCount, bool instanceAttribute = false)
+		{
+			GLuint VBO;
+			glBindVertexArray(m_VAO);
+			glGenBuffers(1, &VBO);
+			m_VBOs.push_back(VBO);
+
+			glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+			int index = m_VBOs.size() - 1;
+			glEnableVertexAttribArray(index);
+			glVertexAttribPointer(index, floatCount, GL_FLOAT, GL_FALSE, floatCount * sizeof(float), (void*)0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			if (instanceAttribute)
+			{
+				glVertexAttribDivisor(index, 1);
+			}
+
+			return VBO;
+		}
+
 	private:
 		vector<glm::vec3> m_positions;
 		vector<glm::vec3> m_normals;
@@ -131,8 +153,8 @@ namespace Velvet
 		vector<unsigned int> m_indices;
 
 		GLuint m_VAO = 0;
-		GLuint m_VBOs[3];
 		GLuint m_EBO = 0;
+		vector<GLuint> m_VBOs;
 
 		void Initialize(const vector<glm::vec3>& vertices, const vector<glm::vec3>& normals, const vector<glm::vec2>& texCoords,
 			const vector<unsigned int>& indices, vector<unsigned int> attributeSizes = {})
@@ -146,37 +168,28 @@ namespace Velvet
 			glGenVertexArrays(1, &m_VAO);
 			glBindVertexArray(m_VAO);
 
-			glGenBuffers(3, &m_VBOs[0]);
-
 			// 2. copy our vertices array in a buffer for OpenGL to use
 			size_t size[] = { vertices.size() * sizeof(glm::vec3),
 				normals.size() * sizeof(glm::vec3),
 				texCoords.size() * sizeof(glm::vec2) };
 
-			int vboIndex = 0;
 			if (vertices.size()) 
 			{
-				glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[vboIndex]);
+				auto vbo = AllocateVBO(3);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo);
 				glBufferData(GL_ARRAY_BUFFER, size[0], vertices.data(), GL_STATIC_DRAW);
-				glVertexAttribPointer(vboIndex, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-				glEnableVertexAttribArray(vboIndex);
-				vboIndex++;
 			}
 			if (normals.size())
 			{
-				glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[vboIndex]);
-				glBufferData(GL_ARRAY_BUFFER, size[1], normals.data(), GL_STATIC_DRAW);
-				glVertexAttribPointer(vboIndex, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-				glEnableVertexAttribArray(vboIndex);
-				vboIndex++;
+				auto vbo = AllocateVBO(3);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo);
+				glBufferData(GL_ARRAY_BUFFER, size[0], normals.data(), GL_STATIC_DRAW);
 			}
 			if (texCoords.size())
 			{
-				glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[vboIndex]);
-				glBufferData(GL_ARRAY_BUFFER, size[2], texCoords.data(), GL_STATIC_DRAW);
-				glVertexAttribPointer(vboIndex, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
-				glEnableVertexAttribArray(vboIndex);
-				vboIndex++;
+				auto vbo = AllocateVBO(2);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo);
+				glBufferData(GL_ARRAY_BUFFER, size[0], texCoords.data(), GL_STATIC_DRAW);
 			}
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -187,21 +200,7 @@ namespace Velvet
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 			}
-
-			// 4. then set the vertex attributes pointers
-			//SetupAttributes(attributeSizes);
 		}
 
-		void SetupAttributes(const vector<unsigned int>& attributeSizes) const
-		{
-			size_t current = 0;
-			for (int i = 0; i < attributeSizes.size(); i++)
-			{
-				int size = attributeSizes[i];
-				glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[i]);
-				glVertexAttribPointer(i, size, GL_FLOAT, GL_FALSE, size * sizeof(float), 0);
-				glEnableVertexAttribArray(i);
-			}
-		}
 	};
 }

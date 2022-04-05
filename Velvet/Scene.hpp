@@ -163,7 +163,7 @@ namespace Velvet
 
 				auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
 				renderer->SetMaterialProperty(materialProperty);
-				auto clothObj = make_shared<VtClothObjectGPU>(resolution);
+				auto clothObj = make_shared<VtClothObject>(resolution);
 				auto prenderer = make_shared<ParticleRenderer>();
 
 				cloth->AddComponents({ renderer, clothObj, prenderer });

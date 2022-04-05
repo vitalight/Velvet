@@ -17,28 +17,12 @@ namespace Velvet
 		{
 			SET_COMPONENT_NAME;
 
-			// TODO: adapt
-			glBindVertexArray(m_mesh->VAO());
-
-			glGenBuffers(1, &m_instanceVBO);
-			glBindBuffer(GL_ARRAY_BUFFER, m_instanceVBO);
-			//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * objectCount, &translations[0], GL_DYNAMIC_DRAW);
-
-			int nowIndex = 3; // TODO
-			glEnableVertexAttribArray(nowIndex); 
-			glVertexAttribPointer(nowIndex, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			glVertexAttribDivisor(nowIndex, 1);
+			m_instanceVBO = m_mesh->AllocateVBO(3, true);
 
 			m_material->SetVec3("material.tint", glm::vec3(0.2, 0.3, 0.6));
 			m_material->specular = 0.0f;
 			m_material->SetBool("material.useTexture", false);
 			m_material->SetTexture("_ShadowTex", Global::game->depthFrameBuffer());
-		}
-
-		~ParticleRenderer()
-		{
-			glDeleteBuffers(1, &m_instanceVBO);
 		}
 
 		void Start() override

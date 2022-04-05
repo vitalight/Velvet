@@ -104,7 +104,10 @@ namespace Velvet
 		{
 			Use();
 			auto err = glGetError();
-			if (err != GL_NO_ERROR) fmt::print("Error: {}\n", err);
+			if (err != GL_NO_ERROR)
+			{
+				fmt::print("Error(SetFloat): {}\n", err);
+			}
 			glUniform1f(GetLocation(name), value);
 		}
 		// ------------------------------------------------------------------------
