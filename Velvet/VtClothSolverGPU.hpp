@@ -1,24 +1,20 @@
 #pragma once
 
-#include <glad/glad.h>
+#include <iostream>
 
-// includes, cuda
+#include <glad/glad.h>
+#include <glm/glm.hpp>
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
-// CUDA helper functions
-//#include <helper_cuda.h> 
+#include <thrust/device_ptr.h>
+#include <thrust/transform.h>
 
-#define checkCudaErrors(val) check((val), #val, __FILE__, __LINE__)
+#include "helper_cuda.h"
+#include "Mesh.hpp"
+#include "VtClothSolverGPU.cuh"
 
-template <typename T>
-void check(T result, char const* const func, const char* const file,
-	int const line) {
-	if (result) {
-		fprintf(stderr, "CUDA error at %s:%d code=%d(%s) \"%s\" \n", file, line,
-			static_cast<unsigned int>(result), _cudaGetErrorEnum(result), func);
-		exit(EXIT_FAILURE);
-	}
-}
+
+using namespace std;
 
 namespace Velvet
 {
@@ -26,55 +22,32 @@ namespace Velvet
 	{
 	public:
 
-		VtClothSolverGPU()
+		void Initialize(shared_ptr<Mesh> mesh, glm::mat4 modelMatrix)
 		{
-			createVBO(&m_vbo, &m_cudaVboResource, cudaGraphicsMapFlagsNone);
-		}
+			checkCudaErrors(cudaGraphicsGLRegisterBuffer(&m_cudaVboResource, mesh->verticesVBO(), cudaGraphicsRegisterFlagsNone));
 
-		~VtClothSolverGPU()
-		{
-			deleteVBO(&m_vbo, m_cudaVboResource);
+			glm::vec3* positions;
+			checkCudaErrors(cudaGraphicsMapResources(1, &m_cudaVboResource, 0));
+			size_t num_bytes;
+			checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&positions, &num_bytes,
+				m_cudaVboResource));
+
+			m_numParticles = mesh->vertices().size();
+			InitializePositions(positions, m_numParticles, modelMatrix);
+			
+			checkCudaErrors(cudaGraphicsUnmapResources(1, &m_cudaVboResource, 0));
+
+			AllocateArray((void**)&m_velocities, sizeof(glm::vec3) * m_numParticles);
 		}
 
 		void Simulate()
 		{
-
-		}
-
-	private:
-
-		GLuint m_vbo;
-		struct cudaGraphicsResource* m_cudaVboResource;
-
-		void createVBO(GLuint* vbo, struct cudaGraphicsResource** vbo_res,
-			unsigned int vbo_res_flags)
-		{
-			//assert(vbo);
-
-			// create buffer object
-			glGenBuffers(1, vbo);
-			glBindBuffer(GL_ARRAY_BUFFER, *vbo);
-
-			// initialize buffer object
-			unsigned int size = mesh_width * mesh_height * 4 * sizeof(float);
-			glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_DRAW);
-
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-			// register this buffer object with CUDA
-			checkCudaErrors(cudaGraphicsGLRegisterBuffer(vbo_res, *vbo, vbo_res_flags));
-
-			//SDK_CHECK_ERROR_GL();
-		}
-
-		void runCuda(struct cudaGraphicsResource** vbo_resource)
-		{
 			// map OpenGL buffer object for writing from CUDA
-			float4* dptr;
-			checkCudaErrors(cudaGraphicsMapResources(1, vbo_resource, 0));
+			glm::vec3* positions;
+			checkCudaErrors(cudaGraphicsMapResources(1, &m_cudaVboResource, 0));
 			size_t num_bytes;
-			checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&dptr, &num_bytes,
-				*vbo_resource));
+			checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&positions, &num_bytes,
+				m_cudaVboResource));
 			//printf("CUDA mapped VBO: May access %ld bytes\n", num_bytes);
 
 			// execute the kernel
@@ -83,20 +56,26 @@ namespace Velvet
 			//    kernel<<< grid, block>>>(dptr, mesh_width, mesh_height, g_fAnim);
 
 			//launch_kernel(dptr, mesh_width, mesh_height, g_fAnim);
+			ApplyExternalForces(positions, m_velocities, m_numParticles);
 
 			// unmap buffer object
-			checkCudaErrors(cudaGraphicsUnmapResources(1, vbo_resource, 0));
+			checkCudaErrors(cudaGraphicsUnmapResources(1, &m_cudaVboResource, 0));
 		}
 
-		void deleteVBO(GLuint* vbo, struct cudaGraphicsResource* vbo_res)
+		void Finalize()
 		{
-			// unregister this buffer object with CUDA
-			checkCudaErrors(cudaGraphicsUnregisterResource(vbo_res));
-
-			glBindBuffer(1, *vbo);
-			glDeleteBuffers(1, vbo);
-
-			*vbo = 0;
+			if (m_cudaVboResource != nullptr)
+			{
+				checkCudaErrors(cudaGraphicsUnregisterResource(m_cudaVboResource));
+			}
+			FreeArray((void*)m_velocities);
 		}
+
+	private:
+
+		uint m_numParticles;
+		glm::vec3* m_velocities;
+		GLuint m_vbo;
+		struct cudaGraphicsResource* m_cudaVboResource;
 	};
 }

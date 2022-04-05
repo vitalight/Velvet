@@ -48,6 +48,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)External\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -66,6 +67,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)External\cuda;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -80,6 +82,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="VtClothSolverGPU.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Component.cpp" />
@@ -96,6 +99,8 @@
   <ItemGroup>
     <ClInclude Include="Camera.hpp" />
     <ClInclude Include="Collider.hpp" />
+    <ClInclude Include="External\cuda\helper_cuda.h" />
+    <ClInclude Include="External\cuda\helper_string.h" />
     <ClInclude Include="External\stb_image.h" />
     <ClInclude Include="Actor.hpp" />
     <ClInclude Include="Component.hpp" />
@@ -115,7 +120,9 @@
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="VtClothObject.hpp" />
+    <ClInclude Include="VtClothObjectGPU.hpp" />
     <ClInclude Include="VtClothSolver.hpp" />
+    <ClInclude Include="VtClothSolverGPU.cuh" />
     <ClInclude Include="VtClothSolverGPU.hpp" />
     <ClInclude Include="VtEngine.hpp" />
     <ClInclude Include="GameInstance.hpp" />

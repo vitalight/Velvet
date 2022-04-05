@@ -12,6 +12,7 @@
 #include "MaterialProperty.hpp"
 #include "Collider.hpp"
 #include "VtClothObject.hpp"
+#include "VtClothObjectGPU.hpp"
 #include "ParticleRenderer.hpp"
 
 namespace Velvet
@@ -165,7 +166,7 @@ namespace Velvet
 				// TODO: batched add component
 				cloth->AddComponent(renderer);
 
-				auto clothObj = make_shared<VtClothObject>(resolution);
+				auto clothObj = make_shared<VtClothObjectGPU>(resolution);
 				cloth->AddComponent(clothObj);
 
 				auto prenderer = make_shared<ParticleRenderer>();

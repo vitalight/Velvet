@@ -2,6 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="VtClothSolverGPU.cu">
+      <Filter>Physics</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -126,6 +129,18 @@
       <Filter>Physics</Filter>
     </ClInclude>
     <ClInclude Include="VtClothSolverGPU.hpp">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="VtClothObjectGPU.hpp">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="External\cuda\helper_cuda.h">
+      <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="External\cuda\helper_string.h">
+      <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="VtClothSolverGPU.cuh">
       <Filter>Physics</Filter>
     </ClInclude>
   </ItemGroup>

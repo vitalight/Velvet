@@ -103,6 +103,16 @@ namespace Velvet
 			return m_indices;
 		}
 
+		const GLuint verticesVBO() const
+		{
+			return m_VBOs[0];
+		}
+
+		const GLuint normalsVBO() const
+		{
+			return m_VBOs[1];
+		}
+
 		void SetVerticesAndNormals(const vector<glm::vec3>& vertices, const vector<glm::vec3>& normals)
 		{
 			auto size = vertices.size() * sizeof(glm::vec3);
@@ -120,9 +130,9 @@ namespace Velvet
 		vector<glm::vec2> m_texCoords;
 		vector<unsigned int> m_indices;
 
-		unsigned int m_VAO = 0;
-		unsigned int m_VBOs[3];
-		unsigned int m_EBO = 0;
+		GLuint m_VAO = 0;
+		GLuint m_VBOs[3];
+		GLuint m_EBO = 0;
 
 		void Initialize(const vector<glm::vec3>& vertices, const vector<glm::vec3>& normals, const vector<glm::vec2>& texCoords,
 			const vector<unsigned int>& indices, vector<unsigned int> attributeSizes = {})

@@ -50,7 +50,7 @@ namespace Velvet
 		{
 			if (!m_cloth)
 			{
-				fmt::print("Warning(ParticleRenderer): No cloth found\n");
+				//fmt::print("Warning(ParticleRenderer): No cloth found\n");
 				return;
 			}
 			vector<glm::vec3> &translations = m_cloth->solver()->m_positions;
