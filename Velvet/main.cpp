@@ -9,8 +9,6 @@
 
 using namespace Velvet;
 
-// TODO(Render): shadow material by default (add option for castShadow)
-
 class ScenePremitiveRendering : public Scene
 {
 public:
@@ -33,12 +31,10 @@ public:
 			material->SetBool("material.useTexture", true);
 		}
 
-		auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
-
 		auto cube1 = game->CreateActor("Sphere");
 		{
 			auto mesh = Resource::LoadMesh("sphere.obj");
-			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
+			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, true));
 			cube1->AddComponent(renderer);
 			cube1->transform->position = glm::vec3(0.6f, 2.0f, 0.0);
 			cube1->transform->scale = glm::vec3(0.5f);
@@ -47,7 +43,7 @@ public:
 		auto cube2 = game->CreateActor("Cube2");
 		{
 			auto mesh = Resource::LoadMesh("cube.obj");
-			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
+			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 			cube2->AddComponent(renderer);
 			cube2->transform->position = glm::vec3(2.0f, 0.5, 1.0);
 		}
@@ -55,11 +51,11 @@ public:
 		auto cube3 = game->CreateActor("Cube3");
 		{
 			auto mesh = Resource::LoadMesh("cube.obj");
-			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
+			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 			cube3->AddComponent(renderer);
-			cube3->transform->position = glm::vec3(-1.0f, 0.5, 2.0);
-			cube3->transform->scale = glm::vec3(0.5f);
-			cube3->transform->rotation = glm::vec3(60, 0, 60);
+			cube3->Initialize(glm::vec3(-1.0f, 0.5, 2.0),
+				glm::vec3(0.5f),
+				glm::vec3(60, 0, 60));
 		}
 
 		SpawnInfinitePlane(game);

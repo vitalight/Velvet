@@ -19,8 +19,7 @@ namespace Velvet
 	class MeshRenderer : public Component
 	{
 	public:
-		// TODO: use boolean for castShadow
-		MeshRenderer(shared_ptr<Mesh> mesh, shared_ptr<Material> material, shared_ptr<Material> shadowMaterial = nullptr);
+		MeshRenderer(shared_ptr<Mesh> mesh, shared_ptr<Material> material, bool castShadow = false);
 
 		void SetMaterialProperty(const MaterialProperty& materialProperty);
 

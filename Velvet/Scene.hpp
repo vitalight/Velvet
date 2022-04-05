@@ -123,8 +123,6 @@ namespace Velvet
 				mat->specular = 0.01f;
 			};
 
-			auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
-
 			{
 				vector<glm::vec3> vertices;
 				vector<glm::vec3> normals;
@@ -161,7 +159,7 @@ namespace Velvet
 				}
 				auto mesh = make_shared<Mesh>(vertices, normals, uvs, indices);
 
-				auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
+				auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 				renderer->SetMaterialProperty(materialProperty);
 				auto clothObj = make_shared<VtClothObject>(resolution);
 				auto prenderer = make_shared<ParticleRenderer>();
@@ -185,10 +183,9 @@ namespace Velvet
 				material->Use();
 				material->SetTexture("_ShadowTex", game->depthFrameBuffer());
 			}
-			auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 
 			auto mesh = Resource::LoadMesh("sphere.obj");
-			auto renderer = make_shared<MeshRenderer>(mesh, material, shadowMaterial);
+			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 			renderer->SetMaterialProperty(materialProperty);
 			auto collider = make_shared<Collider>(false);
 			sphere->AddComponents({ renderer, collider });
@@ -251,9 +248,8 @@ namespace Velvet
 				mat->SetBool("material.useTexture", false);
 			};
 
-			auto shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
 			auto mesh = Resource::LoadMesh("cube.obj");
-			shared_ptr<MeshRenderer> renderer(new MeshRenderer(mesh, material, shadowMaterial));
+			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 			renderer->SetMaterialProperty(materialProperty);
 
 			cube->AddComponent(renderer);

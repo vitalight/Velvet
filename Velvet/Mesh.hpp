@@ -59,7 +59,7 @@ namespace Velvet
 			}
 			if (m_VBOs.size() > 0)
 			{
-				glDeleteBuffers(m_VBOs.size(), &m_VBOs[0]);
+				glDeleteBuffers((GLsizei)m_VBOs.size(), &m_VBOs[0]);
 			}
 			if (m_VAO > 0)
 			{
@@ -133,7 +133,7 @@ namespace Velvet
 
 			glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-			int index = m_VBOs.size() - 1;
+			int index = (int)m_VBOs.size() - 1;
 			glEnableVertexAttribArray(index);
 			glVertexAttribPointer(index, floatCount, GL_FLOAT, GL_FALSE, floatCount * sizeof(float), (void*)0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -169,27 +169,23 @@ namespace Velvet
 			glBindVertexArray(m_VAO);
 
 			// 2. copy our vertices array in a buffer for OpenGL to use
-			size_t size[] = { vertices.size() * sizeof(glm::vec3),
-				normals.size() * sizeof(glm::vec3),
-				texCoords.size() * sizeof(glm::vec2) };
-
 			if (vertices.size()) 
 			{
 				auto vbo = AllocateVBO(3);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo);
-				glBufferData(GL_ARRAY_BUFFER, size[0], vertices.data(), GL_STATIC_DRAW);
+				glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
 			}
 			if (normals.size())
 			{
 				auto vbo = AllocateVBO(3);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo);
-				glBufferData(GL_ARRAY_BUFFER, size[0], normals.data(), GL_STATIC_DRAW);
+				glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), normals.data(), GL_STATIC_DRAW);
 			}
 			if (texCoords.size())
 			{
 				auto vbo = AllocateVBO(2);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo);
-				glBufferData(GL_ARRAY_BUFFER, size[0], texCoords.data(), GL_STATIC_DRAW);
+				glBufferData(GL_ARRAY_BUFFER, texCoords.size() * sizeof(glm::vec2), texCoords.data(), GL_STATIC_DRAW);
 			}
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 

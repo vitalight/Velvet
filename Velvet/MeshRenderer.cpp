@@ -5,14 +5,19 @@
 #include "Camera.hpp"
 #include "Actor.hpp"
 #include "Light.hpp"
+#include "Resource.hpp"
 
 namespace Velvet
 {
-
-	MeshRenderer::MeshRenderer(shared_ptr<Mesh> mesh, shared_ptr<Material> material, shared_ptr<Material> shadowMaterial)
-		: m_mesh(mesh), m_material(material), m_shadowMaterial(shadowMaterial)
+	MeshRenderer::MeshRenderer(shared_ptr<Mesh> mesh, shared_ptr<Material> material, bool castShadow)
+		: m_mesh(mesh), m_material(material)
 	{
-		name = __func__;
+		SET_COMPONENT_NAME;
+
+		if (castShadow)
+		{
+			m_shadowMaterial = Resource::LoadMaterial("_ShadowDepth");
+		}
 	}
 
 	void MeshRenderer::SetMaterialProperty(const MaterialProperty& materialProperty)
