@@ -31,7 +31,8 @@ namespace Velvet
 
 		void OnDestroy() override
 		{
-			m_solver->Finalize();
+			// some member variables need to be destructed earlier
+			m_solver = nullptr;
 		}
 
 	private:

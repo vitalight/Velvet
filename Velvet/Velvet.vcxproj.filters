@@ -143,6 +143,9 @@
     <ClInclude Include="VtClothSolverGPU.cuh">
       <Filter>Physics</Filter>
     </ClInclude>
+    <ClInclude Include="VtBuffer.hpp">
+      <Filter>Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shader\_Default.frag">

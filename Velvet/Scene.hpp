@@ -106,12 +106,52 @@ namespace Velvet
 			}
 		}
 	
+		shared_ptr<Mesh> GenerateClothMesh(int resolution)
+		{
+			vector<glm::vec3> vertices;
+			vector<glm::vec3> normals;
+			vector<glm::vec2> uvs;
+			vector<unsigned int> indices;
+			const float clothSize = 2.0f;
+
+			for (int y = 0; y <= resolution; y++)
+			{
+				for (int x = 0; x <= resolution; x++)
+				{
+					vertices.push_back(clothSize * glm::vec3((float)x / (float)resolution - 0.5f, -(float)y / (float)resolution, 0));
+					normals.push_back(glm::vec3(0, 0, 1));
+					uvs.push_back(glm::vec2((float)x / (float)resolution, (float)y / (float)resolution));
+				}
+			}
+
+			auto VertexIndexAt = [resolution](int x, int y) {
+				return x * (resolution + 1) + y;
+			};
+
+			for (int x = 0; x < resolution; x++)
+			{
+				for (int y = 0; y < resolution; y++)
+				{
+					indices.push_back(VertexIndexAt(x, y));
+					indices.push_back(VertexIndexAt(x + 1, y));
+					indices.push_back(VertexIndexAt(x, y + 1));
+
+					indices.push_back(VertexIndexAt(x, y + 1));
+					indices.push_back(VertexIndexAt(x + 1, y));
+					indices.push_back(VertexIndexAt(x + 1, y + 1));
+				}
+			}
+			auto mesh = make_shared<Mesh>(vertices, normals, uvs, indices);
+			return mesh;
+		}
+
 		shared_ptr<Actor> SpawnCloth(GameInstance* game, int resolution = 16)
 		{
 			auto cloth = game->CreateActor("Cloth Generated");
 
 			auto material = Resource::LoadMaterial("_Default");
 			material->Use();
+			// TODO: auto
 			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
 			material->doubleSided = true;
 
@@ -123,49 +163,18 @@ namespace Velvet
 				mat->specular = 0.01f;
 			};
 
-			{
-				vector<glm::vec3> vertices;
-				vector<glm::vec3> normals;
-				vector<glm::vec2> uvs;
-				vector<unsigned int> indices;
-				const float clothSize = 2.0f;
+			auto mesh = GenerateClothMesh(resolution);
 
-				for (int y = 0; y <= resolution; y++)
-				{
-					for (int x = 0; x <= resolution; x++)
-					{
-						vertices.push_back(clothSize * glm::vec3((float)x / (float)resolution - 0.5f, -(float)y / (float)resolution, 0));
-						normals.push_back(glm::vec3(0, 0, 1));
-						uvs.push_back(glm::vec2((float)x / (float)resolution, (float)y / (float)resolution));
-					}
-				}
+			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
+			renderer->SetMaterialProperty(materialProperty);
 
-				auto VertexIndexAt = [resolution](int x, int y) {
-					return x * (resolution + 1) + y;
-				};
+			//auto clothObj = make_shared<VtClothObjectCPU>(resolution);
+			auto clothObj = make_shared<VtClothObjectGPU>(resolution);
 
-				for (int x = 0; x < resolution; x++)
-				{
-					for (int y = 0; y < resolution; y++)
-					{
-						indices.push_back(VertexIndexAt(x, y));
-						indices.push_back(VertexIndexAt(x + 1, y));
-						indices.push_back(VertexIndexAt(x, y + 1));
+			auto prenderer = make_shared<ParticleRenderer>();
 
-						indices.push_back(VertexIndexAt(x, y + 1));
-						indices.push_back(VertexIndexAt(x + 1, y));
-						indices.push_back(VertexIndexAt(x + 1, y + 1));
-					}
-				}
-				auto mesh = make_shared<Mesh>(vertices, normals, uvs, indices);
+			cloth->AddComponents({ renderer, clothObj, prenderer });
 
-				auto renderer = make_shared<MeshRenderer>(mesh, material, true);
-				renderer->SetMaterialProperty(materialProperty);
-				auto clothObj = make_shared<VtClothObject>(resolution);
-				auto prenderer = make_shared<ParticleRenderer>();
-
-				cloth->AddComponents({ renderer, clothObj, prenderer });
-			}
 			return cloth;
 		}
 

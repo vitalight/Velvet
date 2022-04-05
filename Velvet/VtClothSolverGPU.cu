@@ -11,15 +11,6 @@ namespace Velvet
 {
 	__device__ __constant__ SimulationParams d_params;
 
-	void AllocateArray(void** devPtr, size_t size)
-	{
-		checkCudaErrors(cudaMalloc(devPtr, size));
-	}
-
-	void FreeArray(void* devPtr)
-	{
-		checkCudaErrors(cudaFree(devPtr));
-	}
 
 	void SetSimulationParams(SimulationParams* hostParams)
 	{

@@ -119,6 +119,7 @@
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform.hpp" />
+    <ClInclude Include="VtBuffer.hpp" />
     <ClInclude Include="VtClothObject.hpp" />
     <ClInclude Include="VtClothObjectGPU.hpp" />
     <ClInclude Include="VtClothSolver.hpp" />

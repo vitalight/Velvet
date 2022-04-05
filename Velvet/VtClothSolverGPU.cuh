@@ -18,9 +18,15 @@ namespace Velvet
 		float deltaTime;
 	};
 
-	void AllocateArray(void** devPtr, size_t size);
+	void inline AllocateArray(void** devPtr, size_t size)
+	{
+		checkCudaErrors(cudaMalloc(devPtr, size));
+	}
 
-	void FreeArray(void* devPtr);
+	void inline FreeArray(void* devPtr)
+	{
+		checkCudaErrors(cudaFree(devPtr));
+	}
 
 	void SetSimulationParams(SimulationParams* hostParams);
 

@@ -12,7 +12,7 @@
 #include "helper_cuda.h"
 #include "Mesh.hpp"
 #include "VtClothSolverGPU.cuh"
-
+#include "VtBuffer.hpp"
 
 using namespace std;
 
@@ -24,30 +24,20 @@ namespace Velvet
 
 		void Initialize(shared_ptr<Mesh> mesh, glm::mat4 modelMatrix)
 		{
-			checkCudaErrors(cudaGraphicsGLRegisterBuffer(&m_cudaVboResource, mesh->verticesVBO(), cudaGraphicsRegisterFlagsNone));
-
-			glm::vec3* positions;
-			checkCudaErrors(cudaGraphicsMapResources(1, &m_cudaVboResource, 0));
-			size_t num_bytes;
-			checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&positions, &num_bytes,
-				m_cudaVboResource));
-
 			m_numParticles = (int)mesh->vertices().size();
-			InitializePositions(positions, m_numParticles, modelMatrix);
-			
-			checkCudaErrors(cudaGraphicsUnmapResources(1, &m_cudaVboResource, 0));
 
-			AllocateArray((void**)&m_velocities, sizeof(glm::vec3) * m_numParticles);
+			m_positions.RegisterBuffer(mesh->verticesVBO());
+			m_velocities.Resize(m_numParticles);
+
+			m_positions.Map();
+			InitializePositions(m_positions.raw(), m_numParticles, modelMatrix);
+			m_positions.Unmap();
 		}
 
 		void Simulate()
 		{
 			// map OpenGL buffer object for writing from CUDA
-			glm::vec3* positions;
-			checkCudaErrors(cudaGraphicsMapResources(1, &m_cudaVboResource, 0));
-			size_t num_bytes;
-			checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&positions, &num_bytes,
-				m_cudaVboResource));
+			m_positions.Map();
 
 			// launch kernel
 			m_params.gravity = Global::Sim::gravity;
@@ -55,27 +45,18 @@ namespace Velvet
 			m_params.deltaTime = Global::game->deltaTime;
 
 			SetSimulationParams(&m_params);
-			ApplyExternalForces(positions, m_velocities, m_numParticles);
+			ApplyExternalForces(m_positions.raw(), m_velocities.raw(), m_numParticles);
 
 			// unmap buffer object
-			checkCudaErrors(cudaGraphicsUnmapResources(1, &m_cudaVboResource, 0));
-		}
-
-		void Finalize()
-		{
-			if (m_cudaVboResource != nullptr)
-			{
-				checkCudaErrors(cudaGraphicsUnregisterResource(m_cudaVboResource));
-			}
-			FreeArray((void*)m_velocities);
+			m_positions.Unmap();
 		}
 
 	private:
 
 		SimulationParams m_params;
 		uint m_numParticles;
-		glm::vec3* m_velocities;
-		GLuint m_vbo;
-		struct cudaGraphicsResource* m_cudaVboResource;
+
+		VtBuffer<glm::vec3> m_positions;
+		VtBuffer<glm::vec3> m_velocities;
 	};
 }
