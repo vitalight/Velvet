@@ -97,10 +97,10 @@ public:
 		static vector<glm::vec3> velocities;
 		for (int i = 0; i < 50; i++)
 		{
-			glm::vec3 color = colors[Helper::Random(0, colors.size())];
+			glm::vec3 color = colors[(int)Helper::Random(0.0f, (float)colors.size())];
 			auto cube = SpawnColoredCube(game, color);
 			cube->Initialize(glm::vec3(Helper::Random(-3.0f, 3.0f), Helper::Random(0.3f, 0.5f), Helper::Random(-3.0f, 3.0f)), 
-				glm::vec3(0.3));
+				glm::vec3(0.3f));
 			cubes.push_back(cube);
 			velocities.push_back(glm::vec3(0.0));
 		}
@@ -114,11 +114,11 @@ public:
 				cube->transform->rotation += Helper::RandomUnitVector() * game->deltaTime * 50.0f;
 				cube->transform->position += velocities[i] * game->deltaTime * 5.0f;
 
-				if (cube->transform->position.y < 0.07)
+				if (cube->transform->position.y < 0.07f)
 				{
-					cube->transform->position.y = 0.07;
+					cube->transform->position.y = 0.07f;
 				}
-				if (glm::length(cube->transform->position) > 3)
+				if (glm::length(cube->transform->position) > 3.0f)
 				{
 					cube->transform->position = cube->transform->position / glm::length(cube->transform->position) * 3.0f;
 				}
@@ -139,7 +139,7 @@ public:
 		SpawnInfinitePlane(game);
 
 		auto sphere = SpawnSphere(game);
-		float radius = 0.6;
+		float radius = 0.6f;
 		sphere->Initialize(glm::vec3(0, radius, -1), glm::vec3(radius));
 		game->postUpdate.push_back([sphere, game, radius]() {
 			static float time = 0;
@@ -166,7 +166,7 @@ public:
 		SpawnInfinitePlane(game);
 
 		auto sphere = SpawnSphere(game);
-		float radius = 0.6;
+		float radius = 0.6f;
 		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
 
 		int clothResolution = 16;

@@ -45,7 +45,7 @@ namespace Velvet
 			m_mesh = mesh;
 
 			m_positions = m_mesh->vertices();
-			m_numVertices = m_positions.size();
+			m_numVertices = (int)m_positions.size();
 			for (int i = 0; i < m_numVertices; i++)
 			{
 				m_positions[i] = modelMatrix * glm::vec4(m_positions[i], 1.0f);
@@ -58,7 +58,7 @@ namespace Velvet
 			m_predicted = vector<glm::vec3>(m_numVertices);
 			m_inverseMass = vector<float>(m_numVertices, 1.0);
 
-			m_particleDiameter = glm::length(m_positions[0] - m_positions[m_resolution + 1]) * 0.95;
+			m_particleDiameter = glm::length(m_positions[0] - m_positions[m_resolution + 1]);
 			m_spatialHash = make_shared<SpatialHash>(m_particleDiameter, m_numVertices);
 
 			GenerateStretch();
@@ -74,13 +74,11 @@ namespace Velvet
 			// Pre-stablization pass [Unified particle physics for real-time applications (4.4)]
 			SolveSDFCollision(m_positions);
 
-			ApplyExternalForces(frameTime);
 			EstimatePositions(frameTime);
 			m_spatialHash->HashObjects(m_predicted);
 
 			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
 			{
-				ApplyExternalForces(substepTime);
 				EstimatePositions(substepTime);
 				//GenerateSelfCollision();
 				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
@@ -184,19 +182,11 @@ namespace Velvet
 
 	private: // Core physics
 
-		void ApplyExternalForces(float deltaTime)
-		{
-			for (int i = 0; i < m_numVertices; i++)
-			{
-				// gravity
-				m_velocities[i] += Global::Sim::gravity * deltaTime;
-			}
-		}
-
 		void EstimatePositions(float deltaTime)
 		{
 			for (int i = 0; i < m_numVertices; i++)
 			{
+				m_velocities[i] += Global::Sim::gravity * deltaTime;
 				m_predicted[i] = m_positions[i] + m_velocities[i] * deltaTime;
 			}
 		}
@@ -430,7 +420,7 @@ namespace Velvet
 
 	private:
 
-		const float k_epsilon = 1e-6;
+		const float k_epsilon = 1e-6f;
 
 		int m_numVertices;
 		int m_resolution;

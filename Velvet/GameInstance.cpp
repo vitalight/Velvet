@@ -141,7 +141,7 @@ void GameInstance::MainLoop()
 		float current = (float)glfwGetTime();
 		deltaTime = current - lastUpdateTime;
 		// avoid deltaTime being too large 
-		deltaTime = deltaTime > 0.2 ? 0.2 : deltaTime; 
+		deltaTime = deltaTime > 0.2f ? 0.2f : deltaTime; 
 		lastUpdateTime = current;
 
 		// Updates

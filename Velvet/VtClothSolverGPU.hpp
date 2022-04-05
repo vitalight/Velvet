@@ -32,7 +32,7 @@ namespace Velvet
 			checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&positions, &num_bytes,
 				m_cudaVboResource));
 
-			m_numParticles = mesh->vertices().size();
+			m_numParticles = (int)mesh->vertices().size();
 			InitializePositions(positions, m_numParticles, modelMatrix);
 			
 			checkCudaErrors(cudaGraphicsUnmapResources(1, &m_cudaVboResource, 0));

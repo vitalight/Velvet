@@ -102,7 +102,7 @@ namespace Velvet
 
 		inline int ComputeIntCoord(float value)
 		{
-			return floor(value / m_spacing);
+			return (int)floor(value / m_spacing);
 		}
 
 		inline int HashCoords(int x, int y, int z)

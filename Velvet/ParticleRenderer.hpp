@@ -54,7 +54,7 @@ namespace Velvet
 				return;
 			}
 			vector<glm::vec3> &translations = m_cloth->solver()->m_positions;
-			m_numInstances = translations.size();
+			m_numInstances = (int)translations.size();
 
 			glBindBuffer(GL_ARRAY_BUFFER, m_instanceVBO);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * m_numInstances, &translations[0], GL_DYNAMIC_DRAW);

@@ -43,10 +43,10 @@ namespace Velvet
 			inline int numSubsteps = 3;
 			inline int numIterations = 3;
 
-			inline float bendCompliance = 10.0;
-			inline glm::vec3 gravity = glm::vec3(0, -9.8, 0);
+			inline float bendCompliance = 10.0f;
+			inline glm::vec3 gravity = glm::vec3(0, -9.8f, 0);
 			inline float damping = 0.25f;
-			inline float collisionMargin = 0.06;
+			inline float collisionMargin = 0.06f;
 
 			inline float friction = 0.1f;
 			inline bool debug = false;
