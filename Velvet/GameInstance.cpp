@@ -134,7 +134,7 @@ void GameInstance::MainLoop()
 		// rendering commands here
 		glClearColor(skyColor.x, skyColor.y, skyColor.z, skyColor.w);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glPolygonMode(GL_FRONT_AND_BACK, renderWireframe ? GL_LINE : GL_FILL);
+		glPolygonMode(GL_FRONT_AND_BACK, Global::renderWireframe ? GL_LINE : GL_FILL);
 
 		Timer::StartTimer("CPU_TIME");
 		// timing

@@ -39,9 +39,12 @@ namespace Velvet
 
 	void EstimatePositions(READ_ONLY(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime);
 
-	void SolveStretch(glm::vec3* predicted, int* stretchIndices, float* stretchLengths, float* inverseMass, uint numConstraints);
+	void SolveStretch(uint numConstraints, READ_ONLY(int*) stretchIndices, READ_ONLY(float*) stretchLengths,
+		READ_ONLY(float*) inverseMass, READ_ONLY(glm::vec3*) predicted, glm::vec3* positionDeltas, int* positionDeltaCount);
 
 	void UpdatePositionsAndVelocities(READ_ONLY(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime);
 
 	void SolveAttachment(int numConstraints, READ_ONLY(int*) attachIndices, READ_ONLY(glm::vec3*) attachPositions, glm::vec3* predicted);
+
+	void ApplyPositionDeltas(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount);
 }

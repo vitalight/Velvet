@@ -28,7 +28,9 @@ namespace Velvet
 
 			m_positions.RegisterBuffer(mesh->verticesVBO());
 			m_velocities.resize(m_numParticles, glm::vec3(0));
-			m_predicted.resize(m_numParticles);
+			m_predicted.resize(m_numParticles, glm::vec3(0));
+			m_positionDeltas.resize(m_numParticles, glm::vec3(0));
+			m_positionDeltaCount.resize(m_numParticles, 0);
 			m_inverseMass.resize(m_numParticles, 1.0f);
 
 			InitializePositions(m_positions, m_numParticles, modelMatrix);
@@ -65,9 +67,13 @@ namespace Velvet
 			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
 			{
 				EstimatePositions(m_positions, m_predicted, m_velocities, substepTime);
+
 				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
 				{
-					SolveStretch(m_predicted, m_stretchIndices, m_stretchLengths, m_inverseMass, m_stretchLengths.size());
+					SolveStretch(m_stretchLengths.size(), m_stretchIndices, m_stretchLengths, m_inverseMass, m_predicted, m_positionDeltas, m_positionDeltaCount);
+					
+					ApplyPositionDeltas(m_predicted, m_positionDeltas, m_positionDeltaCount);
+
 					SolveAttachment(m_attachIndices.size(), m_attachIndices, m_attachPositions, m_predicted);
 				}
 				UpdatePositionsAndVelocities(m_predicted, m_velocities, m_positions, substepTime);
@@ -102,6 +108,8 @@ namespace Velvet
 		VtBuffer<glm::vec3> m_positions;
 		VtBuffer<glm::vec3> m_velocities;
 		VtBuffer<glm::vec3> m_predicted;
+		VtBuffer<glm::vec3> m_positionDeltas;
+		VtBuffer<int> m_positionDeltaCount;
 		VtBuffer<float> m_inverseMass;
 
 		VtBuffer<int> m_stretchIndices;

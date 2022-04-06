@@ -153,8 +153,8 @@ void GUI::ShowOptionWindow()
 		Global::input->ToggleOnKeyDown(GLFW_KEY_P, Global::pause);
 		ImGui::Checkbox("Draw Particles (K)", &Global::Sim::drawParticles);
 		Global::input->ToggleOnKeyDown(GLFW_KEY_K, Global::Sim::drawParticles);
-		ImGui::Checkbox("Draw Wireframe (L)", &Global::game->renderWireframe);
-		Global::input->ToggleOnKeyDown(GLFW_KEY_L, Global::game->renderWireframe);
+		ImGui::Checkbox("Draw Wireframe (L)", &Global::renderWireframe);
+		Global::input->ToggleOnKeyDown(GLFW_KEY_L, Global::renderWireframe);
 		ImGui::Checkbox("Play Animation (Space)", &Global::game->playAnimation);
 		Global::input->ToggleOnKeyDown(GLFW_KEY_SPACE, Global::game->playAnimation);
 		ImGui::Dummy(ImVec2(0.0f, 10.0f));
@@ -191,6 +191,8 @@ void GUI::ShowStatWindow()
 	ImGui::PlotLines("##", stat.graphValues, IM_ARRAYSIZE(stat.graphValues), stat.graphIndex, overlay.c_str(),
 		0, stat.graphAverage * 2.0f, ImVec2(k_windowWidth + 5.0f, 80.0f));
 	ImGui::Dummy(ImVec2(0, 5));
+
+	ImGui::PushItemWidth(-FLT_MIN);
 
 	if (m_showDebugInfo.size() + m_showDebugInfoOnce.size() > 0)
 	{

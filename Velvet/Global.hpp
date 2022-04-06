@@ -24,6 +24,7 @@ namespace Velvet
 		inline std::vector<Light*> lights;
 
 		inline bool pause = false;
+		inline bool renderWireframe = false;
 
 		namespace Config
 		{

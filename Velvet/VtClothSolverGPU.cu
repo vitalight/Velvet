@@ -3,8 +3,9 @@
 #include <tuple>
 #include <fmt/format.h>
 
-#include "helper_cuda.h"
-#include <cuda_runtime.h>
+#include <helper_cuda.h>
+#include <cuda_runtime.h> 
+#include <device_launch_parameters.h>
 
 using namespace std;
 
@@ -77,7 +78,8 @@ namespace Velvet
 		atomicAdd(&(address[index].z), val.z);
 	}
 
-	__global__ void SolveStretch_Impl(glm::vec3* predicted, int* stretchIndices, float* stretchLengths, float* inverseMass, uint numConstraints)
+	__global__ void SolveStretch_Impl(uint numConstraints, READ_ONLY(int*) stretchIndices, READ_ONLY(float*) stretchLengths, 
+		READ_ONLY(float*) inverseMass, READ_ONLY(glm::vec3*) predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
 	{
 		GET_CUDA_ID(id, numConstraints);
 
@@ -92,29 +94,33 @@ namespace Velvet
 
 		if (distance > expectedDistance && w1 + w2 > 0)
 		{
-			auto gradient = diff / (distance + EPSILON);
+			glm::vec3 gradient = diff / (distance + EPSILON);
 			// compliance is zero, therefore XPBD=PBD
-			auto denom = w1 + w2;
-			auto lambda = (distance - expectedDistance) / denom;
-			auto correction1 = -w1 * lambda * gradient;
-			auto correction2 = w2 * lambda * gradient;
-			AtomicAdd(predicted, idx1, correction1);
-			AtomicAdd(predicted, idx2, correction2);
+			float denom = w1 + w2;
+			float lambda = (distance - expectedDistance) / denom;
+			glm::vec3 correction1 = -w1 * lambda * gradient;
+			glm::vec3 correction2 = w2 * lambda * gradient;
+			AtomicAdd(positionDeltas, idx1, correction1);
+			AtomicAdd(positionDeltas, idx2, correction2);
+			atomicAdd(&positionDeltaCount[idx1], 1);
+			atomicAdd(&positionDeltaCount[idx2], 1);
+			//printf("correction[%d] = (%.2f,%.2f,%.2f)\n", idx1, correction1.x, correction1.y, correction1.z);
+			//printf("correction[%d] = (%.2f,%.2f,%.2f)\n", idx2, correction2.x, correction2.y, correction2.z);
 		}
 	}
 
-	void SolveStretch(glm::vec3* predicted, int* stretchIndices, float* stretchLengths, float* inverseMass, uint numConstraints)
+	void SolveStretch(uint numConstraints, READ_ONLY(int*) stretchIndices, READ_ONLY(float*) stretchLengths,
+		READ_ONLY(float*) inverseMass, READ_ONLY(glm::vec3*) predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
 	{
 		uint numBlocks, numThreads;
 		ComputeGridSize(numConstraints, numBlocks, numThreads);
-		SolveStretch_Impl <<< numBlocks, numThreads >>> (predicted, stretchIndices, stretchLengths, inverseMass, numConstraints);
+		SolveStretch_Impl <<< numBlocks, numThreads >>> (numConstraints, stretchIndices, stretchLengths, inverseMass, predicted, positionDeltas, positionDeltaCount);
 	}
 
 	__global__ void UpdatePositionsAndVelocities_Impl(READ_ONLY(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
 	{
 		// TODO: encapsulate macro
-		uint id = blockIdx.x * blockDim.x + threadIdx.x;
-		if (id >= d_params.numParticles) return;
+		GET_CUDA_ID(id, d_params.numParticles);
 
 		velocities[id] = (predicted[id] - positions[id]) / deltaTime;// * (1 - d_params.damping * deltaTime);
 		positions[id] = predicted[id];
@@ -136,8 +142,34 @@ namespace Velvet
 
 	void SolveAttachment(int numConstraints, READ_ONLY(int*) attachIndices, READ_ONLY(glm::vec3*) attachPositions, glm::vec3* predicted)
 	{
-		uint numBlocks, numThreads;
-		ComputeGridSize(numConstraints, numBlocks, numThreads);
-		SolveAttachment_Impl <<<numBlocks, numThreads >>> (numConstraints, attachIndices, attachPositions, predicted);
+		if (numConstraints > 0)
+		{
+			uint numBlocks, numThreads;
+			ComputeGridSize(numConstraints, numBlocks, numThreads);
+			SolveAttachment_Impl <<< numBlocks, numThreads >>> (numConstraints, attachIndices, attachPositions, predicted);
+		}
+	}
+
+	__global__ void ApplyPositionDeltas_Impl(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+	{
+		GET_CUDA_ID(id, d_params.numParticles);
+
+		float count = (float)positionDeltaCount[id];
+		if (count > 0)
+		{
+			predicted[id] += positionDeltas[id] / count;
+			positionDeltas[id] = glm::vec3(0);
+			positionDeltaCount[id] = 0;
+		}
+	}
+
+	void ApplyPositionDeltas(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+	{
+		if (h_params.numParticles)
+		{
+			uint numBlocks, numThreads;
+			ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
+			ApplyPositionDeltas_Impl <<< numBlocks, numThreads >>> (predicted, positionDeltas, positionDeltaCount);
+		}
 	}
 }

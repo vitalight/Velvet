@@ -71,7 +71,6 @@ namespace Velvet
 		bool renderGUI = true;
 		bool playAnimation = true;
 		bool step = false;
-		bool renderWireframe = false;
 		bool pendingReset = false;
 		glm::vec4 skyColor = glm::vec4(0.0f);
 
