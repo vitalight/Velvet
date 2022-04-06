@@ -36,7 +36,7 @@ namespace Velvet
 
 		void push_back(const T& t)
 		{
-			assert(m_buffer);
+			assert(isUnifiedMemory());
 			reserve(m_count + 1);
 			m_buffer[m_count++] = t;
 		}
@@ -51,10 +51,11 @@ namespace Velvet
 				T* newBuf = VtAllocBuffer<T>(newCapacity);
 
 				// copy contents to new buffer			
-				memcpy(newBuf, m_buffer, m_count * sizeof(T));
-
 				if (m_buffer)
+				{
+					memcpy(newBuf, m_buffer, m_count * sizeof(T));
 					VtFreeBuffer(m_buffer);
+				}
 
 				// swap
 				m_buffer = newBuf;
@@ -106,21 +107,22 @@ namespace Velvet
 		void RegisterBuffer(GLuint vbo)
 		{
 			checkCudaErrors(cudaGraphicsGLRegisterBuffer(&m_cudaVboResource, vbo, cudaGraphicsRegisterFlagsNone));
-		}
 
-		void Map()
-		{
+			// map (example 'gl_cuda_interop_pingpong_st' says map and unmap only needs to be done once)
 			checkCudaErrors(cudaGraphicsMapResources(1, &m_cudaVboResource, 0));
 			size_t num_bytes;
 			checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&m_buffer, &num_bytes,
 				m_cudaVboResource));
 			m_count = (int)(num_bytes / sizeof(T));
 			m_capacity = 0;
+
+			// unmap
+			checkCudaErrors(cudaGraphicsUnmapResources(1, &m_cudaVboResource, 0));
 		}
 
-		void Unmap()
+		bool isUnifiedMemory()
 		{
-			checkCudaErrors(cudaGraphicsUnmapResources(1, &m_cudaVboResource, 0));
+			return m_cudaVboResource == nullptr;
 		}
 
 	private:

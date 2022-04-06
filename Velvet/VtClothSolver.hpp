@@ -295,7 +295,6 @@ namespace Velvet
 			{
 				int idx = get<0>(c);
 				glm::vec attachPos = get<1>(c);
-				float mass = m_inverseMass[idx];
 				m_predicted[idx] = attachPos;
 			}
 		}

@@ -146,7 +146,8 @@ public:
 		int clothResolution = 16;
 		auto cloth = SpawnCloth(game, clothResolution);
 		cloth->Initialize(glm::vec3(0, 2.5f, 0), glm::vec3(1.0));
-		auto clothObj = cloth->GetComponent<VtClothObject>(); 
+		//auto clothObj = cloth->GetComponent<VtClothObject>(); 
+		auto clothObj = cloth->GetComponent<VtClothObjectGPU>(); 
 		if (clothObj) clothObj->SetAttachedIndices({ 0, clothResolution });
 	}
 };

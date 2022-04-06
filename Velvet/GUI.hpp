@@ -6,6 +6,8 @@
 
 #include <functional>
 
+#include "Timer.hpp"
+
 using namespace std;
 
 namespace Velvet
@@ -22,6 +24,53 @@ namespace Velvet
 		float graphAverage = 0.0f;
 
 		double cpuTime = 0;
+		double gpuTime = 0;
+
+		void Update()
+		{
+			if (Global::pause)
+			{
+				return;
+			}
+			static float timer1 = 0;
+			static float timer2 = 0.0;
+			const float timer1_interval = 0.2f;
+			const float timer2_interval = 1.0f / 30.0f;
+
+			const auto& game = Global::game;
+			int frameCount = game->frameCount;
+			float elapsedTime = game->elapsedTime;
+			float deltaTimeMiliseconds = game->deltaTime * 1000;
+
+			frameCount = frameCount;
+			physicsFrameCount = game->physicsFrameCount;
+
+			// Some variables should not be update each frame
+			timer1 += game->deltaTime;
+			timer2 += game->deltaTime;
+
+			if (timer2 > timer2_interval)
+			{
+				timer2 = 0;
+
+				graphValues[graphIndex] = deltaTimeMiliseconds;
+				graphIndex = (graphIndex + 1) % IM_ARRAYSIZE(graphValues);
+			}
+
+			if (timer1 > timer1_interval)
+			{
+				timer1 = 0;
+
+				deltaTime = deltaTimeMiliseconds;
+				frameRate = elapsedTime > 0 ? (int)(frameCount / elapsedTime) : 0;
+				cpuTime = Timer::GetTimer("CPU_TIME") * 1000;
+				gpuTime = Timer::GetTimer("GPU_TIME") * 1000;
+
+				for (int n = 0; n < IM_ARRAYSIZE(graphValues); n++)
+					graphAverage += graphValues[n];
+				graphAverage /= (float)IM_ARRAYSIZE(graphValues);
+			}
+		}
 	};
 
 	class VtApp;
@@ -55,8 +104,6 @@ namespace Velvet
 		void ShowOptionWindow();
 
 		void ShowStatWindow();
-
-		void ComputeStatData(PerformanceStat& stat);
 
 		const ImGuiWindowFlags k_windowFlags = ImGuiWindowFlags_AlwaysAutoResize |
 			ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav |

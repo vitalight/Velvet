@@ -31,9 +31,7 @@ namespace Velvet
 			m_predicted.resize(m_numParticles);
 			m_inverseMass.resize(m_numParticles, 1.0f);
 
-			m_positions.Map();
-			InitializePositions(m_positions.data(), m_numParticles, modelMatrix);
-			m_positions.Unmap();
+			InitializePositions(m_positions, m_numParticles, modelMatrix);
 
 			GUI::RegisterDebug([this]() {
 				static int debugIndex = 0;
@@ -57,32 +55,44 @@ namespace Velvet
 			//==========================
 			// map OpenGL buffer object for writing from CUDA
 			//==========================
-			m_positions.Map();
+			//m_positions.Map();
 
 			//==========================
 			// launch kernel
 			//==========================
 			SetSimulationParams(&m_params);
-			EstimatePositions(m_positions, m_predicted, m_velocities, frameTime);
-			//SolveStretch(m_predicted.data(), m_stretchIndices.data(), m_stretchLengths.data(), m_inverseMass.data(), m_stretchLengths.size());
-			UpdatePositionsAndVelocities(m_predicted, m_velocities, m_positions, frameTime);
+
+			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
+			{
+				EstimatePositions(m_positions, m_predicted, m_velocities, substepTime);
+				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
+				{
+					SolveStretch(m_predicted, m_stretchIndices, m_stretchLengths, m_inverseMass, m_stretchLengths.size());
+					SolveAttachment(m_attachIndices.size(), m_attachIndices, m_attachPositions, m_predicted);
+				}
+				UpdatePositionsAndVelocities(m_predicted, m_velocities, m_positions, substepTime);
+			}
+
+			// UpdateNormal
 
 			//==========================
 			// unmap buffer object
 			//==========================
-			m_positions.Unmap();
+			//m_positions.Unmap();
 			cudaDeviceSynchronize();
 		}
 
 	public:
-		void AddStretch(int idx1, int idx2)
+		void AddStretch(int idx1, int idx2, float distance)
 		{
-			auto DistanceBetween = [this](int idx1, int idx2) {
-				return glm::length(m_positions[idx1] - m_positions[idx2]);
-			};
 			m_stretchIndices.push_back(idx1);
 			m_stretchIndices.push_back(idx2);
-			m_stretchLengths.push_back(DistanceBetween(idx1, idx2));
+			m_stretchLengths.push_back(distance);
+		}
+		void AddAttach(int index, glm::vec3 position)
+		{
+			m_attachIndices.push_back(index);
+			m_attachPositions.push_back(position);
 		}
 	private:
 
@@ -92,10 +102,13 @@ namespace Velvet
 		VtBuffer<glm::vec3> m_positions;
 		VtBuffer<glm::vec3> m_velocities;
 		VtBuffer<glm::vec3> m_predicted;
+		VtBuffer<float> m_inverseMass;
 
 		VtBuffer<int> m_stretchIndices;
 		VtBuffer<float> m_stretchLengths;
-		VtBuffer<float> m_inverseMass;
+
+		VtBuffer<int> m_attachIndices;
+		VtBuffer<glm::vec3> m_attachPositions;
 
 	};
 }

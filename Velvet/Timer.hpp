@@ -5,6 +5,11 @@
 #include <unordered_map>
 #include <string>
 
+#include <fmt/printf.h>
+
+#include "Global.hpp"
+#include "GameInstance.hpp"
+
 using namespace std;
 
 namespace Velvet

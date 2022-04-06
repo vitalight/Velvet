@@ -17,17 +17,31 @@ namespace Velvet
 			m_resolution = resolution;
 		}
 
+		void SetAttachedIndices(vector<int> indices)
+		{
+			m_attachedIndices = indices;
+		}
+
+	public:
 		void Start() override
 		{
 			auto mesh = actor->GetComponent<MeshRenderer>()->mesh();
-			m_solver->Initialize(mesh, actor->transform->matrix());
+			auto transformMatrix = actor->transform->matrix();
+			m_solver->Initialize(mesh, transformMatrix);
 			actor->transform->Reset();
+
+			vector<glm::vec3> positions = mesh->vertices();
+			ApplyTransform(positions, transformMatrix);
+			GenerateStretch(positions);
+			GenerateAttach(positions);
 		}
 
 		void FixedUpdate() override
 		{
 			//UpdateGrappedVertex();
+			Timer::StartTimer("GPU_TIMER");
 			m_solver->Simulate();
+			Timer::EndTimer("GPU_TIMER");
 		}
 
 		void OnDestroy() override
@@ -37,13 +51,25 @@ namespace Velvet
 		}
 
 	private:
-		shared_ptr<VtClothSolverGPU> m_solver;
 		int m_resolution;
+		shared_ptr<VtClothSolverGPU> m_solver;
+		vector<int> m_attachedIndices;
 
-		void GenerateStretch()
+		void ApplyTransform(vector<glm::vec3>& positions, glm::mat4 transform)
+		{
+			for (int i = 0; i < positions.size(); i++)
+			{
+				positions[i] = transform * glm::vec4(positions[i], 1.0);
+			}
+		}
+
+		void GenerateStretch(const vector<glm::vec3> &positions)
 		{
 			auto VertexAt = [this](int x, int y) {
 				return x * (m_resolution + 1) + y;
+			};
+			auto DistanceBetween = [&positions](int idx1, int idx2) {
+				return glm::length(positions[idx1] - positions[idx2]);
 			};
 
 			for (int x = 0; x < m_resolution + 1; x++)
@@ -56,27 +82,35 @@ namespace Velvet
 					{
 						idx1 = VertexAt(x, y);
 						idx2 = VertexAt(x, y + 1);
-						m_solver->AddStretch(idx1, idx2);
+						m_solver->AddStretch(idx1, idx2, DistanceBetween(idx1, idx2));
 					}
 
 					if (x != m_resolution)
 					{
 						idx1 = VertexAt(x, y);
 						idx2 = VertexAt(x + 1, y);
-						m_solver->AddStretch(idx1, idx2);
+						m_solver->AddStretch(idx1, idx2, DistanceBetween(idx1, idx2));
 					}
 
 					if (y != m_resolution && x != m_resolution)
 					{
 						idx1 = VertexAt(x, y);
 						idx2 = VertexAt(x + 1, y + 1);
-						m_solver->AddStretch(idx1, idx2);
+						m_solver->AddStretch(idx1, idx2, DistanceBetween(idx1, idx2));
 
 						idx1 = VertexAt(x, y + 1);
 						idx2 = VertexAt(x + 1, y);
-						m_solver->AddStretch(idx1, idx2);
+						m_solver->AddStretch(idx1, idx2, DistanceBetween(idx1, idx2));
 					}
 				}
+			}
+		}
+	
+		void GenerateAttach(const vector<glm::vec3>& positions)
+		{
+			for (auto idx : m_attachedIndices)
+			{
+				m_solver->AddAttach(idx, positions[idx]);
 			}
 		}
 	};

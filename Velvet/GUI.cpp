@@ -2,7 +2,6 @@
 
 #include "Scene.hpp"
 #include "VtEngine.hpp"
-#include "Timer.hpp"
 
 using namespace Velvet;
 
@@ -179,13 +178,13 @@ void GUI::ShowStatWindow()
 	ImGui::Begin("Statistics", NULL, k_windowFlags);
 
 	static PerformanceStat stat;
-	ComputeStatData(stat);
+	stat.Update();
 
 	ImGui::Text("Device:  %s", m_deviceName.c_str());
 	ImGui::Text("Frame:  %d; Physics Frame:%d", stat.frameCount, stat.physicsFrameCount);
 	ImGui::Text("Avg FrameRate:  %d FPS", stat.frameRate);
 	ImGui::Text("CPU time:  %.2f ms", stat.cpuTime);
-	ImGui::Text("GPU time:  %.2f ms", 0);
+	ImGui::Text("GPU time:  %.2f ms", stat.gpuTime);
 
 	ImGui::Dummy(ImVec2(0, 5));
 	auto overlay = fmt::format("{:.2f} ms (Avg: {:.2f} ms)", stat.deltaTime, stat.graphAverage);
@@ -213,49 +212,4 @@ void GUI::ShowStatWindow()
 	}
 
 	ImGui::End();
-}
-
-void GUI::ComputeStatData(PerformanceStat& stat)
-{
-	if (Global::pause)
-	{
-		return;
-	}
-	static float timer1 = 0;
-	static float timer2 = 0.0;
-	const float timer1_interval = 0.2f;
-	const float timer2_interval = 1.0f / 30.0f;
-
-	const auto& game = Global::game;
-	int frameCount = game->frameCount;
-	float elapsedTime = game->elapsedTime;
-	float deltaTimeMiliseconds = game->deltaTime * 1000;
-
-	stat.frameCount = frameCount;
-	stat.physicsFrameCount = game->physicsFrameCount;
-	
-	// Some variables should not be update each frame
-	timer1 += game->deltaTime;
-	timer2 += game->deltaTime;
-
-	if (timer2 > timer2_interval)
-	{
-		timer2 = 0;
-
-		stat.graphValues[stat.graphIndex] = deltaTimeMiliseconds;
-		stat.graphIndex = (stat.graphIndex + 1) % IM_ARRAYSIZE(stat.graphValues);
-	}
-
-	if (timer1 > timer1_interval)
-	{
-		timer1 = 0;
-
-		stat.deltaTime = deltaTimeMiliseconds;
-		stat.frameRate = elapsedTime > 0 ? (int)(frameCount / elapsedTime) : 0;
-		stat.cpuTime = Timer::GetTimer("CPU_TIME") * 1000;
-
-		for (int n = 0; n < IM_ARRAYSIZE(stat.graphValues); n++)
-			stat.graphAverage += stat.graphValues[n];
-		stat.graphAverage /= (float)IM_ARRAYSIZE(stat.graphValues);
-	}
 }

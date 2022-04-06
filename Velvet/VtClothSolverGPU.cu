@@ -9,6 +9,7 @@
 using namespace std;
 
 #define EPSILON 1e-6f
+#define GET_CUDA_ID(id, maxID) 	uint id = blockIdx.x * blockDim.x + threadIdx.x; if (id >= maxID) return
 
 namespace Velvet
 {
@@ -55,8 +56,7 @@ namespace Velvet
 
 	__global__ void EstimatePositions_Impl(READ_ONLY(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
 	{
-		uint id = blockIdx.x * blockDim.x + threadIdx.x;
-		if (id >= d_params.numParticles) return;
+		GET_CUDA_ID(id, d_params.numParticles);
 
 		glm::vec3 gravity = glm::vec3(0, -10, 0);
 		velocities[id] += d_params.gravity * deltaTime;
@@ -79,8 +79,7 @@ namespace Velvet
 
 	__global__ void SolveStretch_Impl(glm::vec3* predicted, int* stretchIndices, float* stretchLengths, float* inverseMass, uint numConstraints)
 	{
-		uint id = blockIdx.x * blockDim.x + threadIdx.x;
-		if (id >= numConstraints) return;
+		GET_CUDA_ID(id, numConstraints);
 
 		int idx1 = stretchIndices[2 * id];
 		int idx2 = stretchIndices[2 * id + 1];
@@ -126,5 +125,19 @@ namespace Velvet
 		uint numBlocks, numThreads;
 		ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
 		UpdatePositionsAndVelocities_Impl <<< numBlocks, numThreads >>> (predicted, velocities, positions, deltaTime);
+	}
+
+	__global__ void SolveAttachment_Impl(int numConstraints, READ_ONLY(int*) attachIndices, READ_ONLY(glm::vec3*) attachPositions, glm::vec3* predicted)
+	{
+		GET_CUDA_ID(id, numConstraints);
+
+		predicted[attachIndices[id]] = attachPositions[id];
+	}
+
+	void SolveAttachment(int numConstraints, READ_ONLY(int*) attachIndices, READ_ONLY(glm::vec3*) attachPositions, glm::vec3* predicted)
+	{
+		uint numBlocks, numThreads;
+		ComputeGridSize(numConstraints, numBlocks, numThreads);
+		SolveAttachment_Impl <<<numBlocks, numThreads >>> (numConstraints, attachIndices, attachPositions, predicted);
 	}
 }
