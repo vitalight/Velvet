@@ -23,6 +23,8 @@ namespace Velvet
 
 		inline std::vector<Light*> lights;
 
+		inline bool pause = false;
+
 		namespace Config
 		{
 			// Controls how fast the camera moves
@@ -36,6 +38,7 @@ namespace Velvet
 			const unsigned int shadowHeight = 1024;
 		}
 
+		// TODO: merge with SimParam class
 		namespace Sim
 		{
 			#define IMGUI_LEFT_LABEL(func, label, ...) (ImGui::TextUnformatted(label), ImGui::SameLine(), func("##" label, __VA_ARGS__))

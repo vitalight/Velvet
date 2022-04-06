@@ -99,7 +99,7 @@ void GameInstance::ProcessKeyboard(GLFWwindow* m_window)
 	if (Global::input->GetKeyDown(GLFW_KEY_O))
 	{
 		step = true;
-		pause = false;
+		Global::pause = false;
 	}
 	for (int i = 0; i < 9; i++)
 	{
@@ -150,7 +150,7 @@ void GameInstance::MainLoop()
 			m_gui->OnUpdate();
 		}
 
-		if (!pause)
+		if (!Global::pause)
 		{
 			static float fixedUpdateTimer = 0;
 			fixedUpdateTimer += deltaTime;
@@ -166,7 +166,7 @@ void GameInstance::MainLoop()
 
 				if (step)
 				{
-					pause = true;
+					Global::pause = true;
 					step = false;
 				}
 			}

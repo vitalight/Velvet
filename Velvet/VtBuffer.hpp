@@ -17,6 +17,8 @@ namespace Velvet
 
 		VtBuffer& operator=(const VtBuffer&) = delete;
 
+		operator T* () const { return m_buffer; }
+
 		~VtBuffer()
 		{
 			destroy();
@@ -47,7 +49,6 @@ namespace Velvet
 				const int newCapacity = minCapacity * 3 / 2;
 
 				T* newBuf = VtAllocBuffer<T>(newCapacity);
-				fmt::print("VtAllocBuffer {}\n", (int)newBuf);
 
 				// copy contents to new buffer			
 				memcpy(newBuf, m_buffer, m_count * sizeof(T));
@@ -92,7 +93,6 @@ namespace Velvet
 			}
 			else if (m_buffer != nullptr)
 			{
-				fmt::print("VtFreeBuffer {}\n", (int)m_buffer);
 				VtFreeBuffer(m_buffer);
 			}
 			m_count = 0;

@@ -150,8 +150,8 @@ void GUI::ShowOptionWindow()
 	if (ImGui::CollapsingHeader("Global", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		static bool radio = false;
-		ImGui::Checkbox("Pause (P, O)", &Global::game->pause);
-		Global::input->ToggleOnKeyDown(GLFW_KEY_P, Global::game->pause);
+		ImGui::Checkbox("Pause (P, O)", &Global::pause);
+		Global::input->ToggleOnKeyDown(GLFW_KEY_P, Global::pause);
 		ImGui::Checkbox("Draw Particles (K)", &Global::Sim::drawParticles);
 		Global::input->ToggleOnKeyDown(GLFW_KEY_K, Global::Sim::drawParticles);
 		ImGui::Checkbox("Draw Wireframe (L)", &Global::game->renderWireframe);
@@ -205,7 +205,7 @@ void GUI::ShowStatWindow()
 			{
 				callback();
 			}
-			if (!Global::game->pause)
+			if (!Global::pause)
 			{
 				m_showDebugInfoOnce.clear();
 			}
@@ -217,7 +217,7 @@ void GUI::ShowStatWindow()
 
 void GUI::ComputeStatData(PerformanceStat& stat)
 {
-	if (Global::game->pause)
+	if (Global::pause)
 	{
 		return;
 	}

@@ -27,32 +27,51 @@ namespace Velvet
 			m_numParticles = (int)mesh->vertices().size();
 
 			m_positions.RegisterBuffer(mesh->verticesVBO());
-			m_velocities.resize(m_numParticles);
+			m_velocities.resize(m_numParticles, glm::vec3(0));
 			m_predicted.resize(m_numParticles);
 			m_inverseMass.resize(m_numParticles, 1.0f);
 
 			m_positions.Map();
 			InitializePositions(m_positions.data(), m_numParticles, modelMatrix);
 			m_positions.Unmap();
+
+			GUI::RegisterDebug([this]() {
+				static int debugIndex = 0;
+				ImGui::SliderInt("index", &debugIndex, 0, m_numParticles-1);
+				ImGui::Text(fmt::format("Position: {}", m_predicted[debugIndex]).c_str());
+				});
 		}
 
 		void Simulate()
 		{
-			// map OpenGL buffer object for writing from CUDA
-			m_positions.Map();
-
-			// launch kernel
+			//==========================
+			// prepare
+			//==========================
 			m_params.gravity = Global::Sim::gravity;
 			m_params.numParticles = m_numParticles;
-			m_params.deltaTime = Global::game->deltaTime;
+			m_params.damping = Global::Sim::damping;
 
+			float frameTime = Global::game->fixedDeltaTime;
+			float substepTime = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
+
+			//==========================
+			// map OpenGL buffer object for writing from CUDA
+			//==========================
+			m_positions.Map();
+
+			//==========================
+			// launch kernel
+			//==========================
 			SetSimulationParams(&m_params);
-			ApplyExternalForces(m_positions.data(), m_velocities.data(), m_numParticles);
-			//SolveStretch(m_predicted.raw(), m_stretchIndices.raw(), m_stretchLengths.raw(), m_inverseMass.raw(), m_numStretchConstraints);
-			
+			EstimatePositions(m_positions, m_predicted, m_velocities, frameTime);
+			//SolveStretch(m_predicted.data(), m_stretchIndices.data(), m_stretchLengths.data(), m_inverseMass.data(), m_stretchLengths.size());
+			UpdatePositionsAndVelocities(m_predicted, m_velocities, m_positions, frameTime);
+
+			//==========================
 			// unmap buffer object
+			//==========================
 			m_positions.Unmap();
-			//cudaDeviceSynchronize();
+			cudaDeviceSynchronize();
 		}
 
 	public:

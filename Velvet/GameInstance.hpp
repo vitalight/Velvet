@@ -70,7 +70,6 @@ namespace Velvet
 
 		bool renderGUI = true;
 		bool playAnimation = true;
-		bool pause = false;
 		bool step = false;
 		bool renderWireframe = false;
 		bool pendingReset = false;

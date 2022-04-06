@@ -13,10 +13,27 @@ using namespace std;
 namespace Velvet
 {
 	__device__ __constant__ SimulationParams d_params;
+	SimulationParams h_params;
 
 	void SetSimulationParams(SimulationParams* hostParams)
 	{
 		checkCudaErrors(cudaMemcpyToSymbol(d_params, hostParams, sizeof(SimulationParams)));
+		h_params = *hostParams;
+	}
+
+	const uint blockSize = 256;
+
+	void ComputeGridSize(uint n, uint& numBlocks, uint& numThreads)
+	{
+		if (n == 0)
+		{
+			//fmt::print("Error(Solver): numParticles is 0\n");
+			numBlocks = 0;
+			numThreads = 0;
+			return;
+		}
+		numThreads = min(n, blockSize);
+		numBlocks = (n % numThreads != 0) ? (n / numThreads + 1) : (n / numThreads);
 	}
 
 	struct InitializePositionsFunctor
@@ -36,36 +53,21 @@ namespace Velvet
 		thrust::transform(d_positions, d_positions + count, d_positions, InitializePositionsFunctor(modelMatrix));
 	}
 
-	__global__ void ApplyExternalForces_Impl(glm::vec3* positions, glm::vec3* velocities)
+	__global__ void EstimatePositions_Impl(READ_ONLY(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
 	{
 		uint id = blockIdx.x * blockDim.x + threadIdx.x;
 		if (id >= d_params.numParticles) return;
 
 		glm::vec3 gravity = glm::vec3(0, -10, 0);
-		velocities[id] += d_params.gravity * d_params.deltaTime;
-		positions[id] += velocities[id] * d_params.deltaTime;
+		velocities[id] += d_params.gravity * deltaTime;
+		predicted[id] = positions[id] + velocities[id] * deltaTime;
 	}
 
-	const uint blockSize = 256;
-
-	void ComputeGridSize(uint n, uint &numBlocks, uint &numThreads)
-	{
-		if (n == 0)
-		{
-			fmt::print("Error(Solver): numParticles is 0\n");
-			numBlocks = 0;
-			numThreads = 0;
-			return;
-		}
-		numThreads = min(n, blockSize);
-		numBlocks = (n % numThreads != 0) ? (n / numThreads + 1) : (n / numThreads);
-	}
-
-	void ApplyExternalForces(glm::vec3* positions, glm::vec3* velocities, uint numParticles)
+	void EstimatePositions(READ_ONLY(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
 	{
 		uint numBlocks, numThreads;
-		ComputeGridSize(numParticles, numBlocks, numThreads);
-		ApplyExternalForces_Impl <<< numBlocks, numThreads >>> (positions, velocities);
+		ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
+		EstimatePositions_Impl <<< numBlocks, numThreads >>> (positions, predicted, velocities, deltaTime);
 	}
 
 	__device__ void AtomicAdd(glm::vec3* address, int index, glm::vec3 val)
@@ -107,5 +109,22 @@ namespace Velvet
 		uint numBlocks, numThreads;
 		ComputeGridSize(numConstraints, numBlocks, numThreads);
 		SolveStretch_Impl <<< numBlocks, numThreads >>> (predicted, stretchIndices, stretchLengths, inverseMass, numConstraints);
+	}
+
+	__global__ void UpdatePositionsAndVelocities_Impl(READ_ONLY(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
+	{
+		// TODO: encapsulate macro
+		uint id = blockIdx.x * blockDim.x + threadIdx.x;
+		if (id >= d_params.numParticles) return;
+
+		velocities[id] = (predicted[id] - positions[id]) / deltaTime;// * (1 - d_params.damping * deltaTime);
+		positions[id] = predicted[id];
+	}
+
+	void UpdatePositionsAndVelocities(READ_ONLY(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
+	{
+		uint numBlocks, numThreads;
+		ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
+		UpdatePositionsAndVelocities_Impl <<< numBlocks, numThreads >>> (predicted, velocities, positions, deltaTime);
 	}
 }

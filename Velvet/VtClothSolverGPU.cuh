@@ -8,6 +8,7 @@
 
 typedef unsigned int uint;
 
+#define READ_ONLY(type) const type const
 
 namespace Velvet
 {
@@ -15,7 +16,7 @@ namespace Velvet
 	{
 		uint numParticles;
 		glm::vec3 gravity;
-		float deltaTime;
+		float damping;
 	};
 
 	template<class T>
@@ -36,7 +37,9 @@ namespace Velvet
 
 	void InitializePositions(glm::vec3* positions, int count, glm::mat4 modelMatrix);
 
-	void ApplyExternalForces(glm::vec3* positions, glm::vec3* velocities, uint numParticles);
+	void EstimatePositions(READ_ONLY(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime);
 
 	void SolveStretch(glm::vec3* predicted, int* stretchIndices, float* stretchLengths, float* inverseMass, uint numConstraints);
+
+	void UpdatePositionsAndVelocities(READ_ONLY(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime);
 }
