@@ -8,7 +8,7 @@
 
 typedef unsigned int uint;
 
-#define READ_ONLY(type) const type const
+#define CONST(type) const type const
 
 namespace Velvet
 {
@@ -77,16 +77,18 @@ namespace Velvet
 
 	void InitializePositions(glm::vec3* positions, int count, glm::mat4 modelMatrix);
 
-	void EstimatePositions(READ_ONLY(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime);
+	void EstimatePositions(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime);
 
-	void SolveStretch(uint numConstraints, READ_ONLY(int*) stretchIndices, READ_ONLY(float*) stretchLengths,
-		READ_ONLY(float*) inverseMass, READ_ONLY(glm::vec3*) predicted, glm::vec3* positionDeltas, int* positionDeltaCount);
+	void SolveStretch(uint numConstraints, CONST(int*) stretchIndices, CONST(float*) stretchLengths,
+		CONST(float*) inverseMass, CONST(glm::vec3*) predicted, glm::vec3* positionDeltas, int* positionDeltaCount);
 
-	void UpdatePositionsAndVelocities(READ_ONLY(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime);
+	void UpdatePositionsAndVelocities(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime);
 
-	void SolveAttachment(int numConstraints, READ_ONLY(int*) attachIndices, READ_ONLY(glm::vec3*) attachPositions, glm::vec3* predicted);
+	void SolveAttachment(int numConstraints, CONST(int*) attachIndices, CONST(glm::vec3*) attachPositions, glm::vec3* predicted);
 
 	void ApplyPositionDeltas(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount);
 
-	void SolveSDFCollision(const uint numColliders, READ_ONLY(SDFCollider*) colliders, READ_ONLY(glm::vec3*) positions, glm::vec3* predicted);
+	void SolveSDFCollision(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted);
+
+	void ComputeNormal(uint numTriangles, CONST(glm::vec3*) positions, CONST(uint*) indices, glm::vec3* normals);
 }

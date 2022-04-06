@@ -36,7 +36,7 @@ namespace Velvet
 
 		void push_back(const T& t)
 		{
-			assert(isUnifiedMemory());
+			assert(IsUnifiedMemory());
 			reserve(m_count + 1);
 			m_buffer[m_count++] = t;
 		}
@@ -120,9 +120,16 @@ namespace Velvet
 			checkCudaErrors(cudaGraphicsUnmapResources(1, &m_cudaVboResource, 0));
 		}
 
-		bool isUnifiedMemory()
+		bool IsUnifiedMemory()
 		{
 			return m_cudaVboResource == nullptr;
+		}
+
+		void Wrap(const vector<T>& data)
+		{
+			m_count = data.size();
+			reserve(m_count);
+			memcpy(m_buffer, data.data(), m_count * sizeof(T));
 		}
 
 	private:

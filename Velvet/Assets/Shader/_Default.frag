@@ -111,5 +111,6 @@ void main()
     vec3 diffuseColor = material.useTexture ? vec3(texture(material.diffuse, vs.uv)) : material.tint;
 	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, vs.worldPos, vs.lightSpaceFragPos, material, diffuseColor);
 	FragColor = vec4(GammaCorrection(lighting ), 1.0);
+//FragColor = vec4(norm * 0.5 + 0.5,1.0);
 }
 

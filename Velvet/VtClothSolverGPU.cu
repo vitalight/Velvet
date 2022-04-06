@@ -55,7 +55,7 @@ namespace Velvet
 		thrust::transform(d_positions, d_positions + count, d_positions, InitializePositionsFunctor(modelMatrix));
 	}
 
-	__global__ void EstimatePositions_Impl(READ_ONLY(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
+	__global__ void EstimatePositions_Impl(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
 
@@ -64,7 +64,7 @@ namespace Velvet
 		predicted[id] = positions[id] + velocities[id] * deltaTime;
 	}
 
-	void EstimatePositions(READ_ONLY(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
+	void EstimatePositions(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
 	{
 		uint numBlocks, numThreads;
 		ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
@@ -78,8 +78,8 @@ namespace Velvet
 		atomicAdd(&(address[index].z), val.z);
 	}
 
-	__global__ void SolveStretch_Impl(uint numConstraints, READ_ONLY(int*) stretchIndices, READ_ONLY(float*) stretchLengths, 
-		READ_ONLY(float*) inverseMass, READ_ONLY(glm::vec3*) predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+	__global__ void SolveStretch_Impl(uint numConstraints, CONST(int*) stretchIndices, CONST(float*) stretchLengths, 
+		CONST(float*) inverseMass, CONST(glm::vec3*) predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
 	{
 		GET_CUDA_ID(id, numConstraints);
 
@@ -109,38 +109,37 @@ namespace Velvet
 		}
 	}
 
-	void SolveStretch(uint numConstraints, READ_ONLY(int*) stretchIndices, READ_ONLY(float*) stretchLengths,
-		READ_ONLY(float*) inverseMass, READ_ONLY(glm::vec3*) predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+	void SolveStretch(uint numConstraints, CONST(int*) stretchIndices, CONST(float*) stretchLengths,
+		CONST(float*) inverseMass, CONST(glm::vec3*) predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
 	{
 		uint numBlocks, numThreads;
 		ComputeGridSize(numConstraints, numBlocks, numThreads);
 		SolveStretch_Impl <<< numBlocks, numThreads >>> (numConstraints, stretchIndices, stretchLengths, inverseMass, predicted, positionDeltas, positionDeltaCount);
 	}
 
-	__global__ void UpdatePositionsAndVelocities_Impl(READ_ONLY(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
+	__global__ void UpdatePositionsAndVelocities_Impl(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
 	{
-		// TODO: encapsulate macro
 		GET_CUDA_ID(id, d_params.numParticles);
 
-		velocities[id] = (predicted[id] - positions[id]) / deltaTime;// * (1 - d_params.damping * deltaTime);
+		velocities[id] = (predicted[id] - positions[id]) / deltaTime * (1 - d_params.damping * deltaTime);
 		positions[id] = predicted[id];
 	}
 
-	void UpdatePositionsAndVelocities(READ_ONLY(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
+	void UpdatePositionsAndVelocities(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
 	{
 		uint numBlocks, numThreads;
 		ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
 		UpdatePositionsAndVelocities_Impl <<< numBlocks, numThreads >>> (predicted, velocities, positions, deltaTime);
 	}
 
-	__global__ void SolveAttachment_Impl(int numConstraints, READ_ONLY(int*) attachIndices, READ_ONLY(glm::vec3*) attachPositions, glm::vec3* predicted)
+	__global__ void SolveAttachment_Impl(int numConstraints, CONST(int*) attachIndices, CONST(glm::vec3*) attachPositions, glm::vec3* predicted)
 	{
 		GET_CUDA_ID(id, numConstraints);
 
 		predicted[attachIndices[id]] = attachPositions[id];
 	}
 
-	void SolveAttachment(int numConstraints, READ_ONLY(int*) attachIndices, READ_ONLY(glm::vec3*) attachPositions, glm::vec3* predicted)
+	void SolveAttachment(int numConstraints, CONST(int*) attachIndices, CONST(glm::vec3*) attachPositions, glm::vec3* predicted)
 	{
 		if (numConstraints > 0)
 		{
@@ -173,7 +172,7 @@ namespace Velvet
 		}
 	}
 
-	__global__ void SolveSDFCollision_Impl(const uint numColliders, READ_ONLY(SDFCollider*) colliders, READ_ONLY(glm::vec3*) positions, glm::vec3* predicted)
+	__global__ void SolveSDFCollision_Impl(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted)
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
 
@@ -190,13 +189,53 @@ namespace Velvet
 		}
 	}
 
-	void SolveSDFCollision(const uint numColliders, READ_ONLY(SDFCollider*) colliders, READ_ONLY(glm::vec3*) positions, glm::vec3* predicted)
+	void SolveSDFCollision(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted)
 	{
 		if (h_params.numParticles && numColliders)
 		{
 			uint numBlocks, numThreads;
 			ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
 			SolveSDFCollision_Impl <<< numBlocks, numThreads >>> (numColliders, colliders, positions, predicted);
+		}
+	}
+
+	__global__ void ComputeTriangleNormals(uint numTriangles, CONST(glm::vec3*) positions, CONST(uint*) indices, glm::vec3* normals)
+	{
+		GET_CUDA_ID(id, numTriangles);
+		uint idx1 = indices[id * 3];
+		uint idx2 = indices[id * 3+1];
+		uint idx3 = indices[id * 3+2];
+
+		auto p1 = positions[idx1];
+		auto p2 = positions[idx2];
+		auto p3 = positions[idx3];
+
+		auto normal = glm::cross(p2 - p1, p3 - p1);
+		AtomicAdd(normals, idx1, normal);
+		AtomicAdd(normals, idx2, normal);
+		AtomicAdd(normals, idx3, normal);
+	}
+
+	__global__ void ComputeVertexNormals(glm::vec3* normals)
+	{
+		GET_CUDA_ID(id, d_params.numParticles);
+
+		//normals[id] = glm::vec3(0,1,0);
+		normals[id] = glm::normalize(normals[id]);
+	}
+
+	void ComputeNormal(uint numTriangles, CONST(glm::vec3*) positions, CONST(uint*) indices, glm::vec3* normals)
+	{
+		if (h_params.numParticles)
+		{
+			uint numBlocks, numThreads;
+			cudaMemset(normals, 0, h_params.numParticles * sizeof(glm::vec3));
+				
+			ComputeGridSize(numTriangles, numBlocks, numThreads);
+			ComputeTriangleNormals <<< numBlocks, numThreads >>> (numTriangles, positions, indices, normals);
+
+			ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
+			ComputeVertexNormals <<< numBlocks, numThreads >>> (normals);
 		}
 	}
 }

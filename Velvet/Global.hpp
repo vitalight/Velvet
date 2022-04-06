@@ -64,7 +64,7 @@ namespace Velvet
 				IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "Gravity", (float*)&gravity, -50, 50);
 				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Friction", &friction, 0, 1);
 				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Damping", &damping, 0, 1);
-				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Collision Margin", &collisionMargin, 0, 1);
+				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Collision Margin", &collisionMargin, 0, 0.5);
 				ImGui::Separator();
 				IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Bend Compliance", &bendCompliance, 0, 100.0, "%.3f", ImGuiSliderFlags_Logarithmic);
 				ImGui::Separator();

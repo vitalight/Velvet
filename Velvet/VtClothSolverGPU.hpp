@@ -27,6 +27,9 @@ namespace Velvet
 			m_numParticles = (int)mesh->vertices().size();
 
 			m_positions.RegisterBuffer(mesh->verticesVBO());
+			m_normals.RegisterBuffer(mesh->normalsVBO());
+			m_indices.Wrap(mesh->indices());
+
 			m_velocities.resize(m_numParticles, glm::vec3(0));
 			m_predicted.resize(m_numParticles, glm::vec3(0));
 			m_positionDeltas.resize(m_numParticles, glm::vec3(0));
@@ -65,6 +68,8 @@ namespace Velvet
 			//==========================
 			SetSimulationParams(&m_params);
 
+			SolveSDFCollision(m_SDFColliders.size(), m_SDFColliders, m_positions, m_positions);
+
 			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
 			{
 				EstimatePositions(m_positions, m_predicted, m_velocities, substepTime);
@@ -82,7 +87,7 @@ namespace Velvet
 			}
 
 			// UpdateNormal
-
+			ComputeNormal(m_indices.size() / 3, m_positions, m_indices, m_normals);
 			//==========================
 			// unmap buffer object
 			//==========================
@@ -123,7 +128,11 @@ namespace Velvet
 		SimulationParams m_params;
 		uint m_numParticles;
 
+		// TODO: wrap with SimBuffer class
 		VtBuffer<glm::vec3> m_positions;
+		VtBuffer<glm::vec3> m_normals;
+		VtBuffer<uint> m_indices;
+
 		VtBuffer<glm::vec3> m_velocities;
 		VtBuffer<glm::vec3> m_predicted;
 		VtBuffer<glm::vec3> m_positionDeltas;
