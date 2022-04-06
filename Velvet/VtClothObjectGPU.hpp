@@ -27,10 +27,12 @@ namespace Velvet
 		{
 			auto mesh = actor->GetComponent<MeshRenderer>()->mesh();
 			auto transformMatrix = actor->transform->matrix();
-			m_solver->Initialize(mesh, transformMatrix);
+			auto positions = mesh->vertices();
+			auto particleDiameter = glm::length(positions[0] - positions[m_resolution + 1]);
+
+			m_solver->Initialize(mesh, transformMatrix, particleDiameter);
 			actor->transform->Reset();
 
-			vector<glm::vec3> positions = mesh->vertices();
 			ApplyTransform(positions, transformMatrix);
 			GenerateStretch(positions);
 			GenerateAttach(positions);

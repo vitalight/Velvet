@@ -109,12 +109,26 @@ namespace Velvet
 		}
 	}
 
+	__global__ void ApplyPositionDeltas_Impl(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+	{
+		GET_CUDA_ID(id, d_params.numParticles);
+
+		float count = (float)positionDeltaCount[id];
+		if (count > 0)
+		{
+			predicted[id] += positionDeltas[id] / count;
+			positionDeltas[id] = glm::vec3(0);
+			positionDeltaCount[id] = 0;
+		}
+	}
+
 	void SolveStretch(uint numConstraints, CONST(int*) stretchIndices, CONST(float*) stretchLengths,
-		CONST(float*) inverseMass, CONST(glm::vec3*) predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+		CONST(float*) inverseMass, glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
 	{
 		uint numBlocks, numThreads;
 		ComputeGridSize(numConstraints, numBlocks, numThreads);
 		SolveStretch_Impl <<< numBlocks, numThreads >>> (numConstraints, stretchIndices, stretchLengths, inverseMass, predicted, positionDeltas, positionDeltaCount);
+		ApplyPositionDeltas_Impl <<< numBlocks, numThreads >>> (predicted, positionDeltas, positionDeltaCount);
 	}
 
 	__global__ void UpdatePositionsAndVelocities_Impl(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
@@ -149,28 +163,6 @@ namespace Velvet
 		}
 	}
 
-	__global__ void ApplyPositionDeltas_Impl(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
-	{
-		GET_CUDA_ID(id, d_params.numParticles);
-
-		float count = (float)positionDeltaCount[id];
-		if (count > 0)
-		{
-			predicted[id] += positionDeltas[id] / count;
-			positionDeltas[id] = glm::vec3(0);
-			positionDeltaCount[id] = 0;
-		}
-	}
-
-	void ApplyPositionDeltas(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
-	{
-		if (h_params.numParticles)
-		{
-			uint numBlocks, numThreads;
-			ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
-			ApplyPositionDeltas_Impl <<< numBlocks, numThreads >>> (predicted, positionDeltas, positionDeltaCount);
-		}
-	}
 
 	__global__ void SolveSDFCollision_Impl(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted)
 	{
@@ -236,6 +228,54 @@ namespace Velvet
 
 			ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
 			ComputeVertexNormals <<< numBlocks, numThreads >>> (normals);
+		}
+	}
+
+	__global__ void SolveParticleCollision_Impl(CONST(float*) inverseMass, CONST(glm::vec3*) predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+	{
+		GET_CUDA_ID(id, d_params.numParticles);
+
+		//const auto neighbors = m_spatialHash->GetNeighbors(id);
+		for (int j = 0; j < d_params.numParticles; j++)
+		{
+			if (id >= j) continue;
+			auto idx1 = id;
+			auto idx2 = j;
+			auto expectedDistance = d_params.particleDiameter;
+
+			glm::vec3 diff = predicted[idx1] - predicted[idx2];
+			float distance = glm::length(diff);
+			auto w1 = inverseMass[idx1];
+			auto w2 = inverseMass[idx2];
+
+			if (distance < expectedDistance && w1 + w2 > 0)
+			{
+				auto gradient = diff / (distance + EPSILON);
+				auto denom = w1 + w2;
+				auto lambda = (distance - expectedDistance) / denom;
+				auto common = lambda * gradient;
+				AtomicAdd(positionDeltas, idx1, -w1 * common);
+				AtomicAdd(positionDeltas, idx2, w2 * common);
+				atomicAdd(&positionDeltaCount[idx1], 1);
+				atomicAdd(&positionDeltaCount[idx2], 1);
+
+				//glm::vec3 relativeVelocity = (m_predicted[idx1] - m_positions[idx1]) - (m_predicted[idx2] - m_positions[idx2]);
+				//auto friction = ComputeFriction(common, relativeVelocity);
+				//m_predicted[idx1] += w1 * friction;
+				//m_predicted[idx2] -= w2 * friction;
+			}
+		}
+	}
+
+	// TODO: use thrust for tmp buffers (or don't use at all?)
+	void SolveParticleCollision(CONST(float*) inverseMass, glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+	{
+		if (h_params.numParticles)
+		{
+			uint numBlocks, numThreads;
+			ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
+			SolveParticleCollision_Impl <<< numBlocks, numThreads >>> (inverseMass, predicted, positionDeltas, positionDeltaCount);
+			ApplyPositionDeltas_Impl <<< numBlocks, numThreads >>> (predicted, positionDeltas, positionDeltaCount);
 		}
 	}
 }

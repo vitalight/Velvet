@@ -22,9 +22,10 @@ namespace Velvet
 	{
 	public:
 
-		void Initialize(shared_ptr<Mesh> mesh, glm::mat4 modelMatrix)
+		void Initialize(shared_ptr<Mesh> mesh, glm::mat4 modelMatrix, float particleDiameter)
 		{
 			m_numParticles = (int)mesh->vertices().size();
+			m_params.particleDiameter = particleDiameter;
 
 			m_positions.RegisterBuffer(mesh->verticesVBO());
 			m_normals.RegisterBuffer(mesh->normalsVBO());
@@ -77,8 +78,8 @@ namespace Velvet
 				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
 				{
 					SolveStretch(m_stretchLengths.size(), m_stretchIndices, m_stretchLengths, m_inverseMass, m_predicted, m_positionDeltas, m_positionDeltaCount);
-					ApplyPositionDeltas(m_predicted, m_positionDeltas, m_positionDeltaCount);
 
+					//SolveParticleCollision(m_inverseMass, m_predicted, m_positionDeltas, m_positionDeltaCount);
 					SolveSDFCollision(m_SDFColliders.size(), m_SDFColliders, m_positions, m_predicted);
 
 					SolveAttachment(m_attachIndices.size(), m_attachIndices, m_attachPositions, m_predicted);
@@ -127,6 +128,7 @@ namespace Velvet
 
 		SimulationParams m_params;
 		uint m_numParticles;
+		float m_particleDiameter;
 
 		// TODO: wrap with SimBuffer class
 		VtBuffer<glm::vec3> m_positions;
