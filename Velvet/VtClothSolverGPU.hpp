@@ -50,6 +50,7 @@ namespace Velvet
 			m_params.gravity = Global::Sim::gravity;
 			m_params.numParticles = m_numParticles;
 			m_params.damping = Global::Sim::damping;
+			m_params.collisionMargin = Global::Sim::collisionMargin;
 
 			float frameTime = Global::game->fixedDeltaTime;
 			float substepTime = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
@@ -71,8 +72,9 @@ namespace Velvet
 				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
 				{
 					SolveStretch(m_stretchLengths.size(), m_stretchIndices, m_stretchLengths, m_inverseMass, m_predicted, m_positionDeltas, m_positionDeltaCount);
-					
 					ApplyPositionDeltas(m_predicted, m_positionDeltas, m_positionDeltaCount);
+
+					SolveSDFCollision(m_SDFColliders.size(), m_SDFColliders, m_positions, m_predicted);
 
 					SolveAttachment(m_attachIndices.size(), m_attachIndices, m_attachPositions, m_predicted);
 				}
@@ -95,10 +97,26 @@ namespace Velvet
 			m_stretchIndices.push_back(idx2);
 			m_stretchLengths.push_back(distance);
 		}
+
 		void AddAttach(int index, glm::vec3 position)
 		{
 			m_attachIndices.push_back(index);
 			m_attachPositions.push_back(position);
+		}
+
+		void UpdateColliders(vector<Collider*>& colliders)
+		{
+			m_SDFColliders.resize(colliders.size());
+
+			for (int i = 0; i < colliders.size(); i++)
+			{
+				const Collider* c = colliders[i];
+				SDFCollider sc;
+				sc.position = c->actor->transform->position;
+				sc.scale = c->actor->transform->scale;
+				sc.type = c->sphereOrPlane ? SDFCollider::SDFColliderType::Plane : SDFCollider::SDFColliderType::Sphere;
+				m_SDFColliders[i] = sc;
+			}
 		}
 	private:
 
@@ -114,9 +132,8 @@ namespace Velvet
 
 		VtBuffer<int> m_stretchIndices;
 		VtBuffer<float> m_stretchLengths;
-
 		VtBuffer<int> m_attachIndices;
 		VtBuffer<glm::vec3> m_attachPositions;
-
+		VtBuffer<SDFCollider> m_SDFColliders;
 	};
 }

@@ -9,17 +9,17 @@ namespace Velvet
 	class Collider : public Component
 	{
 	public:
-		int m_sphereOrPlane = 0;
+		int sphereOrPlane = 0;
 
-		Collider(bool sphereOrPlane)
+		Collider(bool _sphereOrPlane)
 		{
 			name = __func__;
-			m_sphereOrPlane = sphereOrPlane;
+			sphereOrPlane = _sphereOrPlane;
 		}
 
 		virtual glm::vec3 ComputeSDF(glm::vec3 position)
 		{
-			if (m_sphereOrPlane)
+			if (sphereOrPlane)
 			{
 				return ComputePlaneSDF(position);
 			}

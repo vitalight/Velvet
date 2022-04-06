@@ -44,8 +44,8 @@ namespace Velvet
 		{
 			#define IMGUI_LEFT_LABEL(func, label, ...) (ImGui::TextUnformatted(label), ImGui::SameLine(), func("##" label, __VA_ARGS__))
 
-			inline int numSubsteps = 3;
-			inline int numIterations = 3;
+			inline int numSubsteps = 5;
+			inline int numIterations = 5;
 
 			inline float bendCompliance = 10.0f;
 			inline glm::vec3 gravity = glm::vec3(0, -9.8f, 0);

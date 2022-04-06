@@ -172,4 +172,31 @@ namespace Velvet
 			ApplyPositionDeltas_Impl <<< numBlocks, numThreads >>> (predicted, positionDeltas, positionDeltaCount);
 		}
 	}
+
+	__global__ void SolveSDFCollision_Impl(const uint numColliders, READ_ONLY(SDFCollider*) colliders, READ_ONLY(glm::vec3*) positions, glm::vec3* predicted)
+	{
+		GET_CUDA_ID(id, d_params.numParticles);
+
+		for (int i = 0; i < numColliders; i++)
+		{
+			auto collider = colliders[i];
+			auto pos = predicted[id];
+			glm::vec3 correction = collider.ComputeSDF(pos, d_params.collisionMargin);
+			predicted[id] += correction;
+
+			//glm::vec3 relativeVelocity = predicted[i] - positions[i];
+			//auto friction = ComputeFriction(correction, relativeVelocity);
+			//predicted[i] += friction;
+		}
+	}
+
+	void SolveSDFCollision(const uint numColliders, READ_ONLY(SDFCollider*) colliders, READ_ONLY(glm::vec3*) positions, glm::vec3* predicted)
+	{
+		if (h_params.numParticles && numColliders)
+		{
+			uint numBlocks, numThreads;
+			ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
+			SolveSDFCollision_Impl <<< numBlocks, numThreads >>> (numColliders, colliders, positions, predicted);
+		}
+	}
 }

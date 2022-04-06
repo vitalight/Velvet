@@ -16,7 +16,47 @@ namespace Velvet
 	{
 		uint numParticles;
 		glm::vec3 gravity;
+
 		float damping;
+		float collisionMargin;
+	};
+
+	struct SDFCollider
+	{
+		enum class SDFColliderType
+		{
+			Sphere,
+			Plane,
+		};
+
+		SDFColliderType type;
+		glm::vec3 position;
+		glm::vec3 scale;
+
+		__device__ glm::vec3 ComputeSDF(const glm::vec3 targetPosition, const float collisionMargin) const
+		{
+			if (type == SDFColliderType::Plane)
+			{
+				float offset = targetPosition.y - (position.y + collisionMargin);
+				if (offset < 0)
+				{
+					return glm::vec3(0, -offset, 0);
+				}
+			}
+			else if (type == SDFColliderType::Sphere)
+			{
+				float radius = scale.x + collisionMargin;
+				auto diff = targetPosition - position;
+				float distance = glm::length(diff);
+				float offset = distance - radius;
+				if (offset < 0)
+				{
+					glm::vec3 direction = diff / distance;
+					return -offset * direction;
+				}
+			}
+			return glm::vec3(0);
+		}
 	};
 
 	template<class T>
@@ -47,4 +87,6 @@ namespace Velvet
 	void SolveAttachment(int numConstraints, READ_ONLY(int*) attachIndices, READ_ONLY(glm::vec3*) attachPositions, glm::vec3* predicted);
 
 	void ApplyPositionDeltas(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount);
+
+	void SolveSDFCollision(const uint numColliders, READ_ONLY(SDFCollider*) colliders, READ_ONLY(glm::vec3*) positions, glm::vec3* predicted);
 }

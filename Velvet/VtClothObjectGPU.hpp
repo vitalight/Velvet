@@ -34,14 +34,17 @@ namespace Velvet
 			ApplyTransform(positions, transformMatrix);
 			GenerateStretch(positions);
 			GenerateAttach(positions);
+
+			m_colliders = Global::game->FindComponents<Collider>();
 		}
 
 		void FixedUpdate() override
 		{
 			//UpdateGrappedVertex();
-			Timer::StartTimer("GPU_TIMER");
+			Timer::StartTimer("GPU_TIME");
+			m_solver->UpdateColliders(m_colliders);
 			m_solver->Simulate();
-			Timer::EndTimer("GPU_TIMER");
+			Timer::EndTimer("GPU_TIME");
 		}
 
 		void OnDestroy() override
@@ -54,6 +57,7 @@ namespace Velvet
 		int m_resolution;
 		shared_ptr<VtClothSolverGPU> m_solver;
 		vector<int> m_attachedIndices;
+		vector<Collider*> m_colliders;
 
 		void ApplyTransform(vector<glm::vec3>& positions, glm::mat4 transform)
 		{
