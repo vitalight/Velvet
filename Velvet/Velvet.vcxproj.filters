@@ -2,8 +2,11 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="SpatialHashGPU.cu">
+      <Filter>Physics\SpatialHash</Filter>
+    </CudaCompile>
     <CudaCompile Include="VtClothSolverGPU.cu">
-      <Filter>Physics</Filter>
+      <Filter>Physics\ClothSolver</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -54,6 +57,12 @@
     </Filter>
     <Filter Include="Physics">
       <UniqueIdentifier>{0c748510-14c1-4e64-9e99-0510de78c5ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics\SpatialHash">
+      <UniqueIdentifier>{46f4577e-1752-48b0-8847-7af9e24f2ac5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics\ClothSolver">
+      <UniqueIdentifier>{d10f78e9-ceb6-4a17-96ac-5c8788dfac70}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -115,23 +124,11 @@
     <ClInclude Include="MaterialProperty.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
-    <ClInclude Include="VtClothSolver.hpp">
-      <Filter>Physics</Filter>
-    </ClInclude>
     <ClInclude Include="Collider.hpp">
       <Filter>Physics</Filter>
     </ClInclude>
     <ClInclude Include="Global.hpp" />
-    <ClInclude Include="VtClothObject.hpp">
-      <Filter>Physics</Filter>
-    </ClInclude>
     <ClInclude Include="ParticleRenderer.hpp">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="VtClothSolverGPU.hpp">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="VtClothObjectGPU.hpp">
       <Filter>Physics</Filter>
     </ClInclude>
     <ClInclude Include="External\cuda\helper_cuda.h">
@@ -140,11 +137,32 @@
     <ClInclude Include="External\cuda\helper_string.h">
       <Filter>External</Filter>
     </ClInclude>
-    <ClInclude Include="VtClothSolverGPU.cuh">
-      <Filter>Physics</Filter>
-    </ClInclude>
     <ClInclude Include="VtBuffer.hpp">
       <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.cuh">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="SpatialHashGPU.cuh">
+      <Filter>Physics\SpatialHash</Filter>
+    </ClInclude>
+    <ClInclude Include="SpatialHashGPU.hpp">
+      <Filter>Physics\SpatialHash</Filter>
+    </ClInclude>
+    <ClInclude Include="VtClothSolverGPU.hpp">
+      <Filter>Physics\ClothSolver</Filter>
+    </ClInclude>
+    <ClInclude Include="VtClothObject.hpp">
+      <Filter>Physics\ClothSolver</Filter>
+    </ClInclude>
+    <ClInclude Include="VtClothObjectGPU.hpp">
+      <Filter>Physics\ClothSolver</Filter>
+    </ClInclude>
+    <ClInclude Include="VtClothSolver.hpp">
+      <Filter>Physics\ClothSolver</Filter>
+    </ClInclude>
+    <ClInclude Include="VtClothSolverGPU.cuh">
+      <Filter>Physics\ClothSolver</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -178,9 +196,6 @@
     <None Include="Assets\Shader\_InfinitePlane.vert">
       <Filter>Shader</Filter>
     </None>
-    <None Include="SpatialHash.hpp">
-      <Filter>Physics</Filter>
-    </None>
     <None Include="Assets\Shader\_InstancedDefault.frag">
       <Filter>Shader</Filter>
     </None>
@@ -192,6 +207,9 @@
     </None>
     <None Include="Assets\Shader\_InstancedShadowDepth.vert">
       <Filter>Shader</Filter>
+    </None>
+    <None Include="SpatialHash.hpp">
+      <Filter>Physics\SpatialHash</Filter>
     </None>
   </ItemGroup>
 </Project>

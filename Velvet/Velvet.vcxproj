@@ -82,6 +82,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="SpatialHashGPU.cu" />
     <CudaCompile Include="VtClothSolverGPU.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -99,6 +100,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.hpp" />
     <ClInclude Include="Collider.hpp" />
+    <ClInclude Include="Common.cuh" />
     <ClInclude Include="External\cuda\helper_cuda.h" />
     <ClInclude Include="External\cuda\helper_string.h" />
     <ClInclude Include="External\stb_image.h" />
@@ -117,6 +119,8 @@
     <ClInclude Include="RenderPipeline.hpp" />
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="Scene.hpp" />
+    <ClInclude Include="SpatialHashGPU.cuh" />
+    <ClInclude Include="SpatialHashGPU.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="VtBuffer.hpp" />

@@ -52,17 +52,45 @@ namespace Velvet
 			CacheNeighbors(positions);
 		}
 
+		vector<int>& GetNeighbors(int i)
+		{
+			return m_neighbors[i];
+		}
+
+	private:
+		vector<int> m_cellEntries;
+		vector<int> m_cellStart;
+		vector<vector<int>> m_neighbors;
+		int m_tableSize;
+		float m_spacing;
+
+		inline int ComputeIntCoord(float value)
+		{
+			return (int)floor(value / m_spacing);
+		}
+
+		inline int HashCoords(int x, int y, int z)
+		{
+			int h = (x * 92837111) ^ (y * 689287499) ^ (z * 283923481);	// fantasy function
+			return abs(h % m_tableSize); 
+		}
+
+		inline int HashPosition(glm::vec3 position)
+		{
+			int x = ComputeIntCoord(position.x);
+			int y = ComputeIntCoord(position.y);
+			int z = ComputeIntCoord(position.z);
+
+			int h = HashCoords(x, y, z);
+			return h;
+		}
+
 		void CacheNeighbors(const vector<glm::vec3>& positions)
 		{
 			for (int i = 0; i < positions.size(); i++)
 			{
 				m_neighbors[i] = QueryNeighbors(positions[i]);
 			}
-		}
-
-		vector<int>& GetNeighbors(int i)
-		{
-			return m_neighbors[i];
 		}
 
 		vector<int> QueryNeighbors(glm::vec3 position)
@@ -92,33 +120,6 @@ namespace Velvet
 			}
 
 			return result;
-		}
-	private:
-		vector<int> m_cellEntries;
-		vector<int> m_cellStart;
-		vector<vector<int>> m_neighbors;
-		int m_tableSize;
-		float m_spacing;
-
-		inline int ComputeIntCoord(float value)
-		{
-			return (int)floor(value / m_spacing);
-		}
-
-		inline int HashCoords(int x, int y, int z)
-		{
-			int h = (x * 92837111) ^ (y * 689287499) ^ (z * 283923481);	// fantasy function
-			return abs(h % m_tableSize); 
-		}
-
-		inline int HashPosition(glm::vec3 position)
-		{
-			int x = ComputeIntCoord(position.x);
-			int y = ComputeIntCoord(position.y);
-			int z = ComputeIntCoord(position.z);
-
-			int h = HashCoords(x, y, z);
-			return h;
 		}
 	};
 }

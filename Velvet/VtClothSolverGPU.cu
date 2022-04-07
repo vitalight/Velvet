@@ -1,16 +1,6 @@
 #include "VtClothSolverGPU.cuh"
 
-#include <tuple>
-#include <fmt/format.h>
-
-#include <helper_cuda.h>
-#include <cuda_runtime.h> 
-#include <device_launch_parameters.h>
-
 using namespace std;
-
-#define EPSILON 1e-6f
-#define GET_CUDA_ID(id, maxID) 	uint id = blockIdx.x * blockDim.x + threadIdx.x; if (id >= maxID) return
 
 namespace Velvet
 {
@@ -21,21 +11,6 @@ namespace Velvet
 	{
 		checkCudaErrors(cudaMemcpyToSymbol(d_params, hostParams, sizeof(SimulationParams)));
 		h_params = *hostParams;
-	}
-
-	const uint blockSize = 256;
-
-	void ComputeGridSize(uint n, uint& numBlocks, uint& numThreads)
-	{
-		if (n == 0)
-		{
-			//fmt::print("Error(Solver): numParticles is 0\n");
-			numBlocks = 0;
-			numThreads = 0;
-			return;
-		}
-		numThreads = min(n, blockSize);
-		numBlocks = (n % numThreads != 0) ? (n / numThreads + 1) : (n / numThreads);
 	}
 
 	struct InitializePositionsFunctor
@@ -163,7 +138,6 @@ namespace Velvet
 		}
 	}
 
-
 	__global__ void SolveSDFCollision_Impl(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted)
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
@@ -231,16 +205,23 @@ namespace Velvet
 		}
 	}
 
-	__global__ void SolveParticleCollision_Impl(CONST(float*) inverseMass, CONST(glm::vec3*) predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+	__global__ void SolveParticleCollision_Impl(
+		CONST(float*) inverseMass,
+		CONST(uint*) neighbors,
+		CONST(glm::vec3*) predicted, 
+		glm::vec3* positionDeltas, 
+		int* positionDeltaCount)
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
 
 		//const auto neighbors = m_spatialHash->GetNeighbors(id);
-		for (int j = 0; j < d_params.numParticles; j++)
+		for (int j = id * d_params.maxNumNeighbors; j < (id+1) * d_params.maxNumNeighbors; j++)
 		{
-			if (id >= j) continue;
 			auto idx1 = id;
-			auto idx2 = j;
+			auto idx2 = neighbors[j];
+			if (idx1 == idx2) continue;
+			if (idx2 > d_params.numParticles) break;
+
 			auto expectedDistance = d_params.particleDiameter;
 
 			glm::vec3 diff = predicted[idx1] - predicted[idx2];
@@ -268,13 +249,18 @@ namespace Velvet
 	}
 
 	// TODO: use thrust for tmp buffers (or don't use at all?)
-	void SolveParticleCollision(CONST(float*) inverseMass, glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+	void SolveParticleCollision(
+		CONST(float*) inverseMass,
+		CONST(uint*) neighbors,
+		glm::vec3* predicted, 
+		glm::vec3* positionDeltas,
+		int* positionDeltaCount)
 	{
 		if (h_params.numParticles)
 		{
 			uint numBlocks, numThreads;
 			ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
-			SolveParticleCollision_Impl <<< numBlocks, numThreads >>> (inverseMass, predicted, positionDeltas, positionDeltaCount);
+			SolveParticleCollision_Impl <<< numBlocks, numThreads >>> (inverseMass, neighbors, predicted, positionDeltas, positionDeltaCount);
 			ApplyPositionDeltas_Impl <<< numBlocks, numThreads >>> (predicted, positionDeltas, positionDeltaCount);
 		}
 	}

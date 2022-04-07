@@ -1,26 +1,9 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <thrust/device_ptr.h>
-#include <thrust/transform.h>
-
-#include "helper_cuda.h"
-
-typedef unsigned int uint;
-
-#define CONST(type) const type const
+#include "Common.cuh"
 
 namespace Velvet
 {
-	struct SimulationParams
-	{
-		uint numParticles;
-		glm::vec3 gravity;
-
-		float damping;
-		float collisionMargin;
-		float particleDiameter;
-	};
 
 	struct SDFCollider
 	{
@@ -60,20 +43,6 @@ namespace Velvet
 		}
 	};
 
-	template<class T>
-	inline T* VtAllocBuffer(int elementCount)
-	{
-		T* devPtr = nullptr;
-		checkCudaErrors(cudaMallocManaged((void**)&devPtr, elementCount * sizeof(T)));
-		cudaDeviceSynchronize(); // this is necessary, otherwise realloc can cause crash
-		return devPtr;
-	}
-
-	void inline VtFreeBuffer(void* buffer)
-	{
-		checkCudaErrors(cudaFree(buffer));
-	}
-
 	void SetSimulationParams(SimulationParams* hostParams);
 
 	void InitializePositions(glm::vec3* positions, int count, glm::mat4 modelMatrix);
@@ -91,5 +60,10 @@ namespace Velvet
 
 	void ComputeNormal(uint numTriangles, CONST(glm::vec3*) positions, CONST(uint*) indices, glm::vec3* normals);
 
-	void SolveParticleCollision(CONST(float*) inverseMass, glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount);
+	void SolveParticleCollision(
+		CONST(float*) inverseMass,
+		CONST(uint*) neighbors,
+		glm::vec3* predicted,
+		glm::vec3* positionDeltas,
+		int* positionDeltaCount);
 }

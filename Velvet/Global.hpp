@@ -46,6 +46,7 @@ namespace Velvet
 
 			inline int numSubsteps = 5;
 			inline int numIterations = 5;
+			inline int maxNumNeighbors = 64;
 
 			inline float bendCompliance = 10.0f;
 			inline glm::vec3 gravity = glm::vec3(0, -9.8f, 0);

@@ -13,6 +13,7 @@
 #include "Mesh.hpp"
 #include "VtClothSolverGPU.cuh"
 #include "VtBuffer.hpp"
+#include "SpatialHashGPU.hpp"
 
 using namespace std;
 
@@ -39,6 +40,8 @@ namespace Velvet
 
 			InitializePositions(m_positions, m_numParticles, modelMatrix);
 
+			//m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter, m_numParticles);;
+
 			GUI::RegisterDebug([this]() {
 				static int debugIndex = 0;
 				ImGui::SliderInt("index", &debugIndex, 0, m_numParticles-1);
@@ -55,6 +58,7 @@ namespace Velvet
 			m_params.numParticles = m_numParticles;
 			m_params.damping = Global::Sim::damping;
 			m_params.collisionMargin = Global::Sim::collisionMargin;
+			m_params.maxNumNeighbors = Global::Sim::maxNumNeighbors;
 
 			float frameTime = Global::game->fixedDeltaTime;
 			float substepTime = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
@@ -74,12 +78,13 @@ namespace Velvet
 			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
 			{
 				EstimatePositions(m_positions, m_predicted, m_velocities, substepTime);
+				//m_spatialHash->Hash(m_predicted);
 
 				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
 				{
 					SolveStretch(m_stretchLengths.size(), m_stretchIndices, m_stretchLengths, m_inverseMass, m_predicted, m_positionDeltas, m_positionDeltaCount);
 
-					//SolveParticleCollision(m_inverseMass, m_predicted, m_positionDeltas, m_positionDeltaCount);
+					//SolveParticleCollision(m_inverseMass, m_spatialHash->neighbors, m_predicted, m_positionDeltas, m_positionDeltaCount);
 					SolveSDFCollision(m_SDFColliders.size(), m_SDFColliders, m_positions, m_predicted);
 
 					SolveAttachment(m_attachIndices.size(), m_attachIndices, m_attachPositions, m_predicted);
@@ -129,6 +134,7 @@ namespace Velvet
 		SimulationParams m_params;
 		uint m_numParticles;
 		float m_particleDiameter;
+		shared_ptr<SpatialHashGPU> m_spatialHash;
 
 		// TODO: wrap with SimBuffer class
 		VtBuffer<glm::vec3> m_positions;
