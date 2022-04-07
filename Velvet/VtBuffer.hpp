@@ -19,6 +19,7 @@ namespace Velvet
 
 		operator T* () const { return m_buffer; }
 
+
 		~VtBuffer()
 		{
 			destroy();
@@ -90,6 +91,7 @@ namespace Velvet
 		{
 			if (m_cudaVboResource != nullptr)
 			{
+				fmt::print("Info(VtBuffer): Release CUDA Resource ({})\n", (int)m_cudaVboResource);
 				checkCudaErrors(cudaGraphicsUnregisterResource(m_cudaVboResource));
 			}
 			else if (m_buffer != nullptr)
@@ -131,11 +133,10 @@ namespace Velvet
 			reserve(m_count);
 			memcpy(m_buffer, data.data(), m_count * sizeof(T));
 		}
-
 	private:
 		int m_count = 0;
 		int m_capacity = 0;
 		T* m_buffer = nullptr;
-		struct cudaGraphicsResource* m_cudaVboResource;
+		struct cudaGraphicsResource* m_cudaVboResource = nullptr;
 	};
 }

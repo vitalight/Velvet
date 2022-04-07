@@ -27,7 +27,14 @@ namespace Velvet
 
 		void Start() override
 		{
-			m_cloth = actor->GetComponent<VtClothObject>();
+			m_cloth = actor->GetComponent<VtClothObjectGPU>();
+
+			auto mesh = actor->GetComponent<MeshRenderer>()->mesh();
+			auto particles = mesh->verticesVBO();
+			m_numInstances = mesh->vertices().size();
+
+			glBindBuffer(GL_ARRAY_BUFFER, m_instanceVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * m_numInstances, nullptr, GL_DYNAMIC_DRAW);
 		}
 
 		void Update() override
@@ -37,11 +44,12 @@ namespace Velvet
 				//fmt::print("Warning(ParticleRenderer): No cloth found\n");
 				return;
 			}
-			vector<glm::vec3> &translations = m_cloth->solver()->m_positions;
-			m_numInstances = (int)translations.size();
+			auto mesh = actor->GetComponent<MeshRenderer>()->mesh();
+			auto verticesVBO = mesh->verticesVBO();
 
-			glBindBuffer(GL_ARRAY_BUFFER, m_instanceVBO);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * m_numInstances, &translations[0], GL_DYNAMIC_DRAW);
+			glBindBuffer(GL_COPY_READ_BUFFER, verticesVBO);
+			glBindBuffer(GL_COPY_WRITE_BUFFER, m_instanceVBO);
+			glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, sizeof(glm::vec3) * m_numInstances);
 		}
 
 		void Render(glm::mat4 lightMatrix) override
@@ -51,7 +59,7 @@ namespace Velvet
 				return;
 			}
 			m_material->Use();
-			m_material->SetFloat("_ParticleRadius", m_cloth->solver()->particleDiameter() * 0.5f);
+			m_material->SetFloat("_ParticleRadius", m_cloth->particleDiameter() * 0.5f);
 			MeshRenderer::Render(lightMatrix);
 			return;
 		}
@@ -68,12 +76,12 @@ namespace Velvet
 			}
 
 			m_shadowMaterial->Use();
-			m_shadowMaterial->SetFloat("_ParticleRadius", m_cloth->solver()->particleDiameter() * 0.5f);
+			m_shadowMaterial->SetFloat("_ParticleRadius", m_cloth->particleDiameter() * 0.5f);
 			MeshRenderer::RenderShadow(lightMatrix);
 			return;
 		}
 	private:
 		unsigned int m_instanceVBO;
-		VtClothObject* m_cloth;
+		VtClothObjectGPU* m_cloth;
 	};
 }

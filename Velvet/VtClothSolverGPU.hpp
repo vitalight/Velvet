@@ -40,7 +40,7 @@ namespace Velvet
 
 			InitializePositions(m_positions, m_numParticles, modelMatrix);
 
-			//m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter, m_numParticles);;
+			m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter, m_numParticles);;
 
 			GUI::RegisterDebug([this]() {
 				static int debugIndex = 0;
@@ -78,13 +78,13 @@ namespace Velvet
 			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
 			{
 				EstimatePositions(m_positions, m_predicted, m_velocities, substepTime);
-				//m_spatialHash->Hash(m_predicted);
+				m_spatialHash->Hash(m_predicted);
 
 				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
 				{
 					SolveStretch(m_stretchLengths.size(), m_stretchIndices, m_stretchLengths, m_inverseMass, m_predicted, m_positionDeltas, m_positionDeltaCount);
 
-					//SolveParticleCollision(m_inverseMass, m_spatialHash->neighbors, m_predicted, m_positionDeltas, m_positionDeltaCount);
+					SolveParticleCollision(m_inverseMass, m_spatialHash->neighbors, m_predicted, m_positionDeltas, m_positionDeltaCount);
 					SolveSDFCollision(m_SDFColliders.size(), m_SDFColliders, m_positions, m_predicted);
 
 					SolveAttachment(m_attachIndices.size(), m_attachIndices, m_attachPositions, m_predicted);
@@ -129,12 +129,6 @@ namespace Velvet
 				m_SDFColliders[i] = sc;
 			}
 		}
-	private:
-
-		SimulationParams m_params;
-		uint m_numParticles;
-		float m_particleDiameter;
-		shared_ptr<SpatialHashGPU> m_spatialHash;
 
 		// TODO: wrap with SimBuffer class
 		VtBuffer<glm::vec3> m_positions;
@@ -152,5 +146,12 @@ namespace Velvet
 		VtBuffer<int> m_attachIndices;
 		VtBuffer<glm::vec3> m_attachPositions;
 		VtBuffer<SDFCollider> m_SDFColliders;
+	private:
+
+		SimulationParams m_params;
+		uint m_numParticles;
+		float m_particleDiameter;
+		shared_ptr<SpatialHashGPU> m_spatialHash;
+
 	};
 }

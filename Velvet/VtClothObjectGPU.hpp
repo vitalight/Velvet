@@ -22,15 +22,25 @@ namespace Velvet
 			m_attachedIndices = indices;
 		}
 
+		auto particleDiameter() const
+		{
+			return m_particleDiameter;
+		}
+
+		auto solver() const
+		{
+			return m_solver;
+		}
+
 	public:
 		void Start() override
 		{
 			auto mesh = actor->GetComponent<MeshRenderer>()->mesh();
 			auto transformMatrix = actor->transform->matrix();
 			auto positions = mesh->vertices();
-			auto particleDiameter = glm::length(positions[0] - positions[m_resolution + 1]);
+			m_particleDiameter = glm::length(positions[0] - positions[m_resolution + 1]);
 
-			m_solver->Initialize(mesh, transformMatrix, particleDiameter);
+			m_solver->Initialize(mesh, transformMatrix, m_particleDiameter);
 			actor->transform->Reset();
 
 			ApplyTransform(positions, transformMatrix);
@@ -60,6 +70,7 @@ namespace Velvet
 		shared_ptr<VtClothSolverGPU> m_solver;
 		vector<int> m_attachedIndices;
 		vector<Collider*> m_colliders;
+		float m_particleDiameter;
 
 		void ApplyTransform(vector<glm::vec3>& positions, glm::mat4 transform)
 		{
