@@ -139,15 +139,18 @@ public:
 		sphere->Initialize(glm::vec3(0, radius, -1), glm::vec3(radius));
 		game->postUpdate.push_back([sphere, game, radius]() {
 			static float time = 0;
-			time += game->deltaTime;
+			time += game->fixedDeltaTime;
 			sphere->transform->position = glm::vec3(0, radius, -cos(time * 2));
 			});
 
 		int clothResolution = 16;
 		auto cloth = SpawnCloth(game, clothResolution);
 		cloth->Initialize(glm::vec3(0, 2.5f, 0), glm::vec3(1.0));
-		//auto clothObj = cloth->GetComponent<VtClothObject>(); 
+#ifdef SOLVER_CPU
+		auto clothObj = cloth->GetComponent<VtClothObject>(); 
+#else
 		auto clothObj = cloth->GetComponent<VtClothObjectGPU>(); 
+#endif
 		if (clothObj) clothObj->SetAttachedIndices({ 0, clothResolution });
 	}
 };

@@ -138,21 +138,40 @@ namespace Velvet
 		}
 	}
 
+	__device__ glm::vec3 ComputeFriction(glm::vec3 correction, glm::vec3 relVel)
+	{
+		glm::vec3 friction = glm::vec3(0);
+		float correctionLength = glm::length(correction);
+		if (d_params.friction > 0 && correctionLength > 0)
+		{
+			glm::vec3 norm = correction / correctionLength;
+
+			glm::vec3 tanVel = relVel - norm * glm::dot(relVel, norm);
+			float tanLength = glm::length(tanVel);
+			float maxTanLength = correctionLength * d_params.friction;
+
+			friction = -tanVel * min(maxTanLength / tanLength, 1.0f);
+		}
+		return friction;
+	}
+
 	__global__ void SolveSDFCollision_Impl(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted)
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
 
+		glm::vec3 force = glm::vec3(0);
 		for (int i = 0; i < numColliders; i++)
 		{
 			auto collider = colliders[i];
 			auto pos = predicted[id];
 			glm::vec3 correction = collider.ComputeSDF(pos, d_params.collisionMargin);
-			predicted[id] += correction;
+			force += correction;
 
-			//glm::vec3 relativeVelocity = predicted[i] - positions[i];
-			//auto friction = ComputeFriction(correction, relativeVelocity);
-			//predicted[i] += friction;
+			glm::vec3 relVel = predicted[id] - positions[id];
+			auto friction = ComputeFriction(correction, relVel);
+			force += friction;
 		}
+		predicted[id] += force;
 	}
 
 	void SolveSDFCollision(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted)
@@ -208,21 +227,25 @@ namespace Velvet
 	__global__ void SolveParticleCollision_Impl(
 		CONST(float*) inverseMass,
 		CONST(uint*) neighbors,
-		CONST(glm::vec3*) predicted, 
+		CONST(glm::vec3*) positions,
+		CONST(glm::vec3*) predicted,
 		glm::vec3* positionDeltas, 
 		int* positionDeltaCount)
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
 
-		//const auto neighbors = m_spatialHash->GetNeighbors(id);
+		glm::vec3 positionDelta = glm::vec3(0);
+		int deltaCount = 0;
+		glm::vec3 myVelocity = (predicted[id] - positions[id]);
+
 		for (int j = id * d_params.maxNumNeighbors; j < (id+1) * d_params.maxNumNeighbors; j++)
 		{
-			auto idx1 = id;
-			auto idx2 = neighbors[j];
+			uint idx1 = id;
+			uint idx2 = neighbors[j];
 			if (idx1 == idx2) continue;
 			if (idx2 > d_params.numParticles) break;
 
-			auto expectedDistance = d_params.particleDiameter;
+			float expectedDistance = d_params.particleDiameter;
 
 			glm::vec3 diff = predicted[idx1] - predicted[idx2];
 			float distance = glm::length(diff);
@@ -235,24 +258,25 @@ namespace Velvet
 				auto denom = w1 + w2;
 				auto lambda = (distance - expectedDistance) / denom;
 				auto common = lambda * gradient;
-				AtomicAdd(positionDeltas, idx1, -w1 * common);
-				AtomicAdd(positionDeltas, idx2, w2 * common);
-				atomicAdd(&positionDeltaCount[idx1], 1);
-				atomicAdd(&positionDeltaCount[idx2], 1);
 
-				//glm::vec3 relativeVelocity = (m_predicted[idx1] - m_positions[idx1]) - (m_predicted[idx2] - m_positions[idx2]);
-				//auto friction = ComputeFriction(common, relativeVelocity);
-				//m_predicted[idx1] += w1 * friction;
-				//m_predicted[idx2] -= w2 * friction;
+				positionDelta -= w1 * common;
+				deltaCount += 1;
+
+				glm::vec3 relativeVelocity = myVelocity - (predicted[idx2] - positions[idx2]);
+				auto friction = ComputeFriction(common, relativeVelocity);
+				positionDelta += w1 * friction;
 			}
 		}
+
+		positionDeltas[id]  = positionDelta;
+		positionDeltaCount[id] = deltaCount;
 	}
 
-	// TODO: use thrust for tmp buffers (or don't use at all?)
 	void SolveParticleCollision(
 		CONST(float*) inverseMass,
 		CONST(uint*) neighbors,
-		glm::vec3* predicted, 
+		CONST(glm::vec3*) positions,
+		glm::vec3* predicted,
 		glm::vec3* positionDeltas,
 		int* positionDeltaCount)
 	{
@@ -260,7 +284,7 @@ namespace Velvet
 		{
 			uint numBlocks, numThreads;
 			ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
-			SolveParticleCollision_Impl <<< numBlocks, numThreads >>> (inverseMass, neighbors, predicted, positionDeltas, positionDeltaCount);
+			SolveParticleCollision_Impl <<< numBlocks, numThreads >>> (inverseMass, neighbors, positions, predicted, positionDeltas, positionDeltaCount);
 			ApplyPositionDeltas_Impl <<< numBlocks, numThreads >>> (predicted, positionDeltas, positionDeltaCount);
 		}
 	}

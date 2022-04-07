@@ -42,11 +42,58 @@ namespace Velvet
 
 			m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter, m_numParticles);;
 
-			GUI::RegisterDebug([this]() {
-				static int debugIndex = 0;
-				ImGui::SliderInt("index", &debugIndex, 0, m_numParticles-1);
-				ImGui::Text(fmt::format("Position: {}", m_predicted[debugIndex]).c_str());
-				});
+			if (0)
+			{
+				GUI::RegisterDebug([this]() {
+					{
+						static int particleIndex1 = 0;
+						//IMGUI_LEFT_LABEL(ImGui::InputInt, "ParticleID", &particleIndex, 0, m_numParticles-1);
+						IMGUI_LEFT_LABEL(ImGui::SliderInt, "ParticleID1", &particleIndex1, 0, m_numParticles - 1);
+						ImGui::Indent(10);
+						ImGui::Text(fmt::format("Position: {}", m_predicted[particleIndex1]).c_str());
+						auto hash3i = m_spatialHash->HashPosition3i(m_predicted[particleIndex1]);
+						auto hash = m_spatialHash->HashPosition(m_predicted[particleIndex1]);
+						ImGui::Text(fmt::format("Hash: {}[{},{},{}]", hash, hash3i.x, hash3i.y, hash3i.z).c_str());
+
+						static int neighborRange1 = 0;
+						IMGUI_LEFT_LABEL(ImGui::SliderInt, "NeighborRange1", &neighborRange1, 0, 63);
+						ImGui::Text(fmt::format("NeighborID: {}", m_spatialHash->neighbors[neighborRange1 + particleIndex1 * Global::Sim::maxNumNeighbors]).c_str());
+						ImGui::Indent(-10);
+					}
+
+					{
+						static int particleIndex2 = 0;
+						//IMGUI_LEFT_LABEL(ImGui::InputInt, "ParticleID", &particleIndex, 0, m_numParticles-1);
+						IMGUI_LEFT_LABEL(ImGui::SliderInt, "ParticleID2", &particleIndex2, 0, m_numParticles - 1);
+						ImGui::Indent(10);
+						ImGui::Text(fmt::format("Position: {}", m_predicted[particleIndex2]).c_str());
+						auto hash3i = m_spatialHash->HashPosition3i(m_predicted[particleIndex2]);
+						auto hash = m_spatialHash->HashPosition(m_predicted[particleIndex2]);
+						ImGui::Text(fmt::format("Hash: {}[{},{},{}]", hash, hash3i.x, hash3i.y, hash3i.z).c_str());
+
+						static int neighborRange2 = 0;
+						IMGUI_LEFT_LABEL(ImGui::SliderInt, "NeighborRange2", &neighborRange2, 0, 63);
+						ImGui::Text(fmt::format("NeighborID: {}", m_spatialHash->neighbors[neighborRange2 + particleIndex2 * Global::Sim::maxNumNeighbors]).c_str());
+						ImGui::Indent(-10);
+					}
+					static int cellID = 0;
+					IMGUI_LEFT_LABEL(ImGui::SliderInt, "CellID", &cellID, 0, m_spatialHash->cellStart.size() - 1);
+					int start = m_spatialHash->cellStart[cellID];
+					int end = m_spatialHash->cellEnd[cellID];
+					ImGui::Indent(10);
+					ImGui::Text(fmt::format("CellStart.HashID: {}", start).c_str());
+					ImGui::Text(fmt::format("CellEnd.HashID: {}", end).c_str());
+
+					if (start != 0xffffffff && end > start)
+					{
+						static int particleHash = 0;
+						particleHash = clamp(particleHash, start, end - 1);
+						IMGUI_LEFT_LABEL(ImGui::SliderInt, "HashID", &particleHash, start, end - 1);
+						ImGui::Text(fmt::format("ParticleHash: {}", m_spatialHash->particleHash[particleHash]).c_str());
+						ImGui::Text(fmt::format("ParticleIndex: {}", m_spatialHash->particleIndex[particleHash]).c_str());
+					}
+					});
+			}
 		}
 
 		void Simulate()
@@ -59,6 +106,7 @@ namespace Velvet
 			m_params.damping = Global::Sim::damping;
 			m_params.collisionMargin = Global::Sim::collisionMargin;
 			m_params.maxNumNeighbors = Global::Sim::maxNumNeighbors;
+			m_params.friction = Global::Sim::friction;
 
 			float frameTime = Global::game->fixedDeltaTime;
 			float substepTime = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
@@ -75,16 +123,18 @@ namespace Velvet
 
 			SolveSDFCollision(m_SDFColliders.size(), m_SDFColliders, m_positions, m_positions);
 
+			EstimatePositions(m_positions, m_predicted, m_velocities, frameTime);
+			m_spatialHash->Hash(m_predicted);
+
 			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
 			{
 				EstimatePositions(m_positions, m_predicted, m_velocities, substepTime);
-				m_spatialHash->Hash(m_predicted);
 
 				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
 				{
 					SolveStretch(m_stretchLengths.size(), m_stretchIndices, m_stretchLengths, m_inverseMass, m_predicted, m_positionDeltas, m_positionDeltaCount);
 
-					SolveParticleCollision(m_inverseMass, m_spatialHash->neighbors, m_predicted, m_positionDeltas, m_positionDeltaCount);
+					SolveParticleCollision(m_inverseMass, m_spatialHash->neighbors, m_positions, m_predicted, m_positionDeltas, m_positionDeltaCount);
 					SolveSDFCollision(m_SDFColliders.size(), m_SDFColliders, m_positions, m_predicted);
 
 					SolveAttachment(m_attachIndices.size(), m_attachIndices, m_attachPositions, m_predicted);
@@ -111,6 +161,7 @@ namespace Velvet
 
 		void AddAttach(int index, glm::vec3 position)
 		{
+			m_inverseMass[index] = 0;
 			m_attachIndices.push_back(index);
 			m_attachPositions.push_back(position);
 		}

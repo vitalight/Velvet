@@ -38,7 +38,7 @@ namespace Velvet
 			auto mesh = actor->GetComponent<MeshRenderer>()->mesh();
 			auto transformMatrix = actor->transform->matrix();
 			auto positions = mesh->vertices();
-			m_particleDiameter = glm::length(positions[0] - positions[m_resolution + 1]);
+			m_particleDiameter = glm::length(positions[0] - positions[m_resolution + 1]) * 0.9f;
 
 			m_solver->Initialize(mesh, transformMatrix, m_particleDiameter);
 			actor->transform->Reset();

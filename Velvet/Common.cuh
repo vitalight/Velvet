@@ -16,6 +16,7 @@
 
 #define CONST(type)				const type const
 #define GET_CUDA_ID(id, maxID) 	uint id = blockIdx.x * blockDim.x + threadIdx.x; if (id >= maxID) return
+#define GET_CUDA_ID_NO_RETURN(id, maxID) 	uint id = blockIdx.x * blockDim.x + threadIdx.x
 #define EPSILON					1e-6f
 
 namespace Velvet
@@ -30,6 +31,7 @@ namespace Velvet
 		glm::vec3 gravity;
 
 		float damping;
+		float friction;
 		float collisionMargin;
 		float particleDiameter;
 

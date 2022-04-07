@@ -63,6 +63,7 @@ namespace Velvet
 	void SolveParticleCollision(
 		CONST(float*) inverseMass,
 		CONST(uint*) neighbors,
+		CONST(glm::vec3*) positions,
 		glm::vec3* predicted,
 		glm::vec3* positionDeltas,
 		int* positionDeltaCount);

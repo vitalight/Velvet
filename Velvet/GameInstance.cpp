@@ -104,7 +104,7 @@ void GameInstance::ProcessKeyboard(GLFWwindow* m_window)
 	for (int i = 0; i < 9; i++)
 	{
 		if (Global::input->GetKeyDown(GLFW_KEY_1 + i))
-		{	
+		{
 			Global::engine->SwitchScene(i);
 		}
 	}
@@ -164,6 +164,14 @@ void GameInstance::MainLoop()
 					go->FixedUpdate();
 				}
 
+				if (playAnimation)
+				{
+					for (const auto& callback : postUpdate)
+					{
+						callback();
+					}
+				}
+
 				if (step)
 				{
 					Global::pause = true;
@@ -177,14 +185,6 @@ void GameInstance::MainLoop()
 			for (const auto& go : m_actors)
 			{
 				go->Update();
-			}
-
-			if (playAnimation)
-			{
-				for (const auto& callback : postUpdate)
-				{
-					callback();
-				}
 			}
 		}
 

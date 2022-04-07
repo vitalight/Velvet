@@ -4,14 +4,15 @@
 
 namespace Velvet
 {
-	void SetHashParams(float hashCellSpacing, int hashTableSize);
-
 	void HashObjects(
 		uint* particleHash,
 		uint* particleIndex,
 		uint* cellStart,
+		uint* cellEnd,
 		uint* neighbors,
 		CONST(glm::vec3*) positions,
 		const uint numObjects,
-		const uint maxNumNeighbors);
+		const uint maxNumNeighbors,
+		const float hashCellSpacing,
+		const int hashTableSize);
 }

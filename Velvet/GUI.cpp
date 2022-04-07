@@ -7,7 +7,6 @@ using namespace Velvet;
 
 inline GUI* g_Gui;
 
-#define IMGUI_LEFT_LABEL(func, label, ...) (ImGui::TextUnformatted(label), ImGui::SameLine(), func("##" label, __VA_ARGS__))
 #define SHORTCUT_BOOL(key, variable) if (Global::input->GetKeyDown(key)) variable = !variable
 
 void GUI::RegisterDebug(function<void()> callback)

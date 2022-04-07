@@ -15,6 +15,8 @@
 #include "VtClothObjectGPU.hpp"
 #include "ParticleRenderer.hpp"
 
+//#define SOLVER_CPU
+
 namespace Velvet
 {
 	class Scene
@@ -168,8 +170,11 @@ namespace Velvet
 			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 			renderer->SetMaterialProperty(materialProperty);
 
-			//auto clothObj = make_shared<VtClothObjectCPU>(resolution);
+#ifdef SOLVER_CPU
+			auto clothObj = make_shared<VtClothObject>(resolution);
+#else
 			auto clothObj = make_shared<VtClothObjectGPU>(resolution);
+#endif
 
 			auto prenderer = make_shared<ParticleRenderer>();
 
