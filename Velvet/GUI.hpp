@@ -30,7 +30,7 @@ namespace Velvet
 
 		void Update()
 		{
-			if (Global::pause)
+			if (Global::gameState.pause)
 			{
 				return;
 			}

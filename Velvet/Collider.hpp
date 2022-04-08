@@ -31,9 +31,9 @@ namespace Velvet
 
 		virtual glm::vec3 ComputePlaneSDF(glm::vec3 position)
 		{
-			if (position.y < Global::Sim::collisionMargin)
+			if (position.y < Global::simParams.collisionMargin)
 			{
-				return glm::vec3(0, Global::Sim::collisionMargin - position.y, 0);
+				return glm::vec3(0, Global::simParams.collisionMargin - position.y, 0);
 			}
 			return glm::vec3(0);
 		}
@@ -41,7 +41,7 @@ namespace Velvet
 		virtual glm::vec3 ComputeSphereSDF(glm::vec3 position)
 		{
 			auto mypos = actor->transform->position;
-			float radius = actor->transform->scale.x + Global::Sim::collisionMargin;
+			float radius = actor->transform->scale.x + Global::simParams.collisionMargin;
 
 			auto diff = position - mypos;
 			float distance = glm::length(diff);

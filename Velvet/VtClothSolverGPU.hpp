@@ -57,7 +57,7 @@ namespace Velvet
 
 						static int neighborRange1 = 0;
 						IMGUI_LEFT_LABEL(ImGui::SliderInt, "NeighborRange1", &neighborRange1, 0, 63);
-						ImGui::Text(fmt::format("NeighborID: {}", m_spatialHash->neighbors[neighborRange1 + particleIndex1 * Global::Sim::maxNumNeighbors]).c_str());
+						ImGui::Text(fmt::format("NeighborID: {}", m_spatialHash->neighbors[neighborRange1 + particleIndex1 * Global::simParams.maxNumNeighbors]).c_str());
 						ImGui::Indent(-10);
 					}
 
@@ -73,7 +73,7 @@ namespace Velvet
 
 						static int neighborRange2 = 0;
 						IMGUI_LEFT_LABEL(ImGui::SliderInt, "NeighborRange2", &neighborRange2, 0, 63);
-						ImGui::Text(fmt::format("NeighborID: {}", m_spatialHash->neighbors[neighborRange2 + particleIndex2 * Global::Sim::maxNumNeighbors]).c_str());
+						ImGui::Text(fmt::format("NeighborID: {}", m_spatialHash->neighbors[neighborRange2 + particleIndex2 * Global::simParams.maxNumNeighbors]).c_str());
 						ImGui::Indent(-10);
 					}
 					static int cellID = 0;
@@ -101,15 +101,15 @@ namespace Velvet
 			//==========================
 			// prepare
 			//==========================
-			m_params.gravity = Global::Sim::gravity;
+			m_params.gravity = Global::simParams.gravity;
 			m_params.numParticles = m_numParticles;
-			m_params.damping = Global::Sim::damping;
-			m_params.collisionMargin = Global::Sim::collisionMargin;
-			m_params.maxNumNeighbors = Global::Sim::maxNumNeighbors;
-			m_params.friction = Global::Sim::friction;
+			m_params.damping = Global::simParams.damping;
+			m_params.collisionMargin = Global::simParams.collisionMargin;
+			m_params.maxNumNeighbors = Global::simParams.maxNumNeighbors;
+			m_params.friction = Global::simParams.friction;
 
 			float frameTime = Global::game->fixedDeltaTime;
-			float substepTime = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
+			float substepTime = Global::game->fixedDeltaTime / Global::simParams.numSubsteps;
 
 			//==========================
 			// map OpenGL buffer object for writing from CUDA
@@ -126,11 +126,11 @@ namespace Velvet
 			EstimatePositions(m_positions, m_predicted, m_velocities, frameTime);
 			m_spatialHash->Hash(m_predicted);
 
-			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
+			for (int substep = 0; substep < Global::simParams.numSubsteps; substep++)
 			{
 				EstimatePositions(m_positions, m_predicted, m_velocities, substepTime);
 
-				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
+				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
 				{
 					SolveStretch(m_stretchLengths.size(), m_stretchIndices, m_stretchLengths, m_inverseMass, m_predicted, m_positionDeltas, m_positionDeltaCount);
 
@@ -199,7 +199,7 @@ namespace Velvet
 		VtBuffer<SDFCollider> m_SDFColliders;
 	private:
 
-		SimulationParams m_params;
+		VtSimParams m_params;
 		uint m_numParticles;
 		float m_particleDiameter;
 		shared_ptr<SpatialHashGPU> m_spatialHash;

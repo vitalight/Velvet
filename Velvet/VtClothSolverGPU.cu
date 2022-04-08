@@ -1,15 +1,16 @@
 #include "VtClothSolverGPU.cuh"
+#include "Velvet.hpp"
 
 using namespace std;
 
 namespace Velvet
 {
-	__device__ __constant__ SimulationParams d_params;
-	SimulationParams h_params;
+	__device__ __constant__ VtSimParams d_params;
+	VtSimParams h_params;
 
-	void SetSimulationParams(SimulationParams* hostParams)
+	void SetSimulationParams(VtSimParams* hostParams)
 	{
-		checkCudaErrors(cudaMemcpyToSymbol(d_params, hostParams, sizeof(SimulationParams)));
+		checkCudaErrors(cudaMemcpyToSymbol(d_params, hostParams, sizeof(VtSimParams)));
 		h_params = *hostParams;
 	}
 

@@ -25,21 +25,6 @@ namespace Velvet
 
 	const uint BLOCK_SIZE = 256;
 
-	struct SimulationParams
-	{
-		uint numParticles;
-		glm::vec3 gravity;
-
-		float damping;
-		float friction;
-		float collisionMargin;
-		float particleDiameter;
-
-		//float hashCellSpacing;
-		//uint hashTableSize;
-		int maxNumNeighbors;
-	};
-
 	inline void ComputeGridSize(const uint& n, uint& numBlocks, uint& numThreads)
 	{
 		if (n == 0)

@@ -69,7 +69,7 @@ namespace Velvet
 		void Simulate()
 		{
 			float frameTime = Global::game->fixedDeltaTime;
-			float substepTime = Global::game->fixedDeltaTime / Global::Sim::numSubsteps;
+			float substepTime = Global::game->fixedDeltaTime / Global::simParams.numSubsteps;
 
 			// Pre-stablization pass [Unified particle physics for real-time applications (4.4)]
 			SolveSDFCollision(m_positions);
@@ -77,11 +77,11 @@ namespace Velvet
 			EstimatePositions(frameTime);
 			m_spatialHash->HashObjects(m_predicted);
 
-			for (int substep = 0; substep < Global::Sim::numSubsteps; substep++)
+			for (int substep = 0; substep < Global::simParams.numSubsteps; substep++)
 			{
 				EstimatePositions(substepTime);
 				//GenerateSelfCollision();
-				for (int iteration = 0; iteration < Global::Sim::numIterations; iteration++)
+				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
 				{
 					SolveStretch(substepTime);
 					SolveBending(substepTime);
@@ -186,7 +186,7 @@ namespace Velvet
 		{
 			for (int i = 0; i < m_numVertices; i++)
 			{
-				m_velocities[i] += Global::Sim::gravity * deltaTime;
+				m_velocities[i] += Global::simParams.gravity * deltaTime;
 				m_predicted[i] = m_positions[i] + m_velocities[i] * deltaTime;
 			}
 		}
@@ -220,7 +220,7 @@ namespace Velvet
 
 		void SolveBending(float deltaTime)
 		{
-			float xpbd_bend = Global::Sim::bendCompliance / deltaTime / deltaTime;
+			float xpbd_bend = Global::simParams.bendCompliance / deltaTime / deltaTime;
 			for (auto c : m_bendingConstraints)
 			{
 				// tri(idx1, idx3, idx2) and tri(idx1, idx2, idx4)
@@ -309,7 +309,7 @@ namespace Velvet
 				auto p2 = m_predicted[idx3];
 				auto p3 = m_predicted[idx4];
 
-				float constraint = glm::dot(q - p1, glm::normalize(glm::cross(p2 - p1, p3 - p1))) - Global::Sim::collisionMargin;
+				float constraint = glm::dot(q - p1, glm::normalize(glm::cross(p2 - p1, p3 - p1))) - Global::simParams.collisionMargin;
 			}
 		}
 
@@ -355,7 +355,7 @@ namespace Velvet
 			{
 				//m_velocities[i] = (m_predicted[i] - m_positions[i]) / deltaTime;
 				// damp
-				m_velocities[i] = (m_predicted[i] - m_positions[i]) / deltaTime * (1 - Global::Sim::damping * deltaTime);
+				m_velocities[i] = (m_predicted[i] - m_positions[i]) / deltaTime * (1 - Global::simParams.damping * deltaTime);
 				m_positions[i] = m_predicted[i];
 			}
 		}
@@ -366,13 +366,13 @@ namespace Velvet
 		{
 			glm::vec3 friction = glm::vec3(0);
 			float correctionLength = glm::length(correction);
-			if (Global::Sim::friction > 0 && correctionLength > 0)
+			if (Global::simParams.friction > 0 && correctionLength > 0)
 			{
 				glm::vec3 correctionNorm = correction / correctionLength;
 
 				glm::vec3 tangentialVelocity = relativeVelocity - correctionNorm * glm::dot(relativeVelocity, correctionNorm);
 				float tangentialLength = glm::length(tangentialVelocity);
-				float maxTangential = correctionLength * Global::Sim::friction;
+				float maxTangential = correctionLength * Global::simParams.friction;
 
 				friction = -tangentialVelocity * min(maxTangential / tangentialLength, 1.0f);
 			}

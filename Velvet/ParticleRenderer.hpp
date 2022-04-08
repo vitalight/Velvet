@@ -54,7 +54,7 @@ namespace Velvet
 
 		void Render(glm::mat4 lightMatrix) override
 		{
-			if (!Global::Sim::drawParticles)
+			if (!Global::gameState.drawParticles)
 			{
 				return;
 			}
@@ -66,7 +66,7 @@ namespace Velvet
 
 		void RenderShadow(glm::mat4 lightMatrix) override
 		{
-			if (!Global::Sim::drawParticles)
+			if (!Global::gameState.drawParticles)
 			{
 				return;
 			}

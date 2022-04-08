@@ -148,13 +148,13 @@ void GUI::ShowOptionWindow()
 	if (ImGui::CollapsingHeader("Global", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		static bool radio = false;
-		ImGui::Checkbox("Pause (P, O)", &Global::pause);
-		Global::input->ToggleOnKeyDown(GLFW_KEY_P, Global::pause);
-		ImGui::Checkbox("Draw Particles (K)", &Global::Sim::drawParticles);
-		Global::input->ToggleOnKeyDown(GLFW_KEY_K, Global::Sim::drawParticles);
-		ImGui::Checkbox("Draw Wireframe (L)", &Global::renderWireframe);
-		Global::input->ToggleOnKeyDown(GLFW_KEY_L, Global::renderWireframe);
-		ImGui::Checkbox("Play Animation (Space)", &Global::game->playAnimation);
+		ImGui::Checkbox("Pause (P, O)", &Global::gameState.pause);
+		Global::input->ToggleOnKeyDown(GLFW_KEY_P, Global::gameState.pause);
+		ImGui::Checkbox("Draw Particles (K)", &Global::gameState.drawParticles);
+		Global::input->ToggleOnKeyDown(GLFW_KEY_K, Global::gameState.drawParticles);
+		ImGui::Checkbox("Draw Wireframe (L)", &Global::gameState.renderWireframe);
+		Global::input->ToggleOnKeyDown(GLFW_KEY_L, Global::gameState.renderWireframe);
+		ImGui::Checkbox("Play Animation (Space)", &Global::game->playAnimation); //TODO: remove
 		Global::input->ToggleOnKeyDown(GLFW_KEY_SPACE, Global::game->playAnimation);
 		ImGui::Dummy(ImVec2(0.0f, 10.0f));
 	}
@@ -164,7 +164,7 @@ void GUI::ShowOptionWindow()
 		//IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "LightPos", (float*)&(Global::lights[0]->transform()->position), -5, 5, "%.2f");
 		//IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "LightRot", (float*)&(Global::lights[0]->transform()->rotation), -79, 79, "%.2f");
 
-		Global::Sim::OnGUI();
+		Global::simParams.OnGUI();
 	}
 
 	ImGui::End();
@@ -186,7 +186,7 @@ void GUI::ShowStatWindow()
 	ImGui::Text("GPU time:  %.2f ms", stat.gpuTime);
 
 	ImGui::Dummy(ImVec2(0, 5));
-	auto overlay = fmt::format("{:.2f} ms (Avg: {:.2f} ms)", stat.deltaTime, stat.graphAverage);
+	auto overlay = fmt::format("{:.2f} ms ({:.2f} FPS)", stat.deltaTime, 1000.0 / stat.deltaTime);
 	ImGui::PlotLines("##", stat.graphValues, IM_ARRAYSIZE(stat.graphValues), stat.graphIndex, overlay.c_str(),
 		0, stat.graphAverage * 2.0f, ImVec2(k_windowWidth + 5.0f, 80.0f));
 	ImGui::Dummy(ImVec2(0, 5));
@@ -205,7 +205,7 @@ void GUI::ShowStatWindow()
 			{
 				callback();
 			}
-			if (!Global::pause)
+			if (!Global::gameState.pause)
 			{
 				m_showDebugInfoOnce.clear();
 			}

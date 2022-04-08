@@ -99,7 +99,7 @@ void GameInstance::ProcessKeyboard(GLFWwindow* m_window)
 	if (Global::input->GetKeyDown(GLFW_KEY_O))
 	{
 		step = true;
-		Global::pause = false;
+		Global::gameState.pause = false;
 	}
 	for (int i = 0; i < 9; i++)
 	{
@@ -134,7 +134,7 @@ void GameInstance::MainLoop()
 		// rendering commands here
 		glClearColor(skyColor.x, skyColor.y, skyColor.z, skyColor.w);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glPolygonMode(GL_FRONT_AND_BACK, Global::renderWireframe ? GL_LINE : GL_FILL);
+		glPolygonMode(GL_FRONT_AND_BACK, Global::gameState.renderWireframe ? GL_LINE : GL_FILL);
 
 		Timer::StartTimer("CPU_TIME");
 		// timing
@@ -150,7 +150,7 @@ void GameInstance::MainLoop()
 			m_gui->OnUpdate();
 		}
 
-		if (!Global::pause)
+		if (!Global::gameState.pause)
 		{
 			static float fixedUpdateTimer = 0;
 			fixedUpdateTimer += deltaTime;
@@ -174,7 +174,7 @@ void GameInstance::MainLoop()
 
 				if (step)
 				{
-					Global::pause = true;
+					Global::gameState.pause = true;
 					step = false;
 				}
 			}

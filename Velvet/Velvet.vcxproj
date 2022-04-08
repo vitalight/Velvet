@@ -123,6 +123,7 @@
     <ClInclude Include="SpatialHashGPU.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform.hpp" />
+    <ClInclude Include="Velvet.hpp" />
     <ClInclude Include="VtBuffer.hpp" />
     <ClInclude Include="VtClothObject.hpp" />
     <ClInclude Include="VtClothObjectGPU.hpp" />

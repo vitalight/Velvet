@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Common.cuh"
+#include "Velvet.hpp"
 
 namespace Velvet
 {
-
 	struct SDFCollider
 	{
 		enum class SDFColliderType
@@ -43,7 +43,7 @@ namespace Velvet
 		}
 	};
 
-	void SetSimulationParams(SimulationParams* hostParams);
+	void SetSimulationParams(VtSimParams* hostParams);
 
 	void InitializePositions(glm::vec3* positions, int count, glm::mat4 modelMatrix);
 

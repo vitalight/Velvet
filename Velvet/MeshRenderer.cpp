@@ -48,7 +48,7 @@ namespace Velvet
 
 	void MeshRenderer::Render(glm::mat4 lightMatrix)
 	{
-		if (m_material->noWireframe && Global::renderWireframe)
+		if (m_material->noWireframe && Global::gameState.renderWireframe)
 		{
 			return;
 		}

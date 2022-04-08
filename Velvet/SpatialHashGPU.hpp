@@ -50,7 +50,7 @@ namespace Velvet
 			m_spacing = spacing;
 			m_tableSize = 2 * maxNumObjects;
 
-			neighbors.resize(maxNumObjects * Global::Sim::maxNumNeighbors);
+			neighbors.resize(maxNumObjects * Global::simParams.maxNumNeighbors);
 			particleHash.resize(maxNumObjects);
 			particleIndex.resize(maxNumObjects);
 			cellStart.resize(m_tableSize);
@@ -60,7 +60,7 @@ namespace Velvet
 		void Hash(const VtBuffer<glm::vec3>& positions)
 		{
 			HashObjects(particleHash, particleIndex, cellStart, cellEnd, neighbors, positions, positions.size(), 
-				Global::Sim::maxNumNeighbors, m_spacing, m_tableSize);
+				Global::simParams.maxNumNeighbors, m_spacing, m_tableSize);
 		}
 
 		VtBuffer<uint> neighbors;
@@ -96,7 +96,7 @@ namespace Velvet
 
 				for (int k = 0; k < 64; k++)
 				{
-					uint neighbor = neighbors[i * Global::Sim::maxNumNeighbors + k];
+					uint neighbor = neighbors[i * Global::simParams.maxNumNeighbors + k];
 					if (neighbor != 0xffffffff)
 					{
 						neighbors_gpu[i].insert(neighbor);
