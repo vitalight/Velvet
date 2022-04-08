@@ -28,10 +28,10 @@ namespace Velvet
 			m_numParticles = (int)mesh->vertices().size();
 			m_params.particleDiameter = particleDiameter;
 
-			m_positions.RegisterBuffer(mesh->verticesVBO());
-			m_normals.RegisterBuffer(mesh->normalsVBO());
-			m_indices.Wrap(mesh->indices());
+			m_positions.registerBuffer(mesh->verticesVBO());
+			m_normals.registerBuffer(mesh->normalsVBO());
 
+			m_indices.wrap(mesh->indices());
 			m_velocities.resize(m_numParticles, glm::vec3(0));
 			m_predicted.resize(m_numParticles, glm::vec3(0));
 			m_positionDeltas.resize(m_numParticles, glm::vec3(0));
@@ -182,8 +182,8 @@ namespace Velvet
 		}
 
 		// TODO: wrap with SimBuffer class
-		VtBuffer<glm::vec3> m_positions;
-		VtBuffer<glm::vec3> m_normals;
+		VtRegisteredBuffer<glm::vec3> m_positions;
+		VtRegisteredBuffer<glm::vec3> m_normals;
 		VtBuffer<uint> m_indices;
 
 		VtBuffer<glm::vec3> m_velocities;
