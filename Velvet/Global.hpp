@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "Velvet.hpp"
+#include "Common.hpp"
 
 namespace Velvet
 {

@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <CudaCompile Include="kernel.cu" />
     <CudaCompile Include="SpatialHashGPU.cu">
       <Filter>Physics\SpatialHash</Filter>
     </CudaCompile>
@@ -108,7 +107,6 @@
     <ClInclude Include="RenderPipeline.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerController.hpp" />
     <ClInclude Include="GUI.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
@@ -164,7 +162,12 @@
     <ClInclude Include="VtClothSolverGPU.cuh">
       <Filter>Physics\ClothSolver</Filter>
     </ClInclude>
-    <ClInclude Include="Velvet.hpp" />
+    <ClInclude Include="Common.hpp">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerController.hpp">
+      <Filter>Graphics\Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shader\_Default.frag">

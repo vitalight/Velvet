@@ -7,8 +7,9 @@
 
 #include <helper_cuda.h>
 #include <cuda_runtime.h> 
-#include <device_launch_parameters.h>
 #include <cuda_runtime_api.h>
+#include <device_launch_parameters.h>
+#include <device_functions.h>
 
 #include <thrust/device_ptr.h>
 #include <thrust/transform.h>
@@ -18,6 +19,19 @@
 #define GET_CUDA_ID(id, maxID) 	uint id = blockIdx.x * blockDim.x + threadIdx.x; if (id >= maxID) return
 #define GET_CUDA_ID_NO_RETURN(id, maxID) 	uint id = blockIdx.x * blockDim.x + threadIdx.x
 #define EPSILON					1e-6f
+
+#ifdef __CUDACC__ 
+#define CUDA_CALL(func, totalThreads)  \
+	if (totalThreads == 0) return; \
+	uint func ## _numBlocks, func ## _numThreads; \
+	ComputeGridSize(totalThreads, func ## _numBlocks, func ## _numThreads); \
+	func <<<func ## _numBlocks, func ## _numThreads >>>
+#define CUDA_CALL_V(func, ...) \
+	func <<<__VA_ARGS__>>>
+#else
+#define CUDA_CALL(func, totalThreads)
+#define CUDA_CALL_V(func, ...)
+#endif
 
 namespace Velvet
 {

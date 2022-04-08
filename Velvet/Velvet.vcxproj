@@ -81,7 +81,6 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="kernel.cu" />
     <CudaCompile Include="SpatialHashGPU.cu" />
     <CudaCompile Include="VtClothSolverGPU.cu" />
   </ItemGroup>
@@ -123,7 +122,7 @@
     <ClInclude Include="SpatialHashGPU.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform.hpp" />
-    <ClInclude Include="Velvet.hpp" />
+    <ClInclude Include="Common.hpp" />
     <ClInclude Include="VtBuffer.hpp" />
     <ClInclude Include="VtClothObject.hpp" />
     <ClInclude Include="VtClothObjectGPU.hpp" />

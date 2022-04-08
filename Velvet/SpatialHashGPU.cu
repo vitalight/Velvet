@@ -27,7 +27,7 @@ __device__ inline int HashPosition(glm::vec3 position)
 	return h;
 }
 
-// TODO: make all parameters conform (output, input, constants)
+// TODO(low): make all parameters conform (output, input, constants)
 __global__ void ComputeParticleHash(
 	uint* particleHash,
 	uint* particleIndex,
@@ -156,10 +156,7 @@ void Velvet::HashObjects(
 	checkCudaErrors(cudaMemcpyToSymbol(d_hashCellSpacing, &hashCellSpacing, sizeof(float)));
 	checkCudaErrors(cudaMemcpyToSymbol(d_hashTableSize, &hashTableSize, sizeof(int)));
 
-	// TODO: merge the following three line
-	uint numBlocks, numThreads;
-	ComputeGridSize(numObjects, numBlocks, numThreads);
-	ComputeParticleHash <<<numBlocks, numThreads >>> (particleHash, particleIndex, positions, numObjects);
+	CUDA_CALL(ComputeParticleHash, numObjects)(particleHash, particleIndex, positions, numObjects);
 	
 	// Sort Particle Hash
 	thrust::sort_by_key(thrust::device_ptr<uint>(particleHash),
@@ -167,12 +164,12 @@ void Velvet::HashObjects(
 		thrust::device_ptr<uint>(particleIndex));
 
 	cudaMemset(cellStart, 0xffffffff, sizeof(uint) * (hashTableSize+1));
+	uint numBlocks, numThreads;
 	ComputeGridSize(numObjects, numBlocks, numThreads);
 	uint smemSize = sizeof(uint) * (numThreads + 1);
-	FindCellStart <<<numBlocks, numThreads, smemSize >> > (cellStart, cellEnd, particleHash, numObjects);
+	CUDA_CALL_V(FindCellStart, numBlocks, numThreads, smemSize)(cellStart, cellEnd, particleHash, numObjects);
 
 	cudaMemset(neighbors, 0xffffffff, sizeof(uint)*maxNumNeighbors*numObjects);
-	ComputeGridSize(numObjects, numBlocks, numThreads);
-	CacheNeighbors << <numBlocks, numThreads >> > (neighbors, particleIndex, cellStart, cellEnd, positions, numObjects, maxNumNeighbors);
+	CUDA_CALL(CacheNeighbors, numObjects)(neighbors, particleIndex, cellStart, cellEnd, positions, numObjects, maxNumNeighbors);
 }
 

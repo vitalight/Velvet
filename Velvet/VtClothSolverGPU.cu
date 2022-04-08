@@ -1,5 +1,6 @@
 #include "VtClothSolverGPU.cuh"
-#include "Velvet.hpp"
+#include "Common.hpp"
+#include "Common.cuh"
 
 using namespace std;
 
@@ -42,9 +43,7 @@ namespace Velvet
 
 	void EstimatePositions(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
 	{
-		uint numBlocks, numThreads;
-		ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
-		EstimatePositions_Impl <<< numBlocks, numThreads >>> (positions, predicted, velocities, deltaTime);
+		CUDA_CALL(EstimatePositions_Impl, h_params.numParticles)(positions, predicted, velocities, deltaTime);
 	}
 
 	__device__ void AtomicAdd(glm::vec3* address, int index, glm::vec3 val)
@@ -101,10 +100,8 @@ namespace Velvet
 	void SolveStretch(uint numConstraints, CONST(int*) stretchIndices, CONST(float*) stretchLengths,
 		CONST(float*) inverseMass, glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
 	{
-		uint numBlocks, numThreads;
-		ComputeGridSize(numConstraints, numBlocks, numThreads);
-		SolveStretch_Impl <<< numBlocks, numThreads >>> (numConstraints, stretchIndices, stretchLengths, inverseMass, predicted, positionDeltas, positionDeltaCount);
-		ApplyPositionDeltas_Impl <<< numBlocks, numThreads >>> (predicted, positionDeltas, positionDeltaCount);
+		CUDA_CALL(SolveStretch_Impl, numConstraints)(numConstraints, stretchIndices, stretchLengths, inverseMass, predicted, positionDeltas, positionDeltaCount);
+		CUDA_CALL(ApplyPositionDeltas_Impl, h_params.numParticles)(predicted, positionDeltas, positionDeltaCount);
 	}
 
 	__global__ void UpdatePositionsAndVelocities_Impl(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
@@ -117,9 +114,7 @@ namespace Velvet
 
 	void UpdatePositionsAndVelocities(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
 	{
-		uint numBlocks, numThreads;
-		ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
-		UpdatePositionsAndVelocities_Impl <<< numBlocks, numThreads >>> (predicted, velocities, positions, deltaTime);
+		CUDA_CALL(UpdatePositionsAndVelocities_Impl, h_params.numParticles)(predicted, velocities, positions, deltaTime);
 	}
 
 	__global__ void SolveAttachment_Impl(int numConstraints, CONST(int*) attachIndices, CONST(glm::vec3*) attachPositions, glm::vec3* predicted)
@@ -131,12 +126,7 @@ namespace Velvet
 
 	void SolveAttachment(int numConstraints, CONST(int*) attachIndices, CONST(glm::vec3*) attachPositions, glm::vec3* predicted)
 	{
-		if (numConstraints > 0)
-		{
-			uint numBlocks, numThreads;
-			ComputeGridSize(numConstraints, numBlocks, numThreads);
-			SolveAttachment_Impl <<< numBlocks, numThreads >>> (numConstraints, attachIndices, attachPositions, predicted);
-		}
+		CUDA_CALL(SolveAttachment_Impl, numConstraints)(numConstraints, attachIndices, attachPositions, predicted);
 	}
 
 	__device__ glm::vec3 ComputeFriction(glm::vec3 correction, glm::vec3 relVel)
@@ -177,12 +167,9 @@ namespace Velvet
 
 	void SolveSDFCollision(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted)
 	{
-		if (h_params.numParticles && numColliders)
-		{
-			uint numBlocks, numThreads;
-			ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
-			SolveSDFCollision_Impl <<< numBlocks, numThreads >>> (numColliders, colliders, positions, predicted);
-		}
+		if (numColliders == 0) return;
+		
+		CUDA_CALL(SolveSDFCollision_Impl, h_params.numParticles)(numColliders, colliders, positions, predicted);
 	}
 
 	__global__ void ComputeTriangleNormals(uint numTriangles, CONST(glm::vec3*) positions, CONST(uint*) indices, glm::vec3* normals)
@@ -214,14 +201,10 @@ namespace Velvet
 	{
 		if (h_params.numParticles)
 		{
-			uint numBlocks, numThreads;
 			cudaMemset(normals, 0, h_params.numParticles * sizeof(glm::vec3));
 				
-			ComputeGridSize(numTriangles, numBlocks, numThreads);
-			ComputeTriangleNormals <<< numBlocks, numThreads >>> (numTriangles, positions, indices, normals);
-
-			ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
-			ComputeVertexNormals <<< numBlocks, numThreads >>> (normals);
+			CUDA_CALL(ComputeTriangleNormals, numTriangles)(numTriangles, positions, indices, normals);
+			CUDA_CALL(ComputeVertexNormals, h_params.numParticles)(normals);
 		}
 	}
 
@@ -281,12 +264,7 @@ namespace Velvet
 		glm::vec3* positionDeltas,
 		int* positionDeltaCount)
 	{
-		if (h_params.numParticles)
-		{
-			uint numBlocks, numThreads;
-			ComputeGridSize(h_params.numParticles, numBlocks, numThreads);
-			SolveParticleCollision_Impl <<< numBlocks, numThreads >>> (inverseMass, neighbors, positions, predicted, positionDeltas, positionDeltaCount);
-			ApplyPositionDeltas_Impl <<< numBlocks, numThreads >>> (predicted, positionDeltas, positionDeltaCount);
-		}
+		CUDA_CALL(SolveParticleCollision_Impl, h_params.numParticles)(inverseMass, neighbors, positions, predicted, positionDeltas, positionDeltaCount);
+		CUDA_CALL(ApplyPositionDeltas_Impl, h_params.numParticles)(predicted, positionDeltas, positionDeltaCount);
 	}
 }
