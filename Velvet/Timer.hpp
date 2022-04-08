@@ -28,6 +28,8 @@ namespace Velvet
 			s_timer->times[label] = CurrentTime();
 		}
 
+		// Returns elapsed time from StartTimer in seconds.
+		// When called multiple time during one frame, result gets accumulated.
 		static double EndTimer(string label, int frame = -1)
 		{
 			double time = CurrentTime() - s_timer->times[label];

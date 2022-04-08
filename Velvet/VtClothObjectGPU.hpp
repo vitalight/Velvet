@@ -7,6 +7,7 @@
 
 namespace Velvet
 {
+	// TODO(low): unify gpu and cpu interface, share object file
 	class VtClothObjectGPU : public Component
 	{
 	public:
@@ -154,8 +155,8 @@ namespace Velvet
 				if (m_rayCollision.collide)
 				{
 					m_isGrabbing = true;
-					m_grabbedVertexMass = m_solver->m_inverseMass[m_rayCollision.objectIndex];
-					m_solver->m_inverseMass[m_rayCollision.objectIndex] = 0;
+					m_grabbedVertexMass = m_solver->inverseMass[m_rayCollision.objectIndex];
+					m_solver->inverseMass[m_rayCollision.objectIndex] = 0;
 				}
 			}
 
@@ -163,7 +164,7 @@ namespace Velvet
 			if (shouldReleaseObject && m_isGrabbing)
 			{
 				m_isGrabbing = false;
-				m_solver->m_inverseMass[m_rayCollision.objectIndex] = m_grabbedVertexMass;
+				m_solver->inverseMass[m_rayCollision.objectIndex] = m_grabbedVertexMass;
 			}
 		}
 
@@ -173,11 +174,11 @@ namespace Velvet
 			float minDistanceToRay = FLT_MAX;
 			float distanceToView = 0;
 
-			m_solver->m_positions.pull();
+			m_solver->positions.pull();
 
-			for (int i = 0; i < m_solver->m_positions.size(); i++)
+			for (int i = 0; i < m_solver->positions.size(); i++)
 			{
-				const auto& position = m_solver->m_positions[i];
+				const auto& position = m_solver->positions[i];
 				float distanceToRay = glm::length(glm::cross(ray.direction, position - ray.origin));
 				if (distanceToRay < minDistanceToRay)
 				{
@@ -193,18 +194,18 @@ namespace Velvet
 		{
 			if (m_isGrabbing)
 			{
-				m_solver->m_positions.pull();
+				m_solver->positions.pull();
 
 				Ray ray = GetMouseRay();
 				glm::vec3 mousePos = ray.origin + ray.direction * m_rayCollision.distanceToOrigin;
 				int id = m_rayCollision.objectIndex;
-				auto curPos = m_solver->m_positions[id];
+				auto curPos = m_solver->positions[id];
 				glm::vec3 target = Helper::Lerp(mousePos, curPos, 0.8f);
 
-				m_solver->m_positions[id] = target;
-				m_solver->m_velocities[id] += (target - curPos) / Timer::fixedDeltaTime();
+				m_solver->positions[id] = target;
+				m_solver->velocities[id] += (target - curPos) / Timer::fixedDeltaTime();
 
-				m_solver->m_positions.push();
+				m_solver->positions.push();
 			}
 		}
 

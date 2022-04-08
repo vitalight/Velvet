@@ -99,7 +99,7 @@ namespace Velvet
 				quad->AddComponent(renderer);
 				renderer->enabled = false;
 
-				game->postUpdate.push_back([renderer]() {
+				game->postUpdate.Register([renderer]() {
 					if (Global::input->GetKeyDown(GLFW_KEY_X))
 					{
 						renderer->enabled = !renderer->enabled;

@@ -4,6 +4,8 @@
 
 using namespace std;
 
+// TODO(low): use cuda math structs instead of glm
+
 namespace Velvet
 {
 	__device__ __constant__ VtSimParams d_params;

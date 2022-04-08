@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 #include <imgui.h>
+#include <functional>
+#include <vector>
 
 #define IMGUI_LEFT_LABEL(func, label, ...) (ImGui::TextUnformatted(label), ImGui::SameLine(), func("##" label, __VA_ARGS__))
 
@@ -76,4 +78,25 @@ struct VtTimers
 	float finalize;				//!< Time spent finalizing state
 	float updateBounds;			//!< Time spent updating particle bounds
 	float total;				//!< Sum of all timers above
+};
+
+template <class T, class... TArgs>
+class VtCallback
+{
+public:
+	void Register(const std::function<T>& func)
+	{
+		m_funcs.push_back(func);
+	}
+
+	template <class... TArgs>
+	void Invoke(TArgs... args)
+	{
+		for (const auto& func : m_funcs)
+		{
+			func(std::forward<TArgs>(args)...);
+		}
+	}
+private:
+	std::vector<std::function<T>> m_funcs;
 };

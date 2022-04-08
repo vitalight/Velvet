@@ -24,6 +24,8 @@ GameInstance::GameInstance(GLFWwindow* window, shared_ptr<GUI> gui)
 	m_gui = gui;
 	m_renderPipeline = make_shared<RenderPipeline>();
 	m_timer = make_shared<Timer>();
+
+	Timer::StartTimer("GAME_INSTANCE_INIT");
 }
 
 shared_ptr<Actor> GameInstance::AddActor(shared_ptr<Actor> actor)
@@ -75,18 +77,12 @@ glm::ivec2 Velvet::GameInstance::windowSize()
 
 void GameInstance::ProcessMouse(GLFWwindow* m_window, double xpos, double ypos)
 {
-	for (auto callback : onMouseMove)
-	{
-		callback(xpos, ypos);
-	}
+	onMouseMove.Invoke(xpos, ypos);
 }
 
 void GameInstance::ProcessScroll(GLFWwindow* m_window, double xoffset, double yoffset)
 {
-	for (auto callback : onMouseScroll)
-	{
-		callback(xoffset, yoffset);
-	}
+	onMouseScroll.Invoke(xoffset, yoffset);
 }
 
 void GameInstance::ProcessKeyboard(GLFWwindow* m_window)
@@ -125,14 +121,15 @@ void GameInstance::Initialize()
 
 void GameInstance::MainLoop()
 {
-	fmt::print("Info(GameInstance): Initialization success. Enter main loop.\n");
+	double initTime = Timer::EndTimer("GAME_INSTANCE_INIT") * 1000;
+	fmt::print("Info(GameInstance): Initialization success within {:.2f} ms. Enter main loop.\n", initTime);
 	// render loop
 	while (!glfwWindowShouldClose(m_window) && !pendingReset)
 	{
-		// input
+		// Input
 		ProcessKeyboard(m_window);
 
-		// rendering commands here
+		// Init
 		glClearColor(skyColor.x, skyColor.y, skyColor.z, skyColor.w);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glPolygonMode(GL_FRONT_AND_BACK, Global::gameState.renderWireframe ? GL_LINE : GL_FILL);
@@ -140,7 +137,7 @@ void GameInstance::MainLoop()
 		Timer::StartTimer("CPU_TIME");
 		Timer::UpdateDeltaTime();
 
-		// Updates
+		// Logic Updates
 		if (!Global::gameState.hideGUI) m_gui->OnUpdate();
 
 		if (!Global::gameState.pause)
@@ -150,7 +147,7 @@ void GameInstance::MainLoop()
 			{
 				for (const auto& go : m_actors) go->FixedUpdate();
 
-				for (const auto& callback : postUpdate) callback();
+				postUpdate.Invoke();
 
 				if (Global::gameState.step)
 				{
@@ -164,20 +161,17 @@ void GameInstance::MainLoop()
 
 		Global::input->OnUpdate();
 
-		for (auto callback : godUpdate)
-		{
-			callback();
-		}
+		godUpdate.Invoke();
 
 		Timer::EndTimer("CPU_TIME");
 
+		// Render
 		m_renderPipeline->Render();
 		if (!Global::gameState.hideGUI) m_gui->Render();
 
-		// check and call events and swap the buffers
+		// Check and call events and swap the buffers
 		glfwSwapBuffers(m_window);
 		glfwPollEvents();
-
 	}
 }
 

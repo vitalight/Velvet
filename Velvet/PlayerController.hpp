@@ -23,10 +23,8 @@ namespace Velvet
 
 		void Start() override
 		{
-			//Global::graphics->onMouseScroll.push_back(OnMouseScroll);
-
-			Global::game->onMouseMove.push_back(OnMouseMove);
-			Global::game->godUpdate.push_back(GodUpdate);
+			Global::game->onMouseMove.Register(OnMouseMove);
+			Global::game->godUpdate.Register(GodUpdate);
 		}
 
 		static void GodUpdate()

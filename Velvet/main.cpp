@@ -100,7 +100,7 @@ public:
 			velocities.push_back(glm::vec3(0.0));
 		}
 
-		game->postUpdate.push_back([cubes, game]() {
+		game->postUpdate.Register([cubes, game]() {
 			for (int i = 0; i < cubes.size(); i++)
 			{
 				auto cube = cubes[i];
@@ -136,7 +136,7 @@ public:
 		auto sphere = SpawnSphere(game);
 		float radius = 0.6f;
 		sphere->Initialize(glm::vec3(0, radius, -1), glm::vec3(radius));
-		game->postUpdate.push_back([sphere, game, radius]() {
+		game->postUpdate.Register([sphere, game, radius]() {
 			static float time = 0;
 			time += Timer::fixedDeltaTime();
 			sphere->transform->position = glm::vec3(0, radius, -cos(time * 2));

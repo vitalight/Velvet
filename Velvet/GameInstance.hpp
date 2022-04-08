@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 
 #include "Component.hpp"
+#include "Common.hpp"
 
 namespace Velvet
 {
@@ -56,11 +57,11 @@ namespace Velvet
 		unsigned int depthFrameBuffer();
 		glm::ivec2 windowSize();
 
-		vector<function<void(double, double)>> onMouseScroll;
-		vector<function<void(double, double)>> onMouseMove;
-		vector<function<void()>> postUpdate;
-		vector<function<void()>> godUpdate; // update when main logic is paused (for debugging purpose)
-		vector<function<void()>> onFinalize;
+		VtCallback<void(double, double)> onMouseScroll;
+		VtCallback<void(double, double)> onMouseMove;
+		VtCallback<void()> postUpdate;
+		VtCallback<void()> godUpdate; // update when main logic is paused (for debugging purpose)
+		VtCallback<void()> onFinalize;
 
 		bool pendingReset = false;
 		glm::vec4 skyColor = glm::vec4(0.0f);

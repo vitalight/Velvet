@@ -25,150 +25,94 @@ namespace Velvet
 
 		void Initialize(shared_ptr<Mesh> mesh, glm::mat4 modelMatrix, float particleDiameter)
 		{
-			m_numParticles = (int)mesh->vertices().size();
-			m_params.particleDiameter = particleDiameter;
+			Timer::StartTimer("INIT_SOLVER_GPU");
 
-			m_positions.registerBuffer(mesh->verticesVBO());
-			m_normals.registerBuffer(mesh->normalsVBO());
+			int numParticles = (int)mesh->vertices().size();
+			Global::simParams.numParticles = numParticles;
+			Global::simParams.particleDiameter = particleDiameter;
 
-			m_indices.wrap(mesh->indices());
-			m_velocities.resize(m_numParticles, glm::vec3(0));
-			m_predicted.resize(m_numParticles, glm::vec3(0));
-			m_positionDeltas.resize(m_numParticles, glm::vec3(0));
-			m_positionDeltaCount.resize(m_numParticles, 0);
-			m_inverseMass.resize(m_numParticles, 1.0f);
+			positions.registerBuffer(mesh->verticesVBO());
+			normals.registerBuffer(mesh->normalsVBO());
 
-			InitializePositions(m_positions, m_numParticles, modelMatrix);
+			indices.wrap(mesh->indices());
+			velocities.resize(numParticles, glm::vec3(0));
+			predicted.resize(numParticles, glm::vec3(0));
+			positionDeltas.resize(numParticles, glm::vec3(0));
+			positionDeltaCount.resize(numParticles, 0);
+			inverseMass.resize(numParticles, 1.0f);
 
-			m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter, m_numParticles);;
+			InitializePositions(positions, numParticles, modelMatrix);
 
-			if (0)
-			{
-				GUI::RegisterDebug([this]() {
-					{
-						static int particleIndex1 = 0;
-						//IMGUI_LEFT_LABEL(ImGui::InputInt, "ParticleID", &particleIndex, 0, m_numParticles-1);
-						IMGUI_LEFT_LABEL(ImGui::SliderInt, "ParticleID1", &particleIndex1, 0, m_numParticles - 1);
-						ImGui::Indent(10);
-						ImGui::Text(fmt::format("Position: {}", m_predicted[particleIndex1]).c_str());
-						auto hash3i = m_spatialHash->HashPosition3i(m_predicted[particleIndex1]);
-						auto hash = m_spatialHash->HashPosition(m_predicted[particleIndex1]);
-						ImGui::Text(fmt::format("Hash: {}[{},{},{}]", hash, hash3i.x, hash3i.y, hash3i.z).c_str());
+			m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter, numParticles);;
 
-						static int neighborRange1 = 0;
-						IMGUI_LEFT_LABEL(ImGui::SliderInt, "NeighborRange1", &neighborRange1, 0, 63);
-						ImGui::Text(fmt::format("NeighborID: {}", m_spatialHash->neighbors[neighborRange1 + particleIndex1 * Global::simParams.maxNumNeighbors]).c_str());
-						ImGui::Indent(-10);
-					}
-
-					{
-						static int particleIndex2 = 0;
-						//IMGUI_LEFT_LABEL(ImGui::InputInt, "ParticleID", &particleIndex, 0, m_numParticles-1);
-						IMGUI_LEFT_LABEL(ImGui::SliderInt, "ParticleID2", &particleIndex2, 0, m_numParticles - 1);
-						ImGui::Indent(10);
-						ImGui::Text(fmt::format("Position: {}", m_predicted[particleIndex2]).c_str());
-						auto hash3i = m_spatialHash->HashPosition3i(m_predicted[particleIndex2]);
-						auto hash = m_spatialHash->HashPosition(m_predicted[particleIndex2]);
-						ImGui::Text(fmt::format("Hash: {}[{},{},{}]", hash, hash3i.x, hash3i.y, hash3i.z).c_str());
-
-						static int neighborRange2 = 0;
-						IMGUI_LEFT_LABEL(ImGui::SliderInt, "NeighborRange2", &neighborRange2, 0, 63);
-						ImGui::Text(fmt::format("NeighborID: {}", m_spatialHash->neighbors[neighborRange2 + particleIndex2 * Global::simParams.maxNumNeighbors]).c_str());
-						ImGui::Indent(-10);
-					}
-					static int cellID = 0;
-					IMGUI_LEFT_LABEL(ImGui::SliderInt, "CellID", &cellID, 0, (int)m_spatialHash->cellStart.size() - 1);
-					int start = m_spatialHash->cellStart[cellID];
-					int end = m_spatialHash->cellEnd[cellID];
-					ImGui::Indent(10);
-					ImGui::Text(fmt::format("CellStart.HashID: {}", start).c_str());
-					ImGui::Text(fmt::format("CellEnd.HashID: {}", end).c_str());
-
-					if (start != 0xffffffff && end > start)
-					{
-						static int particleHash = 0;
-						particleHash = clamp(particleHash, start, end - 1);
-						IMGUI_LEFT_LABEL(ImGui::SliderInt, "HashID", &particleHash, start, end - 1);
-						ImGui::Text(fmt::format("ParticleHash: {}", m_spatialHash->particleHash[particleHash]).c_str());
-						ImGui::Text(fmt::format("ParticleIndex: {}", m_spatialHash->particleIndex[particleHash]).c_str());
-					}
-					});
-			}
+			double time = Timer::EndTimer("INIT_SOLVER_GPU") * 1000;
+			//ShowDebugGUI();
+			fmt::print("Info(ClothSolverGPU): Initialize done. Took time {:.2f} ms\n", time);
 		}
 
 		void Simulate()
 		{
 			//==========================
-			// prepare
+			// Prepare
 			//==========================
-			m_params.gravity = Global::simParams.gravity;
-			m_params.numParticles = m_numParticles;
-			m_params.damping = Global::simParams.damping;
-			m_params.collisionMargin = Global::simParams.collisionMargin;
-			m_params.maxNumNeighbors = Global::simParams.maxNumNeighbors;
-			m_params.friction = Global::simParams.friction;
-
 			float frameTime = Timer::fixedDeltaTime();
 			float substepTime = Timer::fixedDeltaTime() / Global::simParams.numSubsteps;
 
 			//==========================
-			// map OpenGL buffer object for writing from CUDA
+			// Launch kernel
 			//==========================
-			//m_positions.Map();
+			SetSimulationParams(&Global::simParams);
 
-			//==========================
-			// launch kernel
-			//==========================
-			SetSimulationParams(&m_params);
+			SolveSDFCollision((uint)sdfColliders.size(), sdfColliders, positions, positions);
 
-			SolveSDFCollision((uint)m_SDFColliders.size(), m_SDFColliders, m_positions, m_positions);
-
-			EstimatePositions(m_positions, m_predicted, m_velocities, frameTime);
-			m_spatialHash->Hash(m_predicted);
+			EstimatePositions(positions, predicted, velocities, frameTime);
+			m_spatialHash->Hash(predicted);
 
 			for (int substep = 0; substep < Global::simParams.numSubsteps; substep++)
 			{
-				EstimatePositions(m_positions, m_predicted, m_velocities, substepTime);
+				EstimatePositions(positions, predicted, velocities, substepTime);
 
 				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
 				{
-					SolveStretch((uint)m_stretchLengths.size(), m_stretchIndices, m_stretchLengths, m_inverseMass, m_predicted, m_positionDeltas, m_positionDeltaCount);
+					SolveStretch((uint)stretchLengths.size(), stretchIndices, stretchLengths, inverseMass, predicted, 
+						positionDeltas, positionDeltaCount);
 
-					SolveParticleCollision(m_inverseMass, m_spatialHash->neighbors, m_positions, m_predicted, m_positionDeltas, m_positionDeltaCount);
-					SolveSDFCollision((uint)m_SDFColliders.size(), m_SDFColliders, m_positions, m_predicted);
+					SolveParticleCollision(inverseMass, m_spatialHash->neighbors, positions, predicted, positionDeltas, positionDeltaCount);
+					SolveSDFCollision((uint)sdfColliders.size(), sdfColliders, positions, predicted);
 
-					SolveAttachment((uint)m_attachIndices.size(), m_attachIndices, m_attachPositions, m_predicted);
+					SolveAttachment((uint)attachIndices.size(), attachIndices, attachPositions, predicted);
 				}
-				UpdatePositionsAndVelocities(m_predicted, m_velocities, m_positions, substepTime);
+				UpdatePositionsAndVelocities(predicted, velocities, positions, substepTime);
 			}
 
 			// UpdateNormal
-			ComputeNormal((uint)(m_indices.size() / 3), m_positions, m_indices, m_normals);
+			ComputeNormal((uint)(indices.size() / 3), positions, indices, normals);
+
 			//==========================
-			// unmap buffer object
+			// Sync
 			//==========================
-			//m_positions.Unmap();
 			cudaDeviceSynchronize();
 		}
 
 	public:
+
 		void AddStretch(int idx1, int idx2, float distance)
 		{
-			m_stretchIndices.push_back(idx1);
-			m_stretchIndices.push_back(idx2);
-			m_stretchLengths.push_back(distance);
+			stretchIndices.push_back(idx1);
+			stretchIndices.push_back(idx2);
+			stretchLengths.push_back(distance);
 		}
 
 		void AddAttach(int index, glm::vec3 position)
 		{
-			m_inverseMass[index] = 0;
-			m_attachIndices.push_back(index);
-			m_attachPositions.push_back(position);
+			inverseMass[index] = 0;
+			attachIndices.push_back(index);
+			attachPositions.push_back(position);
 		}
 
 		void UpdateColliders(vector<Collider*>& colliders)
 		{
-			m_SDFColliders.resize(colliders.size());
+			sdfColliders.resize(colliders.size());
 
 			for (int i = 0; i < colliders.size(); i++)
 			{
@@ -177,32 +121,84 @@ namespace Velvet
 				sc.position = c->actor->transform->position;
 				sc.scale = c->actor->transform->scale;
 				sc.type = c->sphereOrPlane ? SDFCollider::SDFColliderType::Plane : SDFCollider::SDFColliderType::Sphere;
-				m_SDFColliders[i] = sc;
+				sdfColliders[i] = sc;
 			}
 		}
 
-		// TODO: wrap with SimBuffer class
-		VtRegisteredBuffer<glm::vec3> m_positions;
-		VtRegisteredBuffer<glm::vec3> m_normals;
-		VtBuffer<uint> m_indices;
+	public: // Sim buffers
 
-		VtBuffer<glm::vec3> m_velocities;
-		VtBuffer<glm::vec3> m_predicted;
-		VtBuffer<glm::vec3> m_positionDeltas;
-		VtBuffer<int> m_positionDeltaCount;
-		VtBuffer<float> m_inverseMass;
+		VtRegisteredBuffer<glm::vec3> positions;
+		VtRegisteredBuffer<glm::vec3> normals;
+		VtBuffer<uint> indices;
 
-		VtBuffer<int> m_stretchIndices;
-		VtBuffer<float> m_stretchLengths;
-		VtBuffer<int> m_attachIndices;
-		VtBuffer<glm::vec3> m_attachPositions;
-		VtBuffer<SDFCollider> m_SDFColliders;
+		VtBuffer<glm::vec3> velocities;
+		VtBuffer<glm::vec3> predicted;
+		VtBuffer<glm::vec3> positionDeltas;
+		VtBuffer<int> positionDeltaCount;
+		VtBuffer<float> inverseMass;
+
+		VtBuffer<int> stretchIndices;
+		VtBuffer<float> stretchLengths;
+		VtBuffer<int> attachIndices;
+		VtBuffer<glm::vec3> attachPositions;
+		VtBuffer<SDFCollider> sdfColliders;
+
 	private:
 
-		VtSimParams m_params;
-		uint m_numParticles;
-		float m_particleDiameter;
 		shared_ptr<SpatialHashGPU> m_spatialHash;
+
+		void ShowDebugGUI()
+		{
+			GUI::RegisterDebug([this]() {
+				{
+					static int particleIndex1 = 0;
+					//IMGUI_LEFT_LABEL(ImGui::InputInt, "ParticleID", &particleIndex, 0, m_numParticles-1);
+					IMGUI_LEFT_LABEL(ImGui::SliderInt, "ParticleID1", &particleIndex1, 0, Global::simParams.numParticles - 1);
+					ImGui::Indent(10);
+					ImGui::Text(fmt::format("Position: {}", predicted[particleIndex1]).c_str());
+					auto hash3i = m_spatialHash->HashPosition3i(predicted[particleIndex1]);
+					auto hash = m_spatialHash->HashPosition(predicted[particleIndex1]);
+					ImGui::Text(fmt::format("Hash: {}[{},{},{}]", hash, hash3i.x, hash3i.y, hash3i.z).c_str());
+
+					static int neighborRange1 = 0;
+					IMGUI_LEFT_LABEL(ImGui::SliderInt, "NeighborRange1", &neighborRange1, 0, 63);
+					ImGui::Text(fmt::format("NeighborID: {}", m_spatialHash->neighbors[neighborRange1 + particleIndex1 * Global::simParams.maxNumNeighbors]).c_str());
+					ImGui::Indent(-10);
+				}
+
+				{
+					static int particleIndex2 = 0;
+					//IMGUI_LEFT_LABEL(ImGui::InputInt, "ParticleID", &particleIndex, 0, m_numParticles-1);
+					IMGUI_LEFT_LABEL(ImGui::SliderInt, "ParticleID2", &particleIndex2, 0, Global::simParams.numParticles - 1);
+					ImGui::Indent(10);
+					ImGui::Text(fmt::format("Position: {}", predicted[particleIndex2]).c_str());
+					auto hash3i = m_spatialHash->HashPosition3i(predicted[particleIndex2]);
+					auto hash = m_spatialHash->HashPosition(predicted[particleIndex2]);
+					ImGui::Text(fmt::format("Hash: {}[{},{},{}]", hash, hash3i.x, hash3i.y, hash3i.z).c_str());
+
+					static int neighborRange2 = 0;
+					IMGUI_LEFT_LABEL(ImGui::SliderInt, "NeighborRange2", &neighborRange2, 0, 63);
+					ImGui::Text(fmt::format("NeighborID: {}", m_spatialHash->neighbors[neighborRange2 + particleIndex2 * Global::simParams.maxNumNeighbors]).c_str());
+					ImGui::Indent(-10);
+				}
+				static int cellID = 0;
+				IMGUI_LEFT_LABEL(ImGui::SliderInt, "CellID", &cellID, 0, (int)m_spatialHash->cellStart.size() - 1);
+				int start = m_spatialHash->cellStart[cellID];
+				int end = m_spatialHash->cellEnd[cellID];
+				ImGui::Indent(10);
+				ImGui::Text(fmt::format("CellStart.HashID: {}", start).c_str());
+				ImGui::Text(fmt::format("CellEnd.HashID: {}", end).c_str());
+
+				if (start != 0xffffffff && end > start)
+				{
+					static int particleHash = 0;
+					particleHash = clamp(particleHash, start, end - 1);
+					IMGUI_LEFT_LABEL(ImGui::SliderInt, "HashID", &particleHash, start, end - 1);
+					ImGui::Text(fmt::format("ParticleHash: {}", m_spatialHash->particleHash[particleHash]).c_str());
+					ImGui::Text(fmt::format("ParticleIndex: {}", m_spatialHash->particleIndex[particleHash]).c_str());
+				}
+				});
+		}
 
 	};
 }
