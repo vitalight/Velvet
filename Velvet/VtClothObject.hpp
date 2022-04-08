@@ -117,7 +117,7 @@ namespace Velvet
 				glm::vec3 target = Helper::Lerp(mousePos, curPos, 0.8f);
 
 				m_solver->m_positions[id] = target;
-				m_solver->m_velocities[id] += (target - curPos) / Global::game->fixedDeltaTime;
+				m_solver->m_velocities[id] += (target - curPos) / Timer::fixedDeltaTime();
 			}
 		}
 

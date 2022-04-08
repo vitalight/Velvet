@@ -20,6 +20,7 @@ namespace Velvet
 	class GUI;
 	class Scene;
 	class Actor;
+	class Timer;
 
 	class GameInstance
 	{
@@ -61,15 +62,6 @@ namespace Velvet
 		vector<function<void()>> godUpdate; // update when main logic is paused (for debugging purpose)
 		vector<function<void()>> onFinalize;
 
-		int frameCount = 0;
-		int physicsFrameCount = 0;
-		float elapsedTime = 0.0f;
-		float lastUpdateTime = (float)glfwGetTime();
-		float deltaTime = 0.0f;
-		const float fixedDeltaTime = 1.0f / 60.0f;
-
-		bool renderGUI = true;
-		bool step = false;
 		bool pendingReset = false;
 		glm::vec4 skyColor = glm::vec4(0.0f);
 
@@ -81,6 +73,7 @@ namespace Velvet
 	private:
 		GLFWwindow* m_window = nullptr;
 		shared_ptr<GUI> m_gui;
+		shared_ptr<Timer> m_timer;
 
 		vector<shared_ptr<Actor>> m_actors;
 		shared_ptr<RenderPipeline> m_renderPipeline;

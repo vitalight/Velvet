@@ -68,8 +68,8 @@ namespace Velvet
 
 		void Simulate()
 		{
-			float frameTime = Global::game->fixedDeltaTime;
-			float substepTime = Global::game->fixedDeltaTime / Global::simParams.numSubsteps;
+			float frameTime = Timer::fixedDeltaTime();
+			float substepTime = Timer::fixedDeltaTime() / Global::simParams.numSubsteps;
 
 			// Pre-stablization pass [Unified particle physics for real-time applications (4.4)]
 			SolveSDFCollision(m_positions);

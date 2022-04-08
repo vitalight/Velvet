@@ -40,15 +40,15 @@ namespace Velvet
 			const float timer2_interval = 1.0f / 30.0f;
 
 			const auto& game = Global::game;
-			float elapsedTime = game->elapsedTime;
-			float deltaTimeMiliseconds = game->deltaTime * 1000;
+			float elapsedTime = Timer::elapsedTime();
+			float deltaTimeMiliseconds = Timer::deltaTime() * 1000;
 
-			frameCount = game->frameCount;
-			physicsFrameCount = game->physicsFrameCount;
+			frameCount = Timer::frameCount();
+			physicsFrameCount = Timer::physicsFrameCount();
 
 			// Some variables should not be update each frame
-			timer1 += game->deltaTime;
-			timer2 += game->deltaTime;
+			timer1 += Timer::deltaTime();
+			timer2 += Timer::deltaTime();
 
 			if (timer2 > timer2_interval)
 			{

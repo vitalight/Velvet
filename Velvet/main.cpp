@@ -104,10 +104,10 @@ public:
 			for (int i = 0; i < cubes.size(); i++)
 			{
 				auto cube = cubes[i];
-				//cube->transform->position += Helper::RandomUnitVector() * game->deltaTime * 5.0f;
-				velocities[i] = Helper::Lerp(velocities[i], Helper::RandomUnitVector() * 1.0f, game->deltaTime);
-				cube->transform->rotation += Helper::RandomUnitVector() * game->deltaTime * 50.0f;
-				cube->transform->position += velocities[i] * game->deltaTime * 5.0f;
+				//cube->transform->position += Helper::RandomUnitVector() * Timer::deltaTime() * 5.0f;
+				velocities[i] = Helper::Lerp(velocities[i], Helper::RandomUnitVector() * 1.0f, Timer::deltaTime());
+				cube->transform->rotation += Helper::RandomUnitVector() * Timer::deltaTime() * 50.0f;
+				cube->transform->position += velocities[i] * Timer::deltaTime() * 5.0f;
 
 				if (cube->transform->position.y < 0.07f)
 				{
@@ -138,7 +138,7 @@ public:
 		sphere->Initialize(glm::vec3(0, radius, -1), glm::vec3(radius));
 		game->postUpdate.push_back([sphere, game, radius]() {
 			static float time = 0;
-			time += game->fixedDeltaTime;
+			time += Timer::fixedDeltaTime();
 			sphere->transform->position = glm::vec3(0, radius, -cos(time * 2));
 			});
 

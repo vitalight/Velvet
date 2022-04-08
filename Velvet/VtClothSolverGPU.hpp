@@ -108,8 +108,8 @@ namespace Velvet
 			m_params.maxNumNeighbors = Global::simParams.maxNumNeighbors;
 			m_params.friction = Global::simParams.friction;
 
-			float frameTime = Global::game->fixedDeltaTime;
-			float substepTime = Global::game->fixedDeltaTime / Global::simParams.numSubsteps;
+			float frameTime = Timer::fixedDeltaTime();
+			float substepTime = Timer::fixedDeltaTime() / Global::simParams.numSubsteps;
 
 			//==========================
 			// map OpenGL buffer object for writing from CUDA

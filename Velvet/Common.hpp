@@ -51,9 +51,11 @@ struct VtSimParams
 
 struct VtGameState
 {
+	bool step = false;
 	bool pause = false;
 	bool renderWireframe = false;
 	bool drawParticles = false;
+	bool hideGUI = false;
 };
 
 struct VtTimers

@@ -51,8 +51,8 @@ namespace Velvet
 
 			//game->postUpdate.push_back([light, lightComp, game]() {
 			//	//light->transform->position = glm::vec3(sin(glfwGetTime()), 4.0, cos(glfwGetTime()));
-			//	light->transform->rotation = glm::vec3(10 * sin(game->elapsedTime) - 10, 0, 0);
-			//	light->transform->position = glm::vec3(2.5 * sin(game->elapsedTime), 4.0, 2.5 * cos(game->elapsedTime));
+			//	light->transform->rotation = glm::vec3(10 * sin(Timer::elapsedTime()) - 10, 0, 0);
+			//	light->transform->position = glm::vec3(2.5 * sin(Timer::elapsedTime()), 4.0, 2.5 * cos(Timer::elapsedTime()));
 			//	if (Global::input->GetKeyDown(GLFW_KEY_UP))
 			//	{
 			//		fmt::print("Outer: {}\n", lightComp->outerCutoff++);

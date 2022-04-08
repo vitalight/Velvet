@@ -36,7 +36,8 @@ VtEngine::VtEngine()
 		return;
 	}
 
-	glfwMakeContextCurrent(m_window);
+	glfwMakeContextCurrent(m_window); 
+	glfwSwapInterval(0);
 
 	glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* m_window, int width, int height) {
 		glViewport(0, 0, width, height);

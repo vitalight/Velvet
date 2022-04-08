@@ -56,8 +56,8 @@ namespace Velvet
 				else if (Global::input->GetKey(GLFW_KEY_E))
 					targetSpeed -= camera->up();
 
-				currentSpeed = Helper::Lerp(currentSpeed, targetSpeed, Global::game->deltaTime * 10);
-				trans->position += currentSpeed * speedScalar * Global::game->deltaTime;
+				currentSpeed = Helper::Lerp(currentSpeed, targetSpeed, Timer::deltaTime() * 10);
+				trans->position += currentSpeed * speedScalar * Timer::deltaTime();
 			}
 			else
 			{

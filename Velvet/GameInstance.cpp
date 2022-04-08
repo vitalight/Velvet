@@ -23,6 +23,7 @@ GameInstance::GameInstance(GLFWwindow* window, shared_ptr<GUI> gui)
 	m_window = window;
 	m_gui = gui;
 	m_renderPipeline = make_shared<RenderPipeline>();
+	m_timer = make_shared<Timer>();
 }
 
 shared_ptr<Actor> GameInstance::AddActor(shared_ptr<Actor> actor)
@@ -90,7 +91,7 @@ void GameInstance::ProcessScroll(GLFWwindow* m_window, double xoffset, double yo
 
 void GameInstance::ProcessKeyboard(GLFWwindow* m_window)
 {
-	Global::input->ToggleOnKeyDown(GLFW_KEY_H, renderGUI);
+	Global::input->ToggleOnKeyDown(GLFW_KEY_H, Global::gameState.hideGUI);
 
 	if (Global::input->GetKey(GLFW_KEY_ESCAPE))
 	{
@@ -98,7 +99,7 @@ void GameInstance::ProcessKeyboard(GLFWwindow* m_window)
 	}
 	if (Global::input->GetKeyDown(GLFW_KEY_O))
 	{
-		step = true;
+		Global::gameState.step = true;
 		Global::gameState.pause = false;
 	}
 	for (int i = 0; i < 9; i++)
@@ -137,52 +138,28 @@ void GameInstance::MainLoop()
 		glPolygonMode(GL_FRONT_AND_BACK, Global::gameState.renderWireframe ? GL_LINE : GL_FILL);
 
 		Timer::StartTimer("CPU_TIME");
-		// timing
-		float current = (float)glfwGetTime();
-		deltaTime = current - lastUpdateTime;
-		// avoid deltaTime being too large 
-		deltaTime = deltaTime > 0.2f ? 0.2f : deltaTime; 
-		lastUpdateTime = current;
+		Timer::UpdateDeltaTime();
 
 		// Updates
-		if (renderGUI)
-		{
-			m_gui->OnUpdate();
-		}
+		if (!Global::gameState.hideGUI) m_gui->OnUpdate();
 
 		if (!Global::gameState.pause)
 		{
-			static float fixedUpdateTimer = 0;
-			fixedUpdateTimer += deltaTime;
-
-			if (fixedUpdateTimer > fixedDeltaTime)
+			Timer::NextFrame();
+			if (Timer::NextFixedFrame())
 			{
-				fixedUpdateTimer = 0;
-				physicsFrameCount++;
-				for (const auto& go : m_actors)
-				{
-					go->FixedUpdate();
-				}
+				for (const auto& go : m_actors) go->FixedUpdate();
 
-				for (const auto& callback : postUpdate)
-				{
-					callback();
-				}
+				for (const auto& callback : postUpdate) callback();
 
-				if (step)
+				if (Global::gameState.step)
 				{
 					Global::gameState.pause = true;
-					step = false;
+					Global::gameState.step = false;
 				}
 			}
 
-			frameCount++;
-			elapsedTime += deltaTime;
-
-			for (const auto& go : m_actors)
-			{
-				go->Update();
-			}
+			for (const auto& go : m_actors) go->Update();
 		}
 
 		Global::input->OnUpdate();
@@ -195,7 +172,7 @@ void GameInstance::MainLoop()
 		Timer::EndTimer("CPU_TIME");
 
 		m_renderPipeline->Render();
-		if (renderGUI) m_gui->Render();
+		if (!Global::gameState.hideGUI) m_gui->Render();
 
 		// check and call events and swap the buffers
 		glfwSwapBuffers(m_window);
