@@ -164,12 +164,9 @@ void GameInstance::MainLoop()
 					go->FixedUpdate();
 				}
 
-				if (playAnimation)
+				for (const auto& callback : postUpdate)
 				{
-					for (const auto& callback : postUpdate)
-					{
-						callback();
-					}
+					callback();
 				}
 
 				if (step)

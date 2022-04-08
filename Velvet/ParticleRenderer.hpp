@@ -22,7 +22,6 @@ namespace Velvet
 			m_material->SetVec3("material.tint", glm::vec3(0.2, 0.3, 0.6));
 			m_material->specular = 0.0f;
 			m_material->SetBool("material.useTexture", false);
-			m_material->SetTexture("_ShadowTex", Global::game->depthFrameBuffer());
 		}
 
 		void Start() override
@@ -31,7 +30,7 @@ namespace Velvet
 
 			auto mesh = actor->GetComponent<MeshRenderer>()->mesh();
 			auto particles = mesh->verticesVBO();
-			m_numInstances = mesh->vertices().size();
+			m_numInstances = (int)mesh->vertices().size();
 
 			glBindBuffer(GL_ARRAY_BUFFER, m_instanceVBO);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * m_numInstances, nullptr, GL_DYNAMIC_DRAW);

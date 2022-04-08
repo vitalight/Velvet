@@ -27,7 +27,6 @@ public:
 			material->Use();
 
 			material->SetTexture("material.diffuse", Resource::LoadTexture("wood.png"));
-			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
 			material->SetBool("material.useTexture", true);
 		}
 

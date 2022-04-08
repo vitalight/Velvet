@@ -26,14 +26,14 @@ namespace Velvet
 			destroy();
 		}
 
-		T& operator[](int index)
+		T& operator[](size_t index)
 		{
 			assert(m_buffer);
 			assert(index < m_count);
 			return m_buffer[index];
 		}
 
-		int size() const { return m_count; }
+		size_t size() const { return m_count; }
 
 		void push_back(const T& t)
 		{
@@ -41,12 +41,12 @@ namespace Velvet
 			m_buffer[m_count++] = t;
 		}
 
-		void reserve(int minCapacity)
+		void reserve(size_t minCapacity)
 		{
 			if (minCapacity > m_capacity)
 			{
 				// growth factor of 1.5
-				const int newCapacity = minCapacity * 3 / 2;
+				const size_t newCapacity = minCapacity * 3 / 2;
 
 				T* newBuf = VtAllocBuffer<T>(newCapacity);
 
@@ -63,21 +63,21 @@ namespace Velvet
 			}
 		}
 
-		void resize(int newCount)
+		void resize(size_t newCount)
 		{
 			reserve(newCount);
 			m_count = newCount;
 		}
 
-		void resize(int newCount, const T& val)
+		void resize(size_t newCount, const T& val)
 		{
-			const int startInit = m_count;
-			const int endInit = newCount;
+			const size_t startInit = m_count;
+			const size_t endInit = newCount;
 
 			resize(newCount);
 
 			// init any new entries
-			for (int i = startInit; i < endInit; ++i)
+			for (size_t i = startInit; i < endInit; ++i)
 				m_buffer[i] = val;
 		}
 
@@ -104,8 +104,8 @@ namespace Velvet
 			memcpy(m_buffer, data.data(), m_count * sizeof(T));
 		}
 	private:
-		int m_count = 0;
-		int m_capacity = 0;
+		size_t m_count = 0;
+		size_t m_capacity = 0;
 		T* m_buffer = nullptr;
 	};
 
@@ -126,14 +126,14 @@ namespace Velvet
 
 		operator T* () const { return m_buffer; }
 
-		T& operator[](int index)
+		T& operator[](size_t index)
 		{
 			assert(m_bufferCPU);
 			assert(index < m_count);
 			return m_bufferCPU[index];
 		}
 
-		int size() const { return m_count; }
+		size_t size() const { return m_count; }
 
 		void destroy()
 		{
@@ -161,7 +161,7 @@ namespace Velvet
 			checkCudaErrors(cudaGraphicsMapResources(1, &m_cudaVboResource, 0));
 			checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&m_buffer, &m_numBytes,
 				m_cudaVboResource));
-			m_count = (int)(m_numBytes / sizeof(T));
+			m_count = m_numBytes / sizeof(T);
 
 			// unmap
 			checkCudaErrors(cudaGraphicsUnmapResources(1, &m_cudaVboResource, 0));
@@ -179,10 +179,10 @@ namespace Velvet
 		void push()
 		{
 			assert(m_bufferCPU);
-			cudaMemcpyAsync(m_buffer, m_bufferCPU, m_numBytes, cudaMemcpyDefault);// TODO: async?
+			cudaMemcpyAsync(m_buffer, m_bufferCPU, m_numBytes, cudaMemcpyDefault);
 		}
 
-		int m_count = 0;
+		size_t m_count = 0;
 		size_t m_numBytes = 0;
 		T* m_buffer = nullptr;
 		T* m_bufferCPU = nullptr;

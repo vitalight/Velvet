@@ -153,8 +153,6 @@ namespace Velvet
 
 			auto material = Resource::LoadMaterial("_Default");
 			material->Use();
-			// TODO: auto
-			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
 			material->doubleSided = true;
 
 			MaterialProperty materialProperty;
@@ -193,10 +191,6 @@ namespace Velvet
 			};
 
 			auto material = Resource::LoadMaterial("_Default");
-			{
-				material->Use();
-				material->SetTexture("_ShadowTex", game->depthFrameBuffer());
-			}
 
 			auto mesh = Resource::LoadMesh("sphere.obj");
 			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
@@ -232,8 +226,6 @@ namespace Velvet
 			auto infPlane = game->CreateActor("Infinite Plane");
 
 			auto mat = Resource::LoadMaterial("_InfinitePlane");
-			mat->Use();
-			mat->SetTexture("_ShadowTex", game->depthFrameBuffer());
 			mat->noWireframe = true;
 			// Plane: ax + by + cz + d = 0
 			mat->SetVec4("_Plane", glm::vec4(0, 1, 0, 0));
@@ -253,8 +245,6 @@ namespace Velvet
 		{
 			auto cube = game->CreateActor("Cube");
 			auto material = Resource::LoadMaterial("_Default");
-			material->Use();
-			material->SetTexture("_ShadowTex", game->depthFrameBuffer());
 
 			MaterialProperty materialProperty;
 			materialProperty.preRendering = [color](Material* mat) {

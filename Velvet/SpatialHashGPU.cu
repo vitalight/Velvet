@@ -39,7 +39,6 @@ __global__ void ComputeParticleHash(
 	particleIndex[id] = id;
 }
 
-// TODO: shared mem (ref: cuda particles example)
 __global__ void FindCellStart(
 	uint* cellStart,
 	uint* cellEnd,

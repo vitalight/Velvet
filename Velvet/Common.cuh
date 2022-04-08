@@ -39,7 +39,7 @@ namespace Velvet
 	}
 
 	template<class T>
-	inline T* VtAllocBuffer(int elementCount)
+	inline T* VtAllocBuffer(size_t elementCount)
 	{
 		T* devPtr = nullptr;
 		checkCudaErrors(cudaMallocManaged((void**)&devPtr, elementCount * sizeof(T)));

@@ -77,7 +77,7 @@ namespace Velvet
 						ImGui::Indent(-10);
 					}
 					static int cellID = 0;
-					IMGUI_LEFT_LABEL(ImGui::SliderInt, "CellID", &cellID, 0, m_spatialHash->cellStart.size() - 1);
+					IMGUI_LEFT_LABEL(ImGui::SliderInt, "CellID", &cellID, 0, (int)m_spatialHash->cellStart.size() - 1);
 					int start = m_spatialHash->cellStart[cellID];
 					int end = m_spatialHash->cellEnd[cellID];
 					ImGui::Indent(10);
@@ -121,7 +121,7 @@ namespace Velvet
 			//==========================
 			SetSimulationParams(&m_params);
 
-			SolveSDFCollision(m_SDFColliders.size(), m_SDFColliders, m_positions, m_positions);
+			SolveSDFCollision((uint)m_SDFColliders.size(), m_SDFColliders, m_positions, m_positions);
 
 			EstimatePositions(m_positions, m_predicted, m_velocities, frameTime);
 			m_spatialHash->Hash(m_predicted);
@@ -132,18 +132,18 @@ namespace Velvet
 
 				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
 				{
-					SolveStretch(m_stretchLengths.size(), m_stretchIndices, m_stretchLengths, m_inverseMass, m_predicted, m_positionDeltas, m_positionDeltaCount);
+					SolveStretch((uint)m_stretchLengths.size(), m_stretchIndices, m_stretchLengths, m_inverseMass, m_predicted, m_positionDeltas, m_positionDeltaCount);
 
 					SolveParticleCollision(m_inverseMass, m_spatialHash->neighbors, m_positions, m_predicted, m_positionDeltas, m_positionDeltaCount);
-					SolveSDFCollision(m_SDFColliders.size(), m_SDFColliders, m_positions, m_predicted);
+					SolveSDFCollision((uint)m_SDFColliders.size(), m_SDFColliders, m_positions, m_predicted);
 
-					SolveAttachment(m_attachIndices.size(), m_attachIndices, m_attachPositions, m_predicted);
+					SolveAttachment((uint)m_attachIndices.size(), m_attachIndices, m_attachPositions, m_predicted);
 				}
 				UpdatePositionsAndVelocities(m_predicted, m_velocities, m_positions, substepTime);
 			}
 
 			// UpdateNormal
-			ComputeNormal(m_indices.size() / 3, m_positions, m_indices, m_normals);
+			ComputeNormal((uint)(m_indices.size() / 3), m_positions, m_indices, m_normals);
 			//==========================
 			// unmap buffer object
 			//==========================

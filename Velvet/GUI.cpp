@@ -154,8 +154,6 @@ void GUI::ShowOptionWindow()
 		Global::input->ToggleOnKeyDown(GLFW_KEY_K, Global::gameState.drawParticles);
 		ImGui::Checkbox("Draw Wireframe (L)", &Global::gameState.renderWireframe);
 		Global::input->ToggleOnKeyDown(GLFW_KEY_L, Global::gameState.renderWireframe);
-		ImGui::Checkbox("Play Animation (Space)", &Global::game->playAnimation); //TODO: remove
-		Global::input->ToggleOnKeyDown(GLFW_KEY_SPACE, Global::game->playAnimation);
 		ImGui::Dummy(ImVec2(0.0f, 10.0f));
 	}
 
