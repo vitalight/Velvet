@@ -18,7 +18,7 @@ __device__ inline int HashCoords(int x, int y, int z)
 	return abs(h % d_hashTableSize);
 }
 
-__device__ inline int HashPosition(float3 position)
+__device__ inline int HashPosition(glm::vec3 position)
 {
 	int x = ComputeIntCoord(position.x);
 	int y = ComputeIntCoord(position.y);
@@ -32,7 +32,7 @@ __device__ inline int HashPosition(float3 position)
 __global__ void ComputeParticleHash(
 	uint* particleHash,
 	uint* particleIndex,
-	CONST(float3*) positions,
+	CONST(glm::vec3*) positions,
 	uint numObjects)
 {
 	GET_CUDA_ID(id, numObjects);
@@ -102,13 +102,13 @@ __global__ void CacheNeighbors(
 	CONST(uint*) particleIndex,
 	CONST(uint*) cellStart,
 	CONST(uint*) cellEnd,
-	CONST(float3*) positions,
+	CONST(glm::vec3*) positions,
 	const uint numObjects,
 	const uint maxNumNeihgbors)
 {
 	GET_CUDA_ID(id, numObjects);
 
-	float3 position = positions[id];
+	glm::vec3 position = positions[id];
 
 	int ix = ComputeIntCoord(position.x);
 	int iy = ComputeIntCoord(position.y);
@@ -131,7 +131,7 @@ __global__ void CacheNeighbors(
 				for (int i = start; i < end; i++)
 				{
 					uint neighbor = particleIndex[i];
-					float distance = length(position - positions[neighbor]);
+					float distance = glm::length(position - positions[neighbor]);
 					if (neighbor != id && distance < distanceTolerance * d_hashCellSpacing)
 					{
 						neighbors[neighborIndex++] = neighbor;
@@ -148,14 +148,14 @@ void Velvet::HashObjects(
 	uint* cellStart,
 	uint* cellEnd,
 	uint* neighbors,
-	CONST(float3*) positions,
+	CONST(glm::vec3*) positions,
 	const uint numObjects,
 	const uint maxNumNeighbors,
 	const float hashCellSpacing, 
 	const int hashTableSize)
 {
 	{
-		ScopedTimerGPU timer("Solver_Hash_Particle");
+		ScopedTimerGPU timer("Solver_HashParticle");
 
 		checkCudaErrors(cudaMemcpyToSymbol(d_hashCellSpacing, &hashCellSpacing, sizeof(float)));
 		checkCudaErrors(cudaMemcpyToSymbol(d_hashTableSize, &hashTableSize, sizeof(int)));
@@ -164,14 +164,14 @@ void Velvet::HashObjects(
 	}
 
 	{
-		ScopedTimerGPU timer("Solver_Hash_Sort");
+		ScopedTimerGPU timer("Solver_HashSort");
 		// Sort Particle Hash
 		thrust::sort_by_key(thrust::device_ptr<uint>(particleHash),
 			thrust::device_ptr<uint>(particleHash + numObjects),
 			thrust::device_ptr<uint>(particleIndex));
 	}
 	{
-		ScopedTimerGPU timer("Solver_Hash_FindCellStart");
+		ScopedTimerGPU timer("Solver_HashBuildCell");
 		cudaMemset(cellStart, 0xffffffff, sizeof(uint) * (hashTableSize + 1));
 		uint numBlocks, numThreads;
 		ComputeGridSize(numObjects, numBlocks, numThreads);
@@ -179,7 +179,7 @@ void Velvet::HashObjects(
 		CUDA_CALL_V(FindCellStart, numBlocks, numThreads, smemSize)(cellStart, cellEnd, particleHash, numObjects);
 	}
 	{
-		ScopedTimerGPU timer("Solver_Hash_CacheNeighbors");
+		ScopedTimerGPU timer("Solver_HashCache");
 		cudaMemset(neighbors, 0xffffffff, sizeof(uint) * maxNumNeighbors * numObjects);
 		CUDA_CALL(CacheNeighbors, numObjects)(neighbors, particleIndex, cellStart, cellEnd, positions, numObjects, maxNumNeighbors);
 	}

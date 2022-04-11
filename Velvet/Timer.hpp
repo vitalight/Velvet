@@ -179,18 +179,14 @@ namespace Velvet
 		static bool PeriodicUpdate(const string& label, float interval, bool allowRepetition = true)
 		{
 			auto& l2t = s_timer->label2accumulatedTime;
-			if (l2t.count(label))
+			if (!l2t.count(label))
 			{
-				l2t[label] += s_timer->m_deltaTime;
-			}
-			else
-			{
-				l2t[label] = s_timer->m_deltaTime;
+				l2t[label] = 0;
 			}
 
-			if (l2t[label] > interval)
+			if (l2t[label] < s_timer->m_elapsedTime)
 			{
-				l2t[label] = allowRepetition ? l2t[label] - interval : 0;
+				l2t[label] = allowRepetition ? l2t[label] + interval : s_timer->m_elapsedTime + interval;
 				return true;
 			}
 			return false;

@@ -59,7 +59,7 @@ namespace Velvet
 
 		void Hash(const VtBuffer<glm::vec3>& positions)
 		{
-			HashObjects(particleHash, particleIndex, cellStart, cellEnd, neighbors, (float3*)positions.data(), (uint)positions.size(), 
+			HashObjects(particleHash, particleIndex, cellStart, cellEnd, neighbors, positions, (uint)positions.size(), 
 				Global::simParams.maxNumNeighbors, m_spacing, m_tableSize);
 		}
 

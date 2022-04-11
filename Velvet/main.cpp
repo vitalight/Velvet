@@ -168,7 +168,7 @@ public:
 		float radius = 0.6f;
 		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
 
-		int clothResolution = 64;
+		int clothResolution = 200;
 		auto cloth = SpawnCloth(game, clothResolution);
 		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
 	}

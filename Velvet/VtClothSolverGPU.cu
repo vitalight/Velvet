@@ -14,7 +14,7 @@ namespace Velvet
 
 	void SetSimulationParams(VtSimParams* hostParams)
 	{
-		ScopedTimerGPU timer("Solver_SetSimulationParams");
+		ScopedTimerGPU timer("Solver_SetParams");
 		checkCudaErrors(cudaMemcpyToSymbol(d_params, hostParams, sizeof(VtSimParams)));
 		h_params = *hostParams;
 	}
@@ -32,7 +32,7 @@ namespace Velvet
 
 	void InitializePositions(glm::vec3* positions, int count, glm::mat4 modelMatrix)
 	{
-		ScopedTimerGPU timer("Solver_InitializePositions");
+		ScopedTimerGPU timer("Solver_Initialize");
 		thrust::device_ptr<glm::vec3> d_positions(positions);
 		thrust::transform(d_positions, d_positions + count, d_positions, InitializePositionsFunctor(modelMatrix));
 	}
@@ -48,7 +48,7 @@ namespace Velvet
 
 	void EstimatePositions(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
 	{
-		ScopedTimerGPU timer("Solver_EstimatePositions");
+		ScopedTimerGPU timer("Solver_Predict");
 		CUDA_CALL(EstimatePositions_Impl, h_params.numParticles)(positions, predicted, velocities, deltaTime);
 	}
 
@@ -120,7 +120,7 @@ namespace Velvet
 
 	void SolveAttachment(int numConstraints, CONST(int*) attachIndices, CONST(glm::vec3*) attachPositions, glm::vec3* predicted)
 	{
-		ScopedTimerGPU timer("Solver_SolveAttachment");
+		ScopedTimerGPU timer("Solver_SolveAttach");
 		CUDA_CALL(SolveAttachment_Impl, numConstraints)(numConstraints, attachIndices, attachPositions, predicted);
 	}
 
@@ -162,7 +162,7 @@ namespace Velvet
 
 	void SolveSDFCollision(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted)
 	{
-		ScopedTimerGPU timer("Solver_SolveSDFCollision");
+		ScopedTimerGPU timer("Solver_CollideSDFs");
 		if (numColliders == 0) return;
 		
 		CUDA_CALL(SolveSDFCollision_Impl, h_params.numParticles)(numColliders, colliders, positions, predicted);
@@ -224,7 +224,7 @@ namespace Velvet
 		glm::vec3* positionDeltas,
 		int* positionDeltaCount)
 	{
-		ScopedTimerGPU timer("Solver_SolveParticleCollision");
+		ScopedTimerGPU timer("Solver_CollideParticles");
 		CUDA_CALL(SolveParticleCollision_Impl, h_params.numParticles)(inverseMass, neighbors, positions, predicted, positionDeltas, positionDeltaCount);
 		CUDA_CALL(ApplyPositionDeltas_Impl, h_params.numParticles)(predicted, positionDeltas, positionDeltaCount);
 	}
@@ -239,7 +239,7 @@ namespace Velvet
 
 	void UpdatePositionsAndVelocities(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
 	{
-		ScopedTimerGPU timer("Solver_UpdatePositionsAndVelocities");
+		ScopedTimerGPU timer("Solver_Finalize");
 		CUDA_CALL(UpdatePositionsAndVelocities_Impl, h_params.numParticles)(predicted, velocities, positions, deltaTime);
 	}
 
@@ -270,7 +270,7 @@ namespace Velvet
 
 	void ComputeNormal(uint numTriangles, CONST(glm::vec3*) positions, CONST(uint*) indices, glm::vec3* normals)
 	{
-		ScopedTimerGPU timer("Solver_ComputeNormal");
+		ScopedTimerGPU timer("Solver_UpdateNormals");
 		if (h_params.numParticles)
 		{
 			cudaMemset(normals, 0, h_params.numParticles * sizeof(glm::vec3));

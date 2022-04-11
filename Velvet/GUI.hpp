@@ -47,7 +47,6 @@ namespace Velvet
 		const ImGuiWindowFlags k_windowFlags = ImGuiWindowFlags_AlwaysAutoResize |
 			ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav |
 			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
-		const float k_windowWidth = 256.0f;
 
 		vector<function<void()>> m_showDebugInfo;
 		vector<function<void()>> m_showDebugInfoOnce;

@@ -5,72 +5,71 @@
 
 using namespace Velvet;
 
-inline GUI* g_Gui;
-
 #define SHORTCUT_BOOL(key, variable) if (Global::input->GetKeyDown(key)) variable = !variable
 
 #define QUICK_GUI(name) ImGui::TableNextColumn(); \
-ImGui::Text(CapitalizeFirstLetter(#name).c_str()); \
+ImGui::Text(name.c_str()); \
 ImGui::TableNextColumn(); \
-ImGui::Text("%.2f ms", name); \
+ImGui::Text("%.2f ms", label2time[name]); \
 ImGui::TableNextColumn(); \
-ImGui::Text("%.2f %%", total > 0? (name / total * 100) : 0)
+ImGui::Text("%.2f ms", label2avgTime[name] / count); \
+ImGui::TableNextColumn(); \
+ImGui::Text("%.2f %%", total > 0? (label2avgTime[name] / total * 100) : 0)
 
-string CapitalizeFirstLetter(string s)
-{
-	s[0] = toupper(s[0]);
-	return s;
-}
+inline GUI* g_Gui;
+const float k_leftWindowWidth = 250.0f;
+const float k_rightWindowWidth = 320.0f;
 
 struct SolverTiming
 {
-	double kernelSum;
-	double total;				//!< Sum of all timers above
+	int count = 0;
 
-	double kernelSumAlltime = 0;
-	int kernelSumCount = 0;
+	vector<string> labels = {
+		"SetParams",
+		//"Initialize",
+		"Predict",
+		"SolveStretch",
+		"SolveAttach",
+		"CollideSDFs",
+		"CollideParticles",
+		"Finalize",
+		"UpdateNormals",
 
-	double setParams;
-	double initialize;
-	double predict;				//!< Time spent in prediction
-	double solveStretches;
-	double solveAttach;
-	double collideSDFs;
-	double collideParticles;		//!< Time spent finding particle neighbors
-	double finalize;				//!< Time spent finalizing state
-	double updateNormals;		//!< Time spent updating vertex normals
-	
-	double hashParticle;
-	double hashSort;
-	double hashConstructCell;
-	double hashCache;
+		"HashParticle",
+		"HashSort",
+		"HashBuildCell",
+		"HashCache",
 
+		"Total",
+	};
+
+	unordered_map<string, double> label2time;
+	unordered_map<string, double> label2avgTime;
 	
 	void Update()
 	{
 		if (Timer::PeriodicUpdate("GUI_SOLVER", 0.2f))
 		{
-			total = Timer::GetTimerGPU("Solver_Total");
+			if (Timer::frameCount() < 2)
+			{
+				count = 0;
+				for (const auto& label : labels)
+				{
+					label2avgTime[label] = 0;
+				}
+			}
 
-			setParams = Timer::GetTimerGPU("Solver_SetSimulationParams");
-			initialize = Timer::GetTimerGPU("Solver_InitializePositions");
-			predict = Timer::GetTimerGPU("Solver_EstimatePositions");
-			solveStretches = Timer::GetTimerGPU("Solver_SolveStretch");
-			solveAttach = Timer::GetTimerGPU("Solver_SolveAttachment");
-			collideSDFs = Timer::GetTimerGPU("Solver_SolveSDFCollision");
-			collideParticles = Timer::GetTimerGPU("Solver_SolveParticleCollision");
-			finalize = Timer::GetTimerGPU("Solver_UpdatePositionsAndVelocities");
-			updateNormals = Timer::GetTimerGPU("Solver_ComputeNormal");
-			
-			hashParticle = Timer::GetTimerGPU("Solver_Hash_Particle");
-			hashSort = Timer::GetTimerGPU("Solver_Hash_Sort");
-			hashConstructCell = Timer::GetTimerGPU("Solver_Hash_FindCellStart");
-			hashCache = Timer::GetTimerGPU("Solver_Hash_CacheNeighbors");
+			label2time["KernelSum"] = 0;
+			for (const auto& label : labels)
+			{
+				label2time[label] = Timer::GetTimerGPU("Solver_" + label);
+				label2avgTime[label] += label2time[label];
 
-			kernelSum = setParams + predict + solveStretches + solveAttach + collideSDFs + collideParticles + finalize + updateNormals 
-				+ hashParticle + hashSort + hashConstructCell + hashCache;
-			kernelSumAlltime += kernelSum;
-			kernelSumCount++;
+				if (label != "Total" && label != "Initialize") label2time["KernelSum"] += label2time[label];
+			}
+
+			label2avgTime["KernelSum"] += label2time["KernelSum"];
+			count++;
 		}
 	}
 
@@ -81,41 +80,33 @@ struct SolverTiming
 			return;
 		}
 
-		ImGui::Text("Average GPU time: %.2f ms", kernelSumAlltime / kernelSumCount);
+		ImGui::Text("Average GPU time: %.2f ms", label2avgTime["KernelSum"] / count);
 
 		static bool hasPrinted = false;
 		int printAtFrame = 300;
 		if (!hasPrinted && Timer::physicsFrameCount() == printAtFrame)
 		{
 			hasPrinted = true;
-			fmt::print("Info(GUI): Average GPU time at frame({}) is: {:.3f} ms\n", printAtFrame, kernelSumAlltime / kernelSumCount);
+			fmt::print("Info(GUI): Average GPU time at frame({}) is: {:.3f} ms\n", printAtFrame, label2avgTime["KernelSum"] / count);
 		}
 
-		if (ImGui::BeginTable("timing", 3))
+		if (ImGui::BeginTable("timing", 4))
 		{
 			//ImGui::PushItemWidth(20);            
 			ImGui::TableSetupColumn("Kernel");
 			ImGui::TableSetupColumn("Time (ms)");
+			ImGui::TableSetupColumn("Avg (ms)");
 			ImGui::TableSetupColumn("%");
 			ImGui::TableHeadersRow();
 
-			QUICK_GUI(initialize);
-			QUICK_GUI(setParams);
-			QUICK_GUI(predict);
-			QUICK_GUI(solveStretches);
-			QUICK_GUI(solveAttach);
-			QUICK_GUI(collideSDFs);
-			QUICK_GUI(collideParticles);
-			QUICK_GUI(finalize);
-			QUICK_GUI(updateNormals);
-
-			QUICK_GUI(hashParticle);
-			QUICK_GUI(hashSort);
-			QUICK_GUI(hashConstructCell);
-			QUICK_GUI(hashCache);
-
-			QUICK_GUI(kernelSum);
-			QUICK_GUI(total);
+			double total = label2avgTime["Total"];
+			for (int i = 0; i < labels.size() -1; i++)
+			{
+				auto& label = labels[i];
+				QUICK_GUI(label);
+			}
+			QUICK_GUI(string("KernelSum"));
+			QUICK_GUI(labels[labels.size() - 1]);
 
 			ImGui::EndTable();
 		}
@@ -172,6 +163,7 @@ struct PerformanceStat
 		ImGui::Text("Avg FrameRate:  %d FPS", frameRate);
 		ImGui::Text("CPU time:  %.2f ms", cpuTime);
 		ImGui::Text("GPU time:  %.2f ms", gpuTime);
+		ImGui::Text("Num Particles:  %d ms", Global::simParams.numParticles);
 
 		ImGui::Dummy(ImVec2(0, 5));
 		auto overlay = fmt::format("{:.2f} ms ({:.2f} FPS)", deltaTime, 1000.0 / deltaTime);
@@ -287,7 +279,7 @@ void GUI::CustomizeStyle()
 
 void GUI::ShowSceneWindow()
 {
-	ImGui::SetNextWindowSize(ImVec2(k_windowWidth, (m_canvasHeight - 60.0f) * 0.4f));
+	ImGui::SetNextWindowSize(ImVec2(k_leftWindowWidth, (m_canvasHeight - 60.0f) * 0.4f));
 	ImGui::SetNextWindowPos(ImVec2(20, 20));
 	ImGui::Begin("Scene", NULL, k_windowFlags);
 
@@ -308,7 +300,7 @@ void GUI::ShowSceneWindow()
 
 void GUI::ShowOptionWindow()
 {
-	ImGui::SetNextWindowSize(ImVec2(k_windowWidth, (m_canvasHeight - 60.0f) * 0.6f));
+	ImGui::SetNextWindowSize(ImVec2(k_leftWindowWidth, (m_canvasHeight - 60.0f) * 0.6f));
 	ImGui::SetNextWindowPos(ImVec2(20, 40 + (m_canvasHeight - 60.0f) * 0.4f));
 	ImGui::Begin("Options", NULL, k_windowFlags);
 
@@ -334,9 +326,6 @@ void GUI::ShowOptionWindow()
 
 	if (ImGui::CollapsingHeader("Simulation", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		//IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "LightPos", (float*)&(Global::lights[0]->transform()->position), -5, 5, "%.2f");
-		//IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "LightRot", (float*)&(Global::lights[0]->transform()->rotation), -79, 79, "%.2f");
-
 		Global::simParams.OnGUI();
 	}
 
@@ -345,8 +334,8 @@ void GUI::ShowOptionWindow()
 
 void GUI::ShowStatWindow()
 {
-	ImGui::SetNextWindowSize(ImVec2(k_windowWidth * 1.1f, 0));
-	ImGui::SetNextWindowPos(ImVec2(m_canvasWidth - k_windowWidth * 1.1f - 20, 20.0f));
+	ImGui::SetNextWindowSize(ImVec2(k_rightWindowWidth * 1.1f, 0));
+	ImGui::SetNextWindowPos(ImVec2(m_canvasWidth - k_rightWindowWidth * 1.1f - 20, 20.0f));
 	ImGui::Begin("Statistics", NULL, k_windowFlags);
 	ImGui::Text("Device:  %s", m_deviceName.c_str());
 
