@@ -15,7 +15,7 @@ namespace Velvet
 	void SetSimulationParams(VtSimParams* hostParams)
 	{
 		ScopedTimerGPU timer("Solver_SetParams");
-		checkCudaErrors(cudaMemcpyToSymbol(d_params, hostParams, sizeof(VtSimParams)));
+		checkCudaErrors(cudaMemcpyToSymbolAsync(d_params, hostParams, sizeof(VtSimParams)));
 		h_params = *hostParams;
 	}
 
@@ -79,8 +79,9 @@ namespace Velvet
 			// compliance is zero, therefore XPBD=PBD
 			float denom = w1 + w2;
 			float lambda = (distance - expectedDistance) / denom;
-			glm::vec3 correction1 = -w1 * lambda * gradient;
-			glm::vec3 correction2 = w2 * lambda * gradient;
+			glm::vec3 common = lambda * gradient;
+			glm::vec3 correction1 = -w1 * common;
+			glm::vec3 correction2 = w2 * common;
 			AtomicAdd(positionDeltas, idx1, correction1);
 			AtomicAdd(positionDeltas, idx2, correction2);
 			atomicAdd(&positionDeltaCount[idx1], 1);
@@ -180,34 +181,36 @@ namespace Velvet
 
 		glm::vec3 positionDelta = glm::vec3(0);
 		int deltaCount = 0;
-		glm::vec3 myVelocity = (predicted[id] - positions[id]);
+		glm::vec3 pred_i = predicted[id];
+		glm::vec3 vel_i = (pred_i - positions[id]);
+		float invMass_i = inverseMass[id];
 
 		for (int j = id * d_params.maxNumNeighbors; j < (id + 1) * d_params.maxNumNeighbors; j++)
 		{
 			uint idx1 = id;
 			uint idx2 = neighbors[j];
-			if (idx1 == idx2) continue;
 			if (idx2 > d_params.numParticles) break;
 
 			float expectedDistance = d_params.particleDiameter;
 
-			glm::vec3 diff = predicted[idx1] - predicted[idx2];
+			glm::vec3 pred_j = predicted[idx2];
+			glm::vec3 diff = pred_i - pred_j;
 			float distance = glm::length(diff);
-			auto w1 = inverseMass[idx1];
-			auto w2 = inverseMass[idx2];
+			float w1 = invMass_i;
+			float w2 = inverseMass[idx2];
 
 			if (distance < expectedDistance && w1 + w2 > 0)
 			{
-				auto gradient = diff / (distance + EPSILON);
-				auto denom = w1 + w2;
-				auto lambda = (distance - expectedDistance) / denom;
-				auto common = lambda * gradient;
+				glm::vec3 gradient = diff / (distance + EPSILON);
+				float denom = w1 + w2;
+				float lambda = (distance - expectedDistance) / denom;
+				glm::vec3 common = lambda * gradient;
 
 				positionDelta -= w1 * common;
 				deltaCount += 1;
 
-				glm::vec3 relativeVelocity = myVelocity - (predicted[idx2] - positions[idx2]);
-				auto friction = ComputeFriction(common, relativeVelocity);
+				glm::vec3 relativeVelocity = vel_i - (pred_j - positions[idx2]);
+				glm::vec3 friction = ComputeFriction(common, relativeVelocity);
 				positionDelta += w1 * friction;
 			}
 		}
@@ -273,8 +276,7 @@ namespace Velvet
 		ScopedTimerGPU timer("Solver_UpdateNormals");
 		if (h_params.numParticles)
 		{
-			cudaMemset(normals, 0, h_params.numParticles * sizeof(glm::vec3));
-				
+			cudaMemsetAsync(normals, 0, h_params.numParticles * sizeof(glm::vec3));
 			CUDA_CALL(ComputeTriangleNormals, numTriangles)(numTriangles, positions, indices, normals);
 			CUDA_CALL(ComputeVertexNormals, h_params.numParticles)(normals);
 		}

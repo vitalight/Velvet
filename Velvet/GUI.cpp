@@ -57,6 +57,7 @@ struct SolverTiming
 				{
 					label2avgTime[label] = 0;
 				}
+				label2avgTime["KernelSum"] = 0;
 			}
 
 			label2time["KernelSum"] = 0;

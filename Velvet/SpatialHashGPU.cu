@@ -157,9 +157,8 @@ void Velvet::HashObjects(
 	{
 		ScopedTimerGPU timer("Solver_HashParticle");
 
-		checkCudaErrors(cudaMemcpyToSymbol(d_hashCellSpacing, &hashCellSpacing, sizeof(float)));
-		checkCudaErrors(cudaMemcpyToSymbol(d_hashTableSize, &hashTableSize, sizeof(int)));
-
+		checkCudaErrors(cudaMemcpyToSymbolAsync(d_hashCellSpacing, &hashCellSpacing, sizeof(float)));
+		checkCudaErrors(cudaMemcpyToSymbolAsync(d_hashTableSize, &hashTableSize, sizeof(int)));
 		CUDA_CALL(ComputeParticleHash, numObjects)(particleHash, particleIndex, positions, numObjects);
 	}
 
@@ -172,7 +171,7 @@ void Velvet::HashObjects(
 	}
 	{
 		ScopedTimerGPU timer("Solver_HashBuildCell");
-		cudaMemset(cellStart, 0xffffffff, sizeof(uint) * (hashTableSize + 1));
+		cudaMemsetAsync(cellStart, 0xffffffff, sizeof(uint) * (hashTableSize + 1));
 		uint numBlocks, numThreads;
 		ComputeGridSize(numObjects, numBlocks, numThreads);
 		uint smemSize = sizeof(uint) * (numThreads + 1);
@@ -180,7 +179,7 @@ void Velvet::HashObjects(
 	}
 	{
 		ScopedTimerGPU timer("Solver_HashCache");
-		cudaMemset(neighbors, 0xffffffff, sizeof(uint) * maxNumNeighbors * numObjects);
+		cudaMemsetAsync(neighbors, 0xffffffff, sizeof(uint) * maxNumNeighbors * numObjects);
 		CUDA_CALL(CacheNeighbors, numObjects)(neighbors, particleIndex, cellStart, cellEnd, positions, numObjects, maxNumNeighbors);
 	}
 }
