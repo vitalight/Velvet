@@ -1,4 +1,5 @@
 #include "SpatialHashGPU.cuh"
+#include "Timer.hpp"
 
 using namespace Velvet;
 
@@ -153,6 +154,8 @@ void Velvet::HashObjects(
 	const float hashCellSpacing, 
 	const int hashTableSize)
 {
+	ScopedTimerGPU timer("Solver_HashObjects");
+
 	checkCudaErrors(cudaMemcpyToSymbol(d_hashCellSpacing, &hashCellSpacing, sizeof(float)));
 	checkCudaErrors(cudaMemcpyToSymbol(d_hashTableSize, &hashTableSize, sizeof(int)));
 

@@ -75,6 +75,12 @@ glm::ivec2 Velvet::GameInstance::windowSize()
 	return result;
 }
 
+bool Velvet::GameInstance::windowMinimized()
+{
+	auto size = windowSize();
+	return (size.x < 1 || size.y < 1);
+}
+
 void GameInstance::ProcessMouse(GLFWwindow* m_window, double xpos, double ypos)
 {
 	onMouseMove.Invoke(xpos, ypos);
@@ -126,6 +132,11 @@ void GameInstance::MainLoop()
 	// render loop
 	while (!glfwWindowShouldClose(m_window) && !pendingReset)
 	{
+		if (windowMinimized())
+		{
+			glfwPollEvents();
+			continue;
+		}
 		// Input
 		ProcessKeyboard(m_window);
 

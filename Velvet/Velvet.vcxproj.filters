@@ -37,6 +37,9 @@
     <ClCompile Include="GUI.cpp">
       <Filter>Graphics\Source</Filter>
     </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Graphics\Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="External">

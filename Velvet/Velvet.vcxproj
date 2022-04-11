@@ -92,6 +92,7 @@
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Actor.cpp" />
+    <ClCompile Include="Timer.cpp" />
     <ClCompile Include="VtEngine.cpp" />
     <ClCompile Include="GameInstance.cpp" />
     <ClCompile Include="Helper.cpp" />

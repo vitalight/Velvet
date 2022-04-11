@@ -1,19 +1,19 @@
 #pragma once
 
 #include <iostream>
-#include <chrono>
 #include <unordered_map>
 #include <string>
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <fmt/printf.h>
-
-#include "Global.hpp"
-#include "GameInstance.hpp"
+#include <cuda_runtime.h>
 
 using namespace std;
 
 namespace Velvet
 {
+
 	class Timer
 	{
 	public:
@@ -21,16 +21,30 @@ namespace Velvet
 		Timer()
 		{
 			s_timer = this;
+
+			m_lastUpdateTime = (float)CurrentTime();
+			m_fixedUpdateTimer = (float)CurrentTime();
 		}
 
-		static void StartTimer(string label)
+		~Timer()
+		{
+			for (const auto& label2events : cudaEvents)
+			{
+				for (auto& e : label2events.second)
+				{
+					cudaEventDestroy(e);
+				}
+			}
+		}
+
+		static void StartTimer(const string& label)
 		{
 			s_timer->times[label] = CurrentTime();
 		}
 
 		// Returns elapsed time from StartTimer in seconds.
 		// When called multiple time during one frame, result gets accumulated.
-		static double EndTimer(string label, int frame = -1)
+		static double EndTimer(const string& label, int frame = -1)
 		{
 			double time = CurrentTime() - s_timer->times[label];
 			if (frame == -1)
@@ -40,7 +54,7 @@ namespace Velvet
 
 			if (s_timer->times.count(label))
 			{
-				if (s_timer->frames.count(label) && frame > s_timer->frames[label])
+				if (frame > s_timer->frames[label])
 				{
 					s_timer->history[label] = time;
 				}
@@ -59,7 +73,7 @@ namespace Velvet
 		}
 
 		// returns time in seconds
-		static double GetTimer(string label)
+		static double GetTimer(const string& label)
 		{
 			if (s_timer->history.count(label))
 			{
@@ -73,17 +87,73 @@ namespace Velvet
 
 		static double CurrentTime()
 		{
-			using namespace std::chrono;
-			using SecondsFP = duration<double>;
-			return duration_cast<SecondsFP>(high_resolution_clock::now().time_since_epoch()).count();
+			return glfwGetTime();
+		}
+	public:
+		static void StartTimerGPU(const string& label)
+		{
+			int frame = s_timer->m_frameCount;
+
+			if (s_timer->frames.count(label) && s_timer->frames[label] != frame)
+			{
+				GetTimerGPU(label);
+			}
+			s_timer->frames[label] = frame;
+
+			cudaEvent_t start, end;
+			cudaEventCreate(&start);
+			cudaEventCreate(&end);
+			auto& events = s_timer->cudaEvents[label];
+			events.push_back(start);
+			events.push_back(end);
+			cudaEventRecord(start);
 		}
 
+		static void EndTimerGPU(const string& label)
+		{
+			const auto& events = s_timer->cudaEvents[label];
+			auto stop = events[events.size() - 1];
+			cudaEventRecord(stop);
+		}
+
+		static double GetTimerGPU(const string& label)
+		{
+			auto& events = s_timer->cudaEvents[label];
+			if (events.size() > 0)
+			{
+				auto lastEvent = events[events.size() - 1];
+				cudaEventSynchronize(lastEvent);
+
+				float totalTime = 0.0f;
+				for (int i = 0; i < events.size(); i += 2)
+				{
+					float time;
+					cudaEventElapsedTime(&time, events[i], events[i + 1]);
+					totalTime += time;
+					cudaEventDestroy(events[i]);
+					cudaEventDestroy(events[i + 1]);
+				}
+				events.clear();
+				s_timer->history[label] = totalTime;
+			}
+
+			if (s_timer->history.count(label))
+			{
+				return s_timer->history[label];
+			}
+			else
+			{
+				return 0;
+			}
+		}
 	public:
 		static void UpdateDeltaTime()
 		{
-			float current = (float)glfwGetTime();
+			float current = (float)CurrentTime();
 			s_timer->m_deltaTime = min(current - s_timer->m_lastUpdateTime, 0.2f);
 			s_timer->m_lastUpdateTime = current;
+
+			//fmt::print("dt: {}\n", s_timer->m_deltaTime);
 		}
 
 		static void NextFrame()
@@ -101,6 +171,26 @@ namespace Velvet
 			{
 				s_timer->m_fixedUpdateTimer = 0;
 				s_timer->m_physicsFrameCount++;
+				return true;
+			}
+			return false;
+		}
+
+		static bool PeriodicUpdate(const string& label, float interval, bool allowRepetition = true)
+		{
+			auto& l2t = s_timer->label2accumulatedTime;
+			if (l2t.count(label))
+			{
+				l2t[label] += s_timer->m_deltaTime;
+			}
+			else
+			{
+				l2t[label] = s_timer->m_deltaTime;
+			}
+
+			if (l2t[label] > interval)
+			{
+				l2t[label] = allowRepetition ? l2t[label] - interval : 0;
 				return true;
 			}
 			return false;
@@ -131,11 +221,13 @@ namespace Velvet
 			return s_timer->m_fixedDeltaTime;
 		}
 	private:
-		inline static Timer* s_timer;
+		static Timer* s_timer;
 
 		unordered_map<string, double> times;
 		unordered_map<string, double> history;
 		unordered_map<string, int> frames;
+		unordered_map<string, vector<cudaEvent_t>> cudaEvents;
+		unordered_map<string, float> label2accumulatedTime;
 
 		int m_frameCount = 0;
 		int m_physicsFrameCount = 0;
@@ -143,7 +235,26 @@ namespace Velvet
 		float m_deltaTime = 0.0f;
 		const float m_fixedDeltaTime = 1.0f / 60.0f;
 
-		float m_lastUpdateTime = (float)glfwGetTime();
-		float m_fixedUpdateTimer = (float)glfwGetTime();
+		float m_lastUpdateTime = 0.0f;
+		float m_fixedUpdateTimer = 0.0f;
+	};
+
+
+	class ScopedTimerGPU
+	{
+	public:
+		ScopedTimerGPU(const string&& _label)
+		{
+			Timer::StartTimerGPU(_label);
+			label = _label;
+		}
+
+		~ScopedTimerGPU()
+		{
+			Timer::EndTimerGPU(label);
+		}
+
+	private:
+		string label;
 	};
 }

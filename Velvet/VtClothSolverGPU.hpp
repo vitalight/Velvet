@@ -52,6 +52,7 @@ namespace Velvet
 
 		void Simulate()
 		{
+			Timer::StartTimerGPU("Solver_Total");
 			//==========================
 			// Prepare
 			//==========================
@@ -74,7 +75,7 @@ namespace Velvet
 
 				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
 				{
-					SolveStretch((uint)stretchLengths.size(), stretchIndices, stretchLengths, inverseMass, predicted, 
+					SolveStretch((uint)stretchLengths.size(), stretchIndices, stretchLengths, inverseMass, predicted,
 						positionDeltas, positionDeltaCount);
 
 					SolveParticleCollision(inverseMass, m_spatialHash->neighbors, positions, predicted, positionDeltas, positionDeltaCount);
@@ -91,6 +92,7 @@ namespace Velvet
 			//==========================
 			// Sync
 			//==========================
+			Timer::EndTimerGPU("Solver_Total");
 			cudaDeviceSynchronize();
 		}
 

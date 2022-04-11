@@ -56,6 +56,7 @@ namespace Velvet
 	public:
 		unsigned int depthFrameBuffer();
 		glm::ivec2 windowSize();
+		bool windowMinimized();
 
 		VtCallback<void(double, double)> onMouseScroll;
 		VtCallback<void(double, double)> onMouseMove;

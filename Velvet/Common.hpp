@@ -60,26 +60,6 @@ struct VtGameState
 	bool hideGUI = false;
 };
 
-struct VtTimers
-{
-	float predict;				//!< Time spent in prediction
-	float createCellIndices;	//!< Time spent creating grid indices
-	float sortCellIndices;		//!< Time spent sorting grid indices
-	float createGrid;			//!< Time spent creating grid
-	float reorder;				//!< Time spent reordering particles
-	float collideParticles;		//!< Time spent finding particle neighbors
-	float collideTriangles;		//!< Time spent colliding triangle shapes
-	float collideFields;		//!< Time spent colliding signed distance field shapes
-	float solveSprings;			//!< Time spent solving distance constraints
-	float solveContacts;		//!< Time spent solving contact constraints
-	float applyDeltas;	        //!< Time spent adding position deltas to particles
-	float updateTriangles;		//!< Time spent updating dynamic triangles
-	float updateNormals;		//!< Time spent updating vertex normals
-	float finalize;				//!< Time spent finalizing state
-	float updateBounds;			//!< Time spent updating particle bounds
-	float total;				//!< Sum of all timers above
-};
-
 template <class T, class... TArgs>
 class VtCallback
 {

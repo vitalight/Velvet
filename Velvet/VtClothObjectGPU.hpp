@@ -60,8 +60,8 @@ namespace Velvet
 		{
 			UpdateGrappedVertex();
 
-			Timer::StartTimer("GPU_TIME");
 			m_solver->UpdateColliders(m_colliders);
+			Timer::StartTimer("GPU_TIME");
 			m_solver->Simulate();
 			Timer::EndTimer("GPU_TIME");
 		}

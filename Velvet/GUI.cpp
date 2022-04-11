@@ -9,6 +9,149 @@ inline GUI* g_Gui;
 
 #define SHORTCUT_BOOL(key, variable) if (Global::input->GetKeyDown(key)) variable = !variable
 
+#define QUICK_GUI(name) ImGui::TableNextColumn(); \
+ImGui::Text(CapitalizeFirstLetter(#name).c_str()); \
+ImGui::TableNextColumn(); \
+ImGui::Text("%.2f ms", name); \
+ImGui::TableNextColumn(); \
+ImGui::Text("%.2f %%", total > 0? (name / total * 100) : 0)
+
+string CapitalizeFirstLetter(string s)
+{
+	s[0] = toupper(s[0]);
+	return s;
+}
+
+struct SolverTiming
+{
+	double debugSum;
+	double total;				//!< Sum of all timers above
+
+	double setParams;
+	double initialize;
+	double predict;				//!< Time spent in prediction
+	double solveStretches;
+	double solveAttach;
+	double collideSDFs;
+	double collideParticles;		//!< Time spent finding particle neighbors
+	double finalize;				//!< Time spent finalizing state
+	double updateNormals;		//!< Time spent updating vertex normals
+	double hashObjects;
+
+	void Update()
+	{
+		if (Timer::PeriodicUpdate("GUI_SOLVER", 0.2f))
+		{
+			total = Timer::GetTimerGPU("Solver_Total");
+
+			setParams = Timer::GetTimerGPU("Solver_SetSimulationParams");
+			initialize = Timer::GetTimerGPU("Solver_InitializePositions");
+			predict = Timer::GetTimerGPU("Solver_EstimatePositions");
+			solveStretches = Timer::GetTimerGPU("Solver_SolveStretch");
+			solveAttach = Timer::GetTimerGPU("Solver_SolveAttachment");
+			collideSDFs = Timer::GetTimerGPU("Solver_SolveSDFCollision");
+			collideParticles = Timer::GetTimerGPU("Solver_SolveParticleCollision");
+			finalize = Timer::GetTimerGPU("Solver_UpdatePositionsAndVelocities");
+			updateNormals = Timer::GetTimerGPU("Solver_ComputeNormal");
+			hashObjects = Timer::GetTimerGPU("Solver_HashObjects");
+
+			debugSum = setParams + predict + solveStretches + solveAttach + collideSDFs + collideParticles + finalize + updateNormals + hashObjects;
+		}
+	}
+
+	void OnGUI()
+	{
+		if (!ImGui::CollapsingHeader("Solver timing", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			return;
+		}
+
+		if (ImGui::BeginTable("timing", 3))
+		{
+			//ImGui::PushItemWidth(20);            
+			ImGui::TableSetupColumn("Kernel");
+			ImGui::TableSetupColumn("Time (ms)");
+			ImGui::TableSetupColumn("%");
+			ImGui::TableHeadersRow();
+			QUICK_GUI(initialize);
+			QUICK_GUI(setParams);
+			QUICK_GUI(predict);
+			QUICK_GUI(solveStretches);
+			QUICK_GUI(solveAttach);
+			QUICK_GUI(collideSDFs);
+			QUICK_GUI(collideParticles);
+			QUICK_GUI(finalize);
+			QUICK_GUI(updateNormals);
+			QUICK_GUI(hashObjects);
+			QUICK_GUI(debugSum);
+			QUICK_GUI(total);
+			ImGui::EndTable();
+		}
+	}
+};
+
+struct PerformanceStat
+{
+	float deltaTime = 0;
+	int frameRate = 0;
+	int frameCount = 0;
+	int physicsFrameCount = 0;
+
+	float graphValues[100] = {};
+	int graphIndex = 0;
+	float graphAverage = 0.0f;
+
+	double cpuTime = 0;
+	double gpuTime = 0;
+
+	void Update()
+	{
+		if (Global::gameState.pause) return;
+
+		const auto& game = Global::game;
+		float elapsedTime = Timer::elapsedTime();
+		float deltaTimeMiliseconds = Timer::deltaTime() * 1000;
+
+		frameCount = Timer::frameCount();
+		physicsFrameCount = Timer::physicsFrameCount();
+
+		if (Timer::PeriodicUpdate("GUI_FAST", 0.03f))
+		{
+			graphValues[graphIndex] = deltaTimeMiliseconds;
+			graphIndex = (graphIndex + 1) % IM_ARRAYSIZE(graphValues);
+		}
+
+		if (Timer::PeriodicUpdate("GUI_SLOW", 0.2f))
+		{
+			deltaTime = deltaTimeMiliseconds;
+			frameRate = elapsedTime > 0 ? (int)(frameCount / elapsedTime) : 0;
+			cpuTime = Timer::GetTimer("CPU_TIME") * 1000;
+			gpuTime = Timer::GetTimer("GPU_TIME") * 1000;
+
+			for (int n = 0; n < IM_ARRAYSIZE(graphValues); n++)
+				graphAverage += graphValues[n];
+			graphAverage /= (float)IM_ARRAYSIZE(graphValues);
+		}
+	}
+
+	void OnGUI()
+	{
+		ImGui::Text("Frame:  %d; Physics Frame:%d", frameCount, physicsFrameCount);
+		ImGui::Text("Avg FrameRate:  %d FPS", frameRate);
+		ImGui::Text("CPU time:  %.2f ms", cpuTime);
+		ImGui::Text("GPU time:  %.2f ms", gpuTime);
+
+		ImGui::Dummy(ImVec2(0, 5));
+		auto overlay = fmt::format("{:.2f} ms ({:.2f} FPS)", deltaTime, 1000.0 / deltaTime);
+		ImGui::PlotLines("##", graphValues, IM_ARRAYSIZE(graphValues), graphIndex, overlay.c_str(),
+			0, graphAverage * 2.0f, ImVec2(0, 80.0f));
+		ImGui::Dummy(ImVec2(0, 5));
+
+		ImGui::PushItemWidth(-FLT_MIN);
+	}
+};
+
+
 void GUI::RegisterDebug(function<void()> callback)
 {
 	g_Gui->m_showDebugInfo.push_back(callback);
@@ -173,23 +316,15 @@ void GUI::ShowStatWindow()
 	ImGui::SetNextWindowSize(ImVec2(k_windowWidth * 1.1f, 0));
 	ImGui::SetNextWindowPos(ImVec2(m_canvasWidth - k_windowWidth * 1.1f - 20, 20.0f));
 	ImGui::Begin("Statistics", NULL, k_windowFlags);
+	ImGui::Text("Device:  %s", m_deviceName.c_str());
 
 	static PerformanceStat stat;
 	stat.Update();
+	stat.OnGUI();
 
-	ImGui::Text("Device:  %s", m_deviceName.c_str());
-	ImGui::Text("Frame:  %d; Physics Frame:%d", stat.frameCount, stat.physicsFrameCount);
-	ImGui::Text("Avg FrameRate:  %d FPS", stat.frameRate);
-	ImGui::Text("CPU time:  %.2f ms", stat.cpuTime);
-	ImGui::Text("GPU time:  %.2f ms", stat.gpuTime);
-
-	ImGui::Dummy(ImVec2(0, 5));
-	auto overlay = fmt::format("{:.2f} ms ({:.2f} FPS)", stat.deltaTime, 1000.0 / stat.deltaTime);
-	ImGui::PlotLines("##", stat.graphValues, IM_ARRAYSIZE(stat.graphValues), stat.graphIndex, overlay.c_str(),
-		0, stat.graphAverage * 2.0f, ImVec2(k_windowWidth + 5.0f, 80.0f));
-	ImGui::Dummy(ImVec2(0, 5));
-
-	ImGui::PushItemWidth(-FLT_MIN);
+	static SolverTiming solverTiming;
+	solverTiming.Update();
+	solverTiming.OnGUI();
 
 	if (m_showDebugInfo.size() + m_showDebugInfoOnce.size() > 0)
 	{
