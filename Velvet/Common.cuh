@@ -5,10 +5,11 @@
 #include <fmt/format.h>
 #include <glm/glm.hpp>
 
-#include <helper_cuda.h>
 #include <cuda_runtime.h> 
 #include <cuda_runtime_api.h>
 #include <device_launch_parameters.h>
+#include <helper_cuda.h>
+#include <helper_math.h>
 
 #include <thrust/device_ptr.h>
 #include <thrust/transform.h>

@@ -10,7 +10,7 @@ namespace Velvet
 		uint* cellStart,
 		uint* cellEnd,
 		uint* neighbors,
-		CONST(glm::vec3*) positions,
+		CONST(float3*) positions,
 		const uint numObjects,
 		const uint maxNumNeighbors,
 		const float hashCellSpacing,

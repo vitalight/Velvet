@@ -24,8 +24,11 @@ string CapitalizeFirstLetter(string s)
 
 struct SolverTiming
 {
-	double debugSum;
+	double kernelSum;
 	double total;				//!< Sum of all timers above
+
+	double kernelSumAlltime = 0;
+	int kernelSumCount = 0;
 
 	double setParams;
 	double initialize;
@@ -36,8 +39,13 @@ struct SolverTiming
 	double collideParticles;		//!< Time spent finding particle neighbors
 	double finalize;				//!< Time spent finalizing state
 	double updateNormals;		//!< Time spent updating vertex normals
-	double hashObjects;
+	
+	double hashParticle;
+	double hashSort;
+	double hashConstructCell;
+	double hashCache;
 
+	
 	void Update()
 	{
 		if (Timer::PeriodicUpdate("GUI_SOLVER", 0.2f))
@@ -53,9 +61,16 @@ struct SolverTiming
 			collideParticles = Timer::GetTimerGPU("Solver_SolveParticleCollision");
 			finalize = Timer::GetTimerGPU("Solver_UpdatePositionsAndVelocities");
 			updateNormals = Timer::GetTimerGPU("Solver_ComputeNormal");
-			hashObjects = Timer::GetTimerGPU("Solver_HashObjects");
+			
+			hashParticle = Timer::GetTimerGPU("Solver_Hash_Particle");
+			hashSort = Timer::GetTimerGPU("Solver_Hash_Sort");
+			hashConstructCell = Timer::GetTimerGPU("Solver_Hash_FindCellStart");
+			hashCache = Timer::GetTimerGPU("Solver_Hash_CacheNeighbors");
 
-			debugSum = setParams + predict + solveStretches + solveAttach + collideSDFs + collideParticles + finalize + updateNormals + hashObjects;
+			kernelSum = setParams + predict + solveStretches + solveAttach + collideSDFs + collideParticles + finalize + updateNormals 
+				+ hashParticle + hashSort + hashConstructCell + hashCache;
+			kernelSumAlltime += kernelSum;
+			kernelSumCount++;
 		}
 	}
 
@@ -66,6 +81,16 @@ struct SolverTiming
 			return;
 		}
 
+		ImGui::Text("Average GPU time: %.2f ms", kernelSumAlltime / kernelSumCount);
+
+		static bool hasPrinted = false;
+		int printAtFrame = 300;
+		if (!hasPrinted && Timer::physicsFrameCount() == printAtFrame)
+		{
+			hasPrinted = true;
+			fmt::print("Info(GUI): Average GPU time at frame({}) is: {:.3f} ms\n", printAtFrame, kernelSumAlltime / kernelSumCount);
+		}
+
 		if (ImGui::BeginTable("timing", 3))
 		{
 			//ImGui::PushItemWidth(20);            
@@ -73,6 +98,7 @@ struct SolverTiming
 			ImGui::TableSetupColumn("Time (ms)");
 			ImGui::TableSetupColumn("%");
 			ImGui::TableHeadersRow();
+
 			QUICK_GUI(initialize);
 			QUICK_GUI(setParams);
 			QUICK_GUI(predict);
@@ -82,9 +108,15 @@ struct SolverTiming
 			QUICK_GUI(collideParticles);
 			QUICK_GUI(finalize);
 			QUICK_GUI(updateNormals);
-			QUICK_GUI(hashObjects);
-			QUICK_GUI(debugSum);
+
+			QUICK_GUI(hashParticle);
+			QUICK_GUI(hashSort);
+			QUICK_GUI(hashConstructCell);
+			QUICK_GUI(hashCache);
+
+			QUICK_GUI(kernelSum);
 			QUICK_GUI(total);
+
 			ImGui::EndTable();
 		}
 	}
