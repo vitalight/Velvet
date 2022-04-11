@@ -52,11 +52,14 @@ namespace Velvet
 		CUDA_CALL(EstimatePositions_Impl, h_params.numParticles)(positions, predicted, velocities, deltaTime);
 	}
 
-	__device__ void AtomicAdd(glm::vec3* address, int index, glm::vec3 val)
+	__device__ void AtomicAdd(glm::vec3* address, int index, glm::vec3 val, int reorder)
 	{
-		atomicAdd(&(address[index].x), val.x);
-		atomicAdd(&(address[index].y), val.y);
-		atomicAdd(&(address[index].z), val.z);
+		int r1 = reorder % 3;
+		int r2 = (reorder+1) % 3;
+		int r3 = (reorder+2) % 3;
+		atomicAdd(&(address[index].x)+r1, val[r1]);
+		atomicAdd(&(address[index].x)+r2, val[r2]);
+		atomicAdd(&(address[index].x)+r3, val[r3]);
 	}
 
 	__global__ void SolveStretch_Impl(uint numConstraints, CONST(int*) stretchIndices, CONST(float*) stretchLengths, 
@@ -82,8 +85,9 @@ namespace Velvet
 			glm::vec3 common = lambda * gradient;
 			glm::vec3 correction1 = -w1 * common;
 			glm::vec3 correction2 = w2 * common;
-			AtomicAdd(positionDeltas, idx1, correction1);
-			AtomicAdd(positionDeltas, idx2, correction2);
+			int reorder = idx1 + idx2;
+			AtomicAdd(positionDeltas, idx1, correction1, reorder);
+			AtomicAdd(positionDeltas, idx2, correction2, reorder);
 			atomicAdd(&positionDeltaCount[idx1], 1);
 			atomicAdd(&positionDeltaCount[idx2], 1);
 			//printf("correction[%d] = (%.2f,%.2f,%.2f)\n", idx1, correction1.x, correction1.y, correction1.z);
@@ -258,9 +262,10 @@ namespace Velvet
 		auto p3 = positions[idx3];
 
 		auto normal = glm::cross(p2 - p1, p3 - p1);
-		AtomicAdd(normals, idx1, normal);
-		AtomicAdd(normals, idx2, normal);
-		AtomicAdd(normals, idx3, normal);
+		int reorder = idx1 + idx2 + idx3;
+		AtomicAdd(normals, idx1, normal, reorder);
+		AtomicAdd(normals, idx2, normal, reorder);
+		AtomicAdd(normals, idx3, normal, reorder);
 	}
 
 	__global__ void ComputeVertexNormals(glm::vec3* normals)
