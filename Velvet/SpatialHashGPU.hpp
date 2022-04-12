@@ -14,6 +14,34 @@ namespace Velvet
 {
 	class SpatialHashGPU
 	{
+	public:
+		SpatialHashGPU(float spacing, int maxNumObjects)
+		{
+			// BUG_LOG: m_spacing was miswritten as int
+			m_spacing = spacing;
+			m_tableSize = 2 * maxNumObjects;
+
+			neighbors.resize(maxNumObjects * Global::simParams.maxNumNeighbors);
+			particleHash.resize(maxNumObjects);
+			particleIndex.resize(maxNumObjects);
+			cellStart.resize(m_tableSize);
+			cellEnd.resize(m_tableSize);
+		}
+
+		void Hash(const VtBuffer<glm::vec3>& positions)
+		{
+			HashObjects(particleHash, particleIndex, cellStart, cellEnd, neighbors, positions, (uint)positions.size(), 
+				Global::simParams.maxNumNeighbors, m_spacing, m_tableSize);
+		}
+
+		VtBuffer<uint> neighbors;
+
+		VtBuffer<uint> particleHash;
+		VtBuffer<uint> particleIndex;
+		VtBuffer<uint> cellStart;
+		VtBuffer<uint> cellEnd; // BUG_LOG: early optimization (cpu differs from gpu)
+	
+
 	public://debug
 		inline int ComputeIntCoord(float value)
 		{
@@ -43,32 +71,7 @@ namespace Velvet
 			int h = HashCoords(x, y, z);
 			return h;
 		}
-	public:
-		SpatialHashGPU(float spacing, int maxNumObjects)
-		{
-			// BUG_LOG: m_spacing was miswritten as int
-			m_spacing = spacing;
-			m_tableSize = 2 * maxNumObjects;
 
-			neighbors.resize(maxNumObjects * Global::simParams.maxNumNeighbors);
-			particleHash.resize(maxNumObjects);
-			particleIndex.resize(maxNumObjects);
-			cellStart.resize(m_tableSize);
-			cellEnd.resize(m_tableSize);
-		}
-
-		void Hash(const VtBuffer<glm::vec3>& positions)
-		{
-			HashObjects(particleHash, particleIndex, cellStart, cellEnd, neighbors, positions, (uint)positions.size(), 
-				Global::simParams.maxNumNeighbors, m_spacing, m_tableSize);
-		}
-
-		VtBuffer<uint> neighbors;
-
-		VtBuffer<uint> particleHash;
-		VtBuffer<uint> particleIndex;
-		VtBuffer<uint> cellStart;
-		VtBuffer<uint> cellEnd; // BUG_LOG: early optimization (cpu differs from gpu)
 	private:
 		//VtBuffer<uint> cellEnd;
 

@@ -81,7 +81,9 @@ struct SolverTiming
 			return;
 		}
 
-		ImGui::Text("Average GPU time: %.2f ms", label2avgTime["KernelSum"] / count);
+		float averageGPUTime = label2avgTime["KernelSum"] / count;
+		int averageFPS = (int)(1000.0f / averageGPUTime);
+		ImGui::Text("Average GPU time: %.2f ms (%d fps)", averageGPUTime, averageFPS);
 
 		static bool hasPrinted = false;
 		int printAtFrame = 300;
@@ -179,18 +181,18 @@ struct PerformanceStat
 
 void GUI::RegisterDebug(function<void()> callback)
 {
-	g_Gui->m_showDebugInfo.push_back(callback);
+	g_Gui->m_showDebugInfo.Register(callback);
 }
 
 void GUI::RegisterDebugOnce(function<void()> callback)
 {
-	g_Gui->m_showDebugInfoOnce.push_back(callback);
+	g_Gui->m_showDebugInfoOnce.Register(callback);
 }
 
 void GUI::RegisterDebugOnce(const string& debugMessage)
 {
 	//vprintf(debugMessage, args);
-	g_Gui->m_showDebugInfoOnce.push_back([debugMessage]() {
+	g_Gui->m_showDebugInfoOnce.Register([debugMessage]() {
 		ImGui::Text(debugMessage.c_str());
 		});
 }
@@ -244,8 +246,8 @@ void GUI::Render()
 
 void GUI::ClearCallback()
 {
-	m_showDebugInfo.clear();
-	m_showDebugInfoOnce.clear();
+	m_showDebugInfo.Clear();
+	m_showDebugInfoOnce.Clear();
 }
 
 void GUI::ShutDown()
@@ -348,22 +350,14 @@ void GUI::ShowStatWindow()
 	solverTiming.Update();
 	solverTiming.OnGUI();
 
-	if (m_showDebugInfo.size() + m_showDebugInfoOnce.size() > 0)
+	if (!m_showDebugInfo.empty() || !m_showDebugInfoOnce.empty())
 	{
 		if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			for (auto callback : m_showDebugInfo)
-			{
-				callback();
-			}
-			for (auto callback : m_showDebugInfoOnce)
-			{
-				callback();
-			}
-			if (!Global::gameState.pause)
-			{
-				m_showDebugInfoOnce.clear();
-			}
+			m_showDebugInfo.Invoke();
+			m_showDebugInfoOnce.Invoke();
+
+			if (!Global::gameState.pause) m_showDebugInfoOnce.Clear();
 		}
 	}
 

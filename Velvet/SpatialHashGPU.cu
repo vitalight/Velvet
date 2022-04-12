@@ -5,7 +5,6 @@ using namespace Velvet;
 
 __device__ __constant__ float d_hashCellSpacing;
 __device__ __constant__ int d_hashTableSize;
-__device__ const float distanceTolerance = 2.0f;
 
 __device__ inline int ComputeIntCoord(float value)
 {
@@ -125,14 +124,13 @@ __global__ void CacheNeighbors(
 				int start = cellStart[h];
 				if (start == 0xffffffff) continue;
 
-				int end = cellEnd[h];
-				if (end > start + 64) end = start + 64;
+				int end = min(cellEnd[h], start+ maxNumNeihgbors);
 
 				for (int i = start; i < end; i++)
 				{
 					uint neighbor = particleIndex[i];
 					float distance = glm::length(position - positions[neighbor]);
-					if (neighbor != id && distance < distanceTolerance * d_hashCellSpacing)
+					if (neighbor != id && distance < d_hashCellSpacing)
 					{
 						neighbors[neighborIndex++] = neighbor;
 					}
@@ -140,6 +138,10 @@ __global__ void CacheNeighbors(
 			}
 		}
 	}
+	//if (neighborIndex < maxNumNeihgbors)
+	//{
+	//	neighbors[neighborIndex++] = 0xffffffff;
+	//}
 }
 
 void Velvet::HashObjects(

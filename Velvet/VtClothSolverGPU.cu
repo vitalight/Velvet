@@ -187,35 +187,33 @@ namespace Velvet
 		int deltaCount = 0;
 		glm::vec3 pred_i = predicted[id];
 		glm::vec3 vel_i = (pred_i - positions[id]);
-		float invMass_i = inverseMass[id];
+		float w_i = inverseMass[id];
 
-		for (int j = id * d_params.maxNumNeighbors; j < (id + 1) * d_params.maxNumNeighbors; j++)
+		for (int neighbor = id * d_params.maxNumNeighbors; neighbor < (id + 1) * d_params.maxNumNeighbors; neighbor++)
 		{
-			uint idx1 = id;
-			uint idx2 = neighbors[j];
-			if (idx2 > d_params.numParticles) break;
+			uint j = neighbors[neighbor];
+			if (j > d_params.numParticles) break;
 
 			float expectedDistance = d_params.particleDiameter;
 
-			glm::vec3 pred_j = predicted[idx2];
+			glm::vec3 pred_j = predicted[j];
 			glm::vec3 diff = pred_i - pred_j;
 			float distance = glm::length(diff);
-			float w1 = invMass_i;
-			float w2 = inverseMass[idx2];
+			float w_j = inverseMass[j];
 
-			if (distance < expectedDistance && w1 + w2 > 0)
+			if (distance < expectedDistance && w_i + w_j > 0)
 			{
 				glm::vec3 gradient = diff / (distance + EPSILON);
-				float denom = w1 + w2;
+				float denom = w_i + w_j;
 				float lambda = (distance - expectedDistance) / denom;
 				glm::vec3 common = lambda * gradient;
 
-				positionDelta -= w1 * common;
+				positionDelta -= w_i * common;
 				deltaCount += 1;
 
-				glm::vec3 relativeVelocity = vel_i - (pred_j - positions[idx2]);
+				glm::vec3 relativeVelocity = vel_i - (pred_j - positions[j]);
 				glm::vec3 friction = ComputeFriction(common, relativeVelocity);
-				positionDelta += w1 * friction;
+				positionDelta += w_i * friction;
 			}
 		}
 

@@ -7,6 +7,7 @@
 #include <functional>
 
 #include "Timer.hpp"
+#include "Common.hpp"
 
 using namespace std;
 
@@ -48,8 +49,8 @@ namespace Velvet
 			ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav |
 			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 
-		vector<function<void()>> m_showDebugInfo;
-		vector<function<void()>> m_showDebugInfoOnce;
+		VtCallback<void()> m_showDebugInfo;
+		VtCallback<void()> m_showDebugInfoOnce;
 
 		GLFWwindow* m_window = nullptr;
 		int m_canvasWidth = 0;

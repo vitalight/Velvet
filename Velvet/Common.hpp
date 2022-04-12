@@ -77,6 +77,17 @@ public:
 			func(std::forward<TArgs>(args)...);
 		}
 	}
+
+	void Clear()
+	{
+		m_funcs.clear();
+	}
+
+	bool empty()
+	{
+		return m_funcs.size() == 0;
+	}
+
 private:
 	std::vector<std::function<T>> m_funcs;
 };

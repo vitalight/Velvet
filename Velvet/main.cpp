@@ -105,9 +105,9 @@ public:
 			{
 				auto cube = cubes[i];
 				//cube->transform->position += Helper::RandomUnitVector() * Timer::deltaTime() * 5.0f;
-				velocities[i] = Helper::Lerp(velocities[i], Helper::RandomUnitVector() * 1.0f, Timer::deltaTime());
-				cube->transform->rotation += Helper::RandomUnitVector() * Timer::deltaTime() * 50.0f;
-				cube->transform->position += velocities[i] * Timer::deltaTime() * 5.0f;
+				velocities[i] = Helper::Lerp(velocities[i], Helper::RandomUnitVector() * 1.0f, Timer::fixedDeltaTime());
+				cube->transform->rotation += Helper::RandomUnitVector() * Timer::fixedDeltaTime() * 50.0f;
+				cube->transform->position += velocities[i] * Timer::fixedDeltaTime() * 5.0f;
 
 				if (cube->transform->position.y < 0.07f)
 				{

@@ -43,6 +43,7 @@ shared_ptr<Actor> GameInstance::CreateActor(const string& name)
 int GameInstance::Run()
 {
 	// Print actors
+	if (0)
 	{
 		fmt::print("Total actors: {}\n", m_actors.size());
 		for (auto actor : m_actors)
