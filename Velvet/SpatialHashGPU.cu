@@ -130,7 +130,9 @@ __global__ void CacheNeighbors(
 				{
 					uint neighbor = particleIndex[i];
 					float distance = glm::length(position - positions[neighbor]);
-					if (neighbor != id && distance < d_hashCellSpacing)
+					// OPT: only store neighbor 'id' larger than self
+					if (neighbor > id && distance < d_hashCellSpacing)
+					//if (neighbor != id && distance < d_hashCellSpacing)
 					{
 						neighbors[neighborIndex++] = neighbor;
 					}

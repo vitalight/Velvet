@@ -193,6 +193,7 @@ namespace Velvet
 		{
 			uint j = neighbors[neighbor];
 			if (j > d_params.numParticles) break;
+			//if (j > id) continue;
 
 			float expectedDistance = d_params.particleDiameter;
 
@@ -209,16 +210,21 @@ namespace Velvet
 				glm::vec3 common = lambda * gradient;
 
 				positionDelta -= w_i * common;
+				glm::vec3 positionDelta_j = w_j * common;
 				deltaCount += 1;
 
 				glm::vec3 relativeVelocity = vel_i - (pred_j - positions[j]);
 				glm::vec3 friction = ComputeFriction(common, relativeVelocity);
 				positionDelta += w_i * friction;
+				positionDelta_j -= w_j * friction;
+
+				AtomicAdd(positionDeltas, j, positionDelta_j, id + j);
+				atomicAdd(&positionDeltaCount[j], 1);
 			}
 		}
 
-		positionDeltas[id] = positionDelta;
-		positionDeltaCount[id] = deltaCount;
+		AtomicAdd(positionDeltas, id, positionDelta, id);
+		atomicAdd(&positionDeltaCount[id], deltaCount);
 	}
 
 	void SolveParticleCollision(
