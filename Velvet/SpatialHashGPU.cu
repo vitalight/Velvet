@@ -138,10 +138,10 @@ __global__ void CacheNeighbors(
 			}
 		}
 	}
-	//if (neighborIndex < maxNumNeihgbors)
-	//{
-	//	neighbors[neighborIndex++] = 0xffffffff;
-	//}
+	if (neighborIndex < (id+1) * maxNumNeihgbors)
+	{
+		neighbors[neighborIndex] = 0xffffffff;
+	}
 }
 
 void Velvet::HashObjects(
@@ -181,7 +181,6 @@ void Velvet::HashObjects(
 	}
 	{
 		ScopedTimerGPU timer("Solver_HashCache");
-		cudaMemsetAsync(neighbors, 0xffffffff, sizeof(uint) * maxNumNeighbors * numObjects);
 		CUDA_CALL(CacheNeighbors, numObjects)(neighbors, particleIndex, cellStart, cellEnd, positions, numObjects, maxNumNeighbors);
 	}
 }
