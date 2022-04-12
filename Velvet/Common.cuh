@@ -26,10 +26,16 @@
 	uint func ## _numBlocks, func ## _numThreads; \
 	ComputeGridSize(totalThreads, func ## _numBlocks, func ## _numThreads); \
 	func <<<func ## _numBlocks, func ## _numThreads >>>
+#define CUDA_CALL_S(func, totalThreads, stream)  \
+	if (totalThreads == 0) return; \
+	uint func ## _numBlocks, func ## _numThreads; \
+	ComputeGridSize(totalThreads, func ## _numBlocks, func ## _numThreads); \
+	func <<<func ## _numBlocks, func ## _numThreads, stream>>>
 #define CUDA_CALL_V(func, ...) \
 	func <<<__VA_ARGS__>>>
 #else
 #define CUDA_CALL(func, totalThreads)
+#define CUDA_CALL_S(func, totalThreads, stream) 
 #define CUDA_CALL_V(func, ...)
 #endif
 

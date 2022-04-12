@@ -168,11 +168,11 @@ void Velvet::HashObjects(
 
 	{
 		ScopedTimerGPU timer("Solver_HashSort");
-		// Sort Particle Hash
 		thrust::sort_by_key(thrust::device_ptr<uint>(particleHash),
 			thrust::device_ptr<uint>(particleHash + numObjects),
 			thrust::device_ptr<uint>(particleIndex));
 	}
+
 	{
 		ScopedTimerGPU timer("Solver_HashBuildCell");
 		cudaMemsetAsync(cellStart, 0xffffffff, sizeof(uint) * (hashTableSize + 1));

@@ -7,18 +7,9 @@ using namespace Velvet;
 
 #define SHORTCUT_BOOL(key, variable) if (Global::input->GetKeyDown(key)) variable = !variable
 
-#define QUICK_GUI(name) ImGui::TableNextColumn(); \
-ImGui::Text(name.c_str()); \
-ImGui::TableNextColumn(); \
-ImGui::Text("%.2f ms", label2time[name]); \
-ImGui::TableNextColumn(); \
-ImGui::Text("%.2f ms", label2avgTime[name] / count); \
-ImGui::TableNextColumn(); \
-ImGui::Text("%.2f %%", total > 0? (label2avgTime[name] / total * 100) : 0)
-
 inline GUI* g_Gui;
 const float k_leftWindowWidth = 250.0f;
-const float k_rightWindowWidth = 320.0f;
+const float k_rightWindowWidth = 330.0f;
 
 struct SolverTiming
 {
@@ -45,7 +36,42 @@ struct SolverTiming
 
 	unordered_map<string, double> label2time;
 	unordered_map<string, double> label2avgTime;
+
+	ImVec4 color_high = ImVec4(1.000f, 0.244f, 0.000f, 1.000f);
+	ImVec4 color_mid = ImVec4(1.000f, 0.602f, 0.000f, 1.000f);
+	ImVec4 color_low = ImVec4(1.000f, 0.889f, 0.000f, 1.000f);
 	
+	void DisplayKernelTiming(const string name, bool autoColor = true)
+	{
+		double total = label2avgTime["Total"];
+		bool shouldPop = false;
+		float percentage = total > 0 ? (label2avgTime[name] / total * 100) : 0;
+		if (autoColor && percentage > 10)
+		{
+			ImVec4 textColor = color_low;
+			if (percentage > 30)
+				textColor = color_high;
+			else if (percentage > 10)
+				textColor = color_mid;
+			ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+			shouldPop = true;
+		}
+
+		ImGui::TableNextColumn(); 
+		ImGui::Text(name.c_str()); 
+		ImGui::TableNextColumn(); 
+		ImGui::Text("%.2f ms", label2time[name]); 
+		ImGui::TableNextColumn(); 
+		ImGui::Text("%.2f ms", label2avgTime[name] / count); 
+		ImGui::TableNextColumn(); 
+		ImGui::Text("%.2f %%", percentage);
+
+		if (shouldPop)
+		{
+			ImGui::PopStyleColor();
+		}
+	}
+
 	void Update()
 	{
 		if (Timer::PeriodicUpdate("GUI_SOLVER", 0.2f))
@@ -93,7 +119,7 @@ struct SolverTiming
 			fmt::print("Info(GUI): Average GPU time at frame({}) is: {:.3f} ms\n", printAtFrame, label2avgTime["KernelSum"] / count);
 		}
 
-		if (ImGui::BeginTable("timing", 4))
+		if (ImGui::BeginTable("timing", 4))//,  ImGuiTableFlags_BordersOuter))
 		{
 			//ImGui::PushItemWidth(20);            
 			ImGui::TableSetupColumn("Kernel");
@@ -102,14 +128,13 @@ struct SolverTiming
 			ImGui::TableSetupColumn("%");
 			ImGui::TableHeadersRow();
 
-			double total = label2avgTime["Total"];
 			for (int i = 0; i < labels.size() -1; i++)
 			{
 				auto& label = labels[i];
-				QUICK_GUI(label);
+				DisplayKernelTiming(label);
 			}
-			QUICK_GUI(string("KernelSum"));
-			QUICK_GUI(labels[labels.size() - 1]);
+			DisplayKernelTiming(string("KernelSum"), false);
+			DisplayKernelTiming(labels[labels.size() - 1], false);
 
 			ImGui::EndTable();
 		}
@@ -162,19 +187,30 @@ struct PerformanceStat
 
 	void OnGUI()
 	{
-		ImGui::Text("Frame:  %d; Physics Frame:%d", frameCount, physicsFrameCount);
-		ImGui::Text("Avg FrameRate:  %d FPS", frameRate);
-		ImGui::Text("CPU time:  %.2f ms", cpuTime);
-		ImGui::Text("GPU time:  %.2f ms", gpuTime);
-		ImGui::Text("Num Particles:  %d ms", Global::simParams.numParticles);
+		if (ImGui::BeginTable("stat", 2, ImGuiTableFlags_SizingStretchProp))
+		{
+			ImGui::TableNextColumn(); ImGui::Text("Frame: ");
+			ImGui::TableNextColumn(); ImGui::Text("%d", frameCount);
+			ImGui::TableNextColumn(); ImGui::Text("Physics Frame: ");
+			ImGui::TableNextColumn(); ImGui::Text("%d", physicsFrameCount);
+			ImGui::TableNextColumn(); ImGui::Text("Avg FrameRate: ");
+			ImGui::TableNextColumn(); ImGui::Text("%d FPS", frameRate);
+			ImGui::TableNextColumn(); ImGui::Text("CPU time: ");
+			ImGui::TableNextColumn(); ImGui::Text("%.2f ms", cpuTime);
+			ImGui::TableNextColumn(); ImGui::Text("GPU time: ");
+			ImGui::TableNextColumn(); ImGui::Text("%.2f ms", gpuTime);
+			ImGui::TableNextColumn(); ImGui::Text("Num Particles: ");
+			ImGui::TableNextColumn(); ImGui::Text("%d", Global::simParams.numParticles);
+			ImGui::EndTable();
+		}
 
 		ImGui::Dummy(ImVec2(0, 5));
+		ImGui::PushItemWidth(-FLT_MIN);
 		auto overlay = fmt::format("{:.2f} ms ({:.2f} FPS)", deltaTime, 1000.0 / deltaTime);
 		ImGui::PlotLines("##", graphValues, IM_ARRAYSIZE(graphValues), graphIndex, overlay.c_str(),
 			0, graphAverage * 2.0f, ImVec2(0, 80.0f));
 		ImGui::Dummy(ImVec2(0, 5));
 
-		ImGui::PushItemWidth(-FLT_MIN);
 	}
 };
 
@@ -207,7 +243,7 @@ GUI::GUI(GLFWwindow* window)
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.IniFilename = NULL;
-	io.Fonts->AddFontFromFileTTF("Assets/DroidSans.ttf", 18);
+	io.Fonts->AddFontFromFileTTF("Assets/DroidSans.ttf", 19);
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
@@ -269,7 +305,7 @@ void GUI::CustomizeStyle()
 	style->FrameRounding = 6;
 	style->WindowTitleAlign = ImVec2(0.5, 0.5);
 
-	style->Colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.6f);
+	style->Colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.7f);
 	style->Colors[ImGuiCol_TitleBg] = style->Colors[ImGuiCol_WindowBg];
 	style->Colors[ImGuiCol_TitleBgActive] = style->Colors[ImGuiCol_TitleBg];
 	style->Colors[ImGuiCol_SliderGrab] = ImVec4(0.325f, 0.325f, 0.325f, 1.0f);
@@ -277,7 +313,10 @@ void GUI::CustomizeStyle()
 	style->Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
 	style->Colors[ImGuiCol_Button] = ImVec4(0.46f, 0.46f, 0.46f, 0.46f);
 	style->Colors[ImGuiCol_CheckMark] = ImVec4(0.851f, 0.851f, 0.851f, 1.0f);
-	//ImGui::StyleColorsClassic();
+
+	style->Colors[ImGuiCol_TableBorderLight] = ImVec4(1.0f, 1.0f, 1.0f, 0.3f);
+	style->Colors[ImGuiCol_TableBorderStrong] = ImVec4(1.0f, 1.0f, 1.0f, 0.6f);
+	//ImGui::StyleColorsClassic();ImGuiCol_TableBorderLight
 }
 
 void GUI::ShowSceneWindow()
