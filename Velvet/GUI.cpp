@@ -102,7 +102,7 @@ struct SolverTiming
 
 	void OnGUI()
 	{
-		if (!ImGui::CollapsingHeader("Solver timing", ImGuiTreeNodeFlags_DefaultOpen))
+		if (!ImGui::CollapsingHeader("Solver timing"))// , ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			return;
 		}

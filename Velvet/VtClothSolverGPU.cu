@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// TODO(low): use cuda math structs instead of glm
-
 namespace Velvet
 {
 	__device__ __constant__ VtSimParams d_params;
@@ -19,22 +17,16 @@ namespace Velvet
 		h_params = *hostParams;
 	}
 
-	struct InitializePositionsFunctor
+	__global__ void InitializePositions_Impl(glm::vec3* positions, const int count, const glm::mat4 modelMatrix)
 	{
-		const glm::mat4 matrix;
-		InitializePositionsFunctor(glm::mat4 _matrix) : matrix(_matrix) {}
-
-		__host__ __device__
-			glm::vec3 operator()(const glm::vec3 position) const {
-			return glm::vec3(matrix * glm::vec4(position, 1));
-		}
-	};
+		GET_CUDA_ID(id, count);
+		positions[id] = modelMatrix * glm::vec4(positions[id], 1);
+	}
 
 	void InitializePositions(glm::vec3* positions, int count, glm::mat4 modelMatrix)
 	{
 		ScopedTimerGPU timer("Solver_Initialize");
-		thrust::device_ptr<glm::vec3> d_positions(positions);
-		thrust::transform(d_positions, d_positions + count, d_positions, InitializePositionsFunctor(modelMatrix));
+		CUDA_CALL(InitializePositions_Impl, count)(positions, count, modelMatrix);
 	}
 
 	__global__ void EstimatePositions_Impl(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)

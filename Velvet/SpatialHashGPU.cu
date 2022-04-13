@@ -1,10 +1,16 @@
 #include "SpatialHashGPU.cuh"
+
+//#include <cub/cub.cuh>
+#include <cub/device/device_radix_sort.cuh>
+
 #include "Timer.hpp"
+#include "VtBuffer.hpp"
 
 using namespace Velvet;
 
 __device__ __constant__ float d_hashCellSpacing;
 __device__ __constant__ int d_hashTableSize;
+int h_hashTableSize;
 
 __device__ inline int ComputeIntCoord(float value)
 {
@@ -146,6 +152,34 @@ __global__ void CacheNeighbors(
 	}
 }
 
+// Cub::sort provides better performance (2x) than thrust
+void Sort(
+	uint* d_keys_in,
+	uint* d_values_in,
+	int num_items)
+{
+	//static void* d_temp_storage = NULL;
+	static VtBuffer<void*> d_temp_storage;
+	static size_t temp_storage_bytes = 0;
+
+
+	int maxBit = (int)ceil(log2(h_hashTableSize));
+	// Determine temporary device storage requirements
+	size_t new_storage_bytes = 0;
+	cub::DeviceRadixSort::SortPairs(NULL, new_storage_bytes,
+		d_keys_in, d_keys_in, d_values_in, d_values_in, num_items);
+
+	if (temp_storage_bytes != new_storage_bytes)
+	{
+		temp_storage_bytes = new_storage_bytes;
+		d_temp_storage.resize(temp_storage_bytes);
+	}
+
+	// Run sorting operation
+	cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes,
+		d_keys_in, d_keys_in, d_values_in, d_values_in, num_items, 0, maxBit);
+}
+
 void Velvet::HashObjects(
 	uint* particleHash,
 	uint* particleIndex,
@@ -161,6 +195,7 @@ void Velvet::HashObjects(
 	{
 		ScopedTimerGPU timer("Solver_HashParticle");
 
+		h_hashTableSize = hashTableSize;
 		checkCudaErrors(cudaMemcpyToSymbolAsync(d_hashCellSpacing, &hashCellSpacing, sizeof(float)));
 		checkCudaErrors(cudaMemcpyToSymbolAsync(d_hashTableSize, &hashTableSize, sizeof(int)));
 		CUDA_CALL(ComputeParticleHash, numObjects)(particleHash, particleIndex, positions, numObjects);
@@ -168,9 +203,7 @@ void Velvet::HashObjects(
 
 	{
 		ScopedTimerGPU timer("Solver_HashSort");
-		thrust::sort_by_key(thrust::device_ptr<uint>(particleHash),
-			thrust::device_ptr<uint>(particleHash + numObjects),
-			thrust::device_ptr<uint>(particleIndex));
+		Sort(particleHash, particleIndex, numObjects);
 	}
 
 	{
