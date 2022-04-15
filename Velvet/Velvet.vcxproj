@@ -106,6 +106,7 @@
     <ClInclude Include="External\stb_image.h" />
     <ClInclude Include="Actor.hpp" />
     <ClInclude Include="Component.hpp" />
+    <ClInclude Include="GeometryRenderer.hpp" />
     <ClInclude Include="Global.hpp" />
     <ClInclude Include="GUI.hpp" />
     <ClInclude Include="Input.hpp" />
@@ -139,6 +140,9 @@
     <None Include="Assets\Shader\_Default.vert" />
     <None Include="Assets\Shader\_InstancedDefault.frag" />
     <None Include="Assets\Shader\_InstancedDefault.vert" />
+    <None Include="Assets\Shader\_InstancedParticle.frag" />
+    <None Include="Assets\Shader\_InstancedParticle.geom" />
+    <None Include="Assets\Shader\_InstancedParticle.vert" />
     <None Include="Assets\Shader\_InstancedShadowDepth.frag" />
     <None Include="Assets\Shader\_InstancedShadowDepth.vert" />
     <None Include="Assets\Shader\_Light.frag" />

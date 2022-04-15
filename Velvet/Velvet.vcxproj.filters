@@ -171,6 +171,9 @@
     <ClInclude Include="PlayerController.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
+    <ClInclude Include="GeometryRenderer.hpp">
+      <Filter>Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shader\_Default.frag">
@@ -217,6 +220,15 @@
     </None>
     <None Include="SpatialHash.hpp">
       <Filter>Physics\SpatialHash</Filter>
+    </None>
+    <None Include="Assets\Shader\_InstancedParticle.frag">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\_InstancedParticle.geom">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Assets\Shader\_InstancedParticle.vert">
+      <Filter>Shader</Filter>
     </None>
   </ItemGroup>
 </Project>

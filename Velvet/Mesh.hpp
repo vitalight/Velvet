@@ -196,6 +196,7 @@ namespace Velvet
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 			}
+			glBindVertexArray(0);
 		}
 
 	};

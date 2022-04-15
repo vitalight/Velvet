@@ -28,6 +28,10 @@ namespace Velvet
 	// Only support spot light for now
 	void MeshRenderer::SetupLighting(shared_ptr<Material> m_material)
 	{
+		if (Global::lights.size() == 0)
+		{
+			return;
+		}
 		auto light = Global::lights[0];
 
 		auto prefix = fmt::format("spotLight.");
@@ -59,7 +63,6 @@ namespace Velvet
 		m_material->SetFloat("material.specular", m_material->specular);
 		m_material->SetFloat("material.smoothness", m_material->smoothness);
 		m_material->SetTexture("_ShadowTex", Global::game->depthFrameBuffer());
-		//m_material->SetBool("material.useTexture", true);// m_material->textures.size() > 1);
 
 		if (m_materialProperty.preRendering)
 		{
@@ -70,10 +73,7 @@ namespace Velvet
 		m_material->SetVec3("_CameraPos", Global::camera->transform()->position);
 
 		// light params
-		if (Global::lights.size() > 0)
-		{
-			SetupLighting(m_material);
-		}
+		SetupLighting(m_material);
 
 		// texture
 		int i = 0;
@@ -86,10 +86,18 @@ namespace Velvet
 		}
 
 		// matrices
-		m_material->SetMat4("_Model", actor->transform->matrix());
+		auto model = actor->transform->matrix();
+		auto view = Global::camera->view();
+		auto projection = Global::camera->projection();
 
-		m_material->SetMat4("_View", Global::camera->view());
-		m_material->SetMat4("_Projection", Global::camera->projection());
+		m_material->SetMat4("_Model", model);
+		m_material->SetMat4("_View", view);
+		m_material->SetMat4("_Projection", projection);
+
+		m_material->SetMat4("_MVP", projection * view * model);
+		m_material->SetMat4("_InvView", glm::inverse(view));
+		m_material->SetMat3("_Normalmatrix", glm::mat3(glm::transpose(glm::inverse(model))));
+
 		m_material->SetMat4("_WorldToLight", lightMatrix);
 
 		DrawCall();
@@ -103,9 +111,7 @@ namespace Velvet
 		}
 
 		m_shadowMaterial->Use();
-
 		m_shadowMaterial->SetMat4("_Model", actor->transform->matrix());
-
 		m_shadowMaterial->SetMat4("_WorldToLight", lightMatrix);
 
 		DrawCall();

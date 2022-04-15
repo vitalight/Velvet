@@ -1,4 +1,4 @@
-#version 330
+#version 330 core
 
 struct Material {
 	sampler2D diffuse;
@@ -23,12 +23,18 @@ struct SpotLight {
     float ambient;
 };
 
-in VS {
-	vec3 worldPos;
-	vec3 normal;
-	vec2 uv;
-	vec4 lightSpaceFragPos;
-} vs;
+// Special Begin ====
+in GS {
+    vec2 uv;
+    vec3 centerEyePos;
+} gs;
+
+uniform mat4 _View;
+uniform mat4 _Projection;
+uniform mat4 _InvView;
+uniform mat4 _WorldToLight;
+uniform float _ParticleRadius;
+// Special End ====
 
 uniform vec3 _CameraPos;
 uniform sampler2D _ShadowTex;
@@ -102,11 +108,40 @@ vec3 GammaCorrection(vec3 color)
     return pow(color, vec3(1.0/2.2));
 }
 
-void main()
+float ComputeDepth(vec4 pixelPos)
 {
-	vec3 norm = gl_FrontFacing ? normalize(vs.normal) : -normalize(vs.normal);
-    vec3 diffuseColor = material.useTexture ? vec3(texture(material.diffuse, vs.uv)) : material.tint;
-	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, vs.worldPos, vs.lightSpaceFragPos, material, diffuseColor);
-	FragColor = vec4(GammaCorrection(lighting), 1.0);
+    vec4 clipSpacePos = _Projection * pixelPos;
+    float depth = clipSpacePos.z / clipSpacePos.w;
+    return depth * 0.5 + 0.5;
 }
 
+float ComputeLighting(vec4 pixelPos, vec3 N)
+{
+    vec4 lightPos = _View * vec4(spotLight.position, 1.0);
+    lightPos /= lightPos.w;
+    vec3 lightDir = normalize(lightPos.xyz - pixelPos.xyz);
+    float diffuse = max(0.0, dot(N, lightDir))  + 0.3;
+    return diffuse;
+}
+
+void main()
+{
+    // calculate eye-space sphere normal from texture coordinates
+    vec3 N;
+    N.xy = gs.uv;
+    float r2 = dot(N.xy, N.xy);
+    if (r2 > 1.0) discard; // kill pixels outside circle
+    N.z = sqrt(1.0 -r2);
+
+    // calculate depth
+    vec4 pixelPos = vec4(gs.centerEyePos + N*_ParticleRadius, 1.0);
+    gl_FragDepth = ComputeDepth(pixelPos);
+
+    vec3 norm = (_InvView * vec4(N, 0.0)).xyz;
+    vec3 worldPos = (_InvView * pixelPos).xyz;
+    vec4 lightSpaceFragPos = _WorldToLight * vec4(worldPos, 1.0);
+    
+    vec3 diffuseColor = material.tint;
+	vec3 lighting = CalcSpotLight(spotLight, _CameraPos, norm, worldPos, lightSpaceFragPos, material, diffuseColor);
+	FragColor = vec4(GammaCorrection(lighting ), 1.0);
+}

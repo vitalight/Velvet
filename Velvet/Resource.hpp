@@ -141,7 +141,7 @@ namespace Velvet
 			return result;
 		}
 	
-		static shared_ptr<Material> LoadMaterial(const string& path)
+		static shared_ptr<Material> LoadMaterial(const string& path, bool includeGeometryShader = false)
 		{
 			if (matCache.count(path))
 			{
@@ -163,8 +163,20 @@ namespace Velvet
 				exit(-1);
 			}
 
-			auto result = make_shared<Material>(vertexCode, fragmentCode);
+			string geometryCode;
+			if (includeGeometryShader)
+			{
+				geometryCode = LoadText(defaultMaterialPath + path + ".geom");
+				if (geometryCode.length() == 0) geometryCode = LoadText(path + ".geom");
+				if (geometryCode.length() == 0)
+				{
+					fmt::print("Error(Resource): material.geometry not found ({})\n", path);
+					exit(-1);
+				}
+			}
+			auto result = make_shared<Material>(vertexCode, fragmentCode, geometryCode);
 			matCache[path] = result;
+			result->name = path;
 			return result;
 		}
 

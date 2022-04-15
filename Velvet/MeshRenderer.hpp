@@ -27,7 +27,7 @@ namespace Velvet
 
 		virtual void RenderShadow(glm::mat4 lightMatrix);
 
-		void DrawCall();
+		virtual void DrawCall();
 
 		shared_ptr<Material> material() const;
 
@@ -35,7 +35,6 @@ namespace Velvet
 		{
 			return m_mesh;
 		}
-
 
 	protected:
 

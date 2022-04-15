@@ -21,11 +21,12 @@ namespace Velvet
 
 		Material() {}
 
-		Material(string& vertexCode, string& fragmentCode)
+		Material(string& vertexCode, string& fragmentCode, string& geometryCode)
 		{
 			const char* vShaderCode = vertexCode.c_str();
 			const char* fShaderCode = fragmentCode.c_str();
-			m_shaderID = CompileShader(vShaderCode, fShaderCode);
+			const char* gShaderCode = geometryCode.c_str();
+			m_shaderID = CompileShader(vShaderCode, fShaderCode, gShaderCode);
 		}
 
 		Material(const Material&) = delete;
@@ -35,28 +36,38 @@ namespace Velvet
 			glDeleteProgram(m_shaderID);
 		}
 
-		unsigned int CompileShader(const char* vShaderCode, const char* fShaderCode) const
+		unsigned int CompileShader(const char* vShaderCode, const char* fShaderCode, const char* gShaderCode) const
 		{
-			unsigned int vertex, fragment;
+			unsigned int vertex, fragment, geometry;
+			unsigned int shader = glCreateProgram();
 			// vertex shader
 			vertex = glCreateShader(GL_VERTEX_SHADER);
 			glShaderSource(vertex, 1, &vShaderCode, NULL);
 			glCompileShader(vertex);
 			CheckCompileErrors(vertex, "VERTEX");
+			glAttachShader(shader, vertex);
 			// fragment Shader
 			fragment = glCreateShader(GL_FRAGMENT_SHADER);
 			glShaderSource(fragment, 1, &fShaderCode, NULL);
 			glCompileShader(fragment);
 			CheckCompileErrors(fragment, "FRAGMENT");
-			// shader Program
-			unsigned int shader = glCreateProgram();
-			glAttachShader(shader, vertex);
 			glAttachShader(shader, fragment);
+			// geometry Shader
+			if (strlen(gShaderCode) > 0)
+			{
+				geometry = glCreateShader(GL_GEOMETRY_SHADER);
+				glShaderSource(geometry, 1, &gShaderCode, NULL);
+				glCompileShader(geometry);
+				CheckCompileErrors(fragment, "GEOMETRY");
+				glAttachShader(shader, geometry);
+			}
+			// shader Program
 			glLinkProgram(shader);
 			CheckCompileErrors(shader, "PROGRAM");
 			// delete the shaders as they're linked into our program now and no longer necessary
 			glDeleteShader(vertex);
 			glDeleteShader(fragment);
+			if (strlen(gShaderCode) > 0) glDeleteShader(geometry);
 			return shader;
 		}
 
@@ -106,7 +117,8 @@ namespace Velvet
 			auto err = glGetError();
 			if (err != GL_NO_ERROR)
 			{
-				fmt::print("Error(SetFloat): {}\n", err);
+				// possible reason: opengl buffer overflow
+				fmt::print("Error(Material::SetFloat): Code #{} in material({})\n", err, this->name);
 			}
 			glUniform1f(GetLocation(name), value);
 		}
@@ -162,6 +174,7 @@ namespace Velvet
 			glUniformMatrix4fv(GetLocation(name), 1, GL_FALSE, &mat[0][0]);
 		}
 
+		string name = "";
 		float specular = 0.2f;
 		float smoothness = 100.0f;
 		bool doubleSided = false;

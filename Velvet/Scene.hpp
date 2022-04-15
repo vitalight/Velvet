@@ -14,6 +14,7 @@
 #include "VtClothObject.hpp"
 #include "VtClothObjectGPU.hpp"
 #include "ParticleRenderer.hpp"
+#include "GeometryRenderer.hpp"
 
 //#define SOLVER_CPU
 
@@ -174,7 +175,8 @@ namespace Velvet
 			auto clothObj = make_shared<VtClothObjectGPU>(resolution);
 #endif
 
-			auto prenderer = make_shared<ParticleRenderer>();
+			//auto prenderer = make_shared<ParticleRenderer>();
+			auto prenderer = make_shared<GeometryRenderer>();
 
 			cloth->AddComponents({ renderer, clothObj, prenderer });
 
