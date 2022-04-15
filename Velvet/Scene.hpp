@@ -206,7 +206,7 @@ namespace Velvet
 		{
 			auto actor = game->CreateActor("Prefab Light");
 			auto mesh = Resource::LoadMesh("cylinder.obj");
-			auto material = Resource::LoadMaterial("Assets/Shader/_Light");
+			auto material = Resource::LoadMaterial("Assets/Shader/UnlitWhite");
 			auto renderer = make_shared<MeshRenderer>(mesh, material);
 			auto light = make_shared<Light>();
 
@@ -227,7 +227,7 @@ namespace Velvet
 		{
 			auto infPlane = game->CreateActor("Infinite Plane");
 
-			auto mat = Resource::LoadMaterial("_InfinitePlane");
+			auto mat = Resource::LoadMaterial("InfinitePlane");
 			mat->noWireframe = true;
 			// Plane: ax + by + cz + d = 0
 			mat->SetVec4("_Plane", glm::vec4(0, 1, 0, 0));

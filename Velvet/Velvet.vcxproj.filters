@@ -66,6 +66,9 @@
     <Filter Include="Physics\ClothSolver">
       <UniqueIdentifier>{d10f78e9-ceb6-4a17-96ac-5c8788dfac70}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\Instanced">
+      <UniqueIdentifier>{e7482bc9-797a-4f0c-9af3-4dceb5ce50e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External\stb_image.h">
@@ -182,10 +185,10 @@
     <None Include="Assets\Shader\_Default.vert">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Assets\Shader\_Light.frag">
+    <None Include="Assets\Shader\UnlitWhite.frag">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Assets\Shader\_Light.vert">
+    <None Include="Assets\Shader\UnlitWhite.vert">
       <Filter>Shader</Filter>
     </None>
     <None Include="Assets\Shader\_ShadowDepth.frag">
@@ -200,35 +203,35 @@
     <None Include="Assets\Shader\_ShadowDebug.vert">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Assets\Shader\_InfinitePlane.frag">
+    <None Include="Assets\Shader\InfinitePlane.frag">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Assets\Shader\_InfinitePlane.vert">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Assets\Shader\_InstancedDefault.frag">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Assets\Shader\_InstancedDefault.vert">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Assets\Shader\_InstancedShadowDepth.frag">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Assets\Shader\_InstancedShadowDepth.vert">
+    <None Include="Assets\Shader\InfinitePlane.vert">
       <Filter>Shader</Filter>
     </None>
     <None Include="SpatialHash.hpp">
       <Filter>Physics\SpatialHash</Filter>
     </None>
+    <None Include="Assets\Shader\_InstancedDefault.frag">
+      <Filter>Shader\Instanced</Filter>
+    </None>
+    <None Include="Assets\Shader\_InstancedDefault.vert">
+      <Filter>Shader\Instanced</Filter>
+    </None>
     <None Include="Assets\Shader\_InstancedParticle.frag">
-      <Filter>Shader</Filter>
+      <Filter>Shader\Instanced</Filter>
     </None>
     <None Include="Assets\Shader\_InstancedParticle.geom">
-      <Filter>Shader</Filter>
+      <Filter>Shader\Instanced</Filter>
     </None>
     <None Include="Assets\Shader\_InstancedParticle.vert">
-      <Filter>Shader</Filter>
+      <Filter>Shader\Instanced</Filter>
+    </None>
+    <None Include="Assets\Shader\_InstancedShadowDepth.frag">
+      <Filter>Shader\Instanced</Filter>
+    </None>
+    <None Include="Assets\Shader\_InstancedShadowDepth.vert">
+      <Filter>Shader\Instanced</Filter>
     </None>
   </ItemGroup>
 </Project>

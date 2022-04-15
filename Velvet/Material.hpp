@@ -117,7 +117,7 @@ namespace Velvet
 			auto err = glGetError();
 			if (err != GL_NO_ERROR)
 			{
-				// possible reason: opengl buffer overflow
+				// possible reason: opengl buffer overflow (e.g. DrawArrays with too much item count)
 				fmt::print("Error(Material::SetFloat): Code #{} in material({})\n", err, this->name);
 			}
 			glUniform1f(GetLocation(name), value);

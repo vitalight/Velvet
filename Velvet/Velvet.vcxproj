@@ -145,14 +145,14 @@
     <None Include="Assets\Shader\_InstancedParticle.vert" />
     <None Include="Assets\Shader\_InstancedShadowDepth.frag" />
     <None Include="Assets\Shader\_InstancedShadowDepth.vert" />
-    <None Include="Assets\Shader\_Light.frag" />
-    <None Include="Assets\Shader\_Light.vert" />
+    <None Include="Assets\Shader\UnlitWhite.frag" />
+    <None Include="Assets\Shader\UnlitWhite.vert" />
     <None Include="Assets\Shader\_ShadowDebug.frag" />
     <None Include="Assets\Shader\_ShadowDebug.vert" />
     <None Include="Assets\Shader\_ShadowDepth.frag" />
     <None Include="Assets\Shader\_ShadowDepth.vert" />
-    <None Include="Assets\Shader\_InfinitePlane.frag" />
-    <None Include="Assets\Shader\_InfinitePlane.vert" />
+    <None Include="Assets\Shader\InfinitePlane.frag" />
+    <None Include="Assets\Shader\InfinitePlane.vert" />
     <None Include="SpatialHash.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

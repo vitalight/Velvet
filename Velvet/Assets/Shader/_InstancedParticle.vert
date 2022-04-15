@@ -10,5 +10,4 @@ uniform mat4 _WorldToLight;
 void main()
 {
 	gl_Position = _View * _Model * vec4(aPos, 1.0);
-//    gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 }
