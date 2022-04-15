@@ -27,7 +27,24 @@ namespace Velvet
 
 		virtual void PopulateActors(GameInstance* game) = 0;
 
+		VtCallback<void()> onEnter;
+		VtCallback<void()> onExit;
+
 	protected:
+		template <class T>
+		void ModifyParameter(T* ptr, T value)
+		{
+			onEnter.Register([this, ptr, value]() {
+				fmt::print("OnEnter: set to {}\n", value);
+				T prev = *ptr;
+				*ptr = value;
+				onExit.Register([ptr, prev]() {
+					fmt::print("OnExit: revert to {}\n", prev);
+					*ptr = prev;
+					});
+				});
+		}
+
 		void SpawnCameraAndLight(GameInstance* game)
 		{
 			//=====================================

@@ -39,16 +39,14 @@ namespace Velvet
 
 		shared_ptr<Mesh> CustomMesh()
 		{
+			// placeholder mesh
 			vector<glm::vec3> points = {
-				glm::vec3(-0.5f,  0.5f,0), // top-left
-				glm::vec3(0.5f,  0.5f,0), // top-right
-				glm::vec3(0.5f, -0.5f,0), // bottom-right
-				glm::vec3(-0.5f, -0.5f,0)  // bottom-left
+				glm::vec3(0), 
 			};
 			auto mesh = make_shared<Mesh>(points);
 			glBindVertexArray(mesh->VAO());
 			auto clothMesh = actor->GetComponent<MeshRenderer>()->mesh();
-			m_numParticles = clothMesh->vertices().size();
+			m_numParticles = (int)clothMesh->vertices().size();
 			glBindBuffer(GL_ARRAY_BUFFER, clothMesh->verticesVBO());
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);

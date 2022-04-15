@@ -95,8 +95,11 @@ int VtEngine::Run()
 #pragma warning( pop ) 
 
 		m_game = make_shared<GameInstance>(m_window, m_gui);
+		sceneIndex = m_nextSceneIndex;
 		scenes[sceneIndex]->PopulateActors(m_game.get());
+		scenes[sceneIndex]->onEnter.Invoke();
 		m_game->Run();
+		scenes[sceneIndex]->onExit.Invoke();
 
 		Resource::ClearCache();
 		m_gui->ClearCallback();
@@ -112,7 +115,7 @@ void VtEngine::Reset()
 
 void VtEngine::SwitchScene(unsigned int _sceneIndex)
 {
-	sceneIndex = std::clamp(_sceneIndex, 0u, (unsigned int)scenes.size()-1);
+	m_nextSceneIndex = std::clamp(_sceneIndex, 0u, (unsigned int)scenes.size()-1);
 	m_game->pendingReset = true;
 }
 

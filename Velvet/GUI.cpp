@@ -45,7 +45,7 @@ struct SolverTiming
 	{
 		double total = label2avgTime["Total"];
 		bool shouldPop = false;
-		float percentage = total > 0 ? (label2avgTime[name] / total * 100) : 0;
+		float percentage = (total > 0) ? float(label2avgTime[name] / total * 100) : 0.0f;
 		if (autoColor && percentage > 10)
 		{
 			ImVec4 textColor = color_low;
@@ -107,7 +107,7 @@ struct SolverTiming
 			return;
 		}
 
-		float averageGPUTime = label2avgTime["KernelSum"] / count;
+		float averageGPUTime = (float)(label2avgTime["KernelSum"] / count);
 		int averageFPS = (int)(1000.0f / averageGPUTime);
 		ImGui::Text("Average GPU time: %.2f ms (%d fps)", averageGPUTime, averageFPS);
 

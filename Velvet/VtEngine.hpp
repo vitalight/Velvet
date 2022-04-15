@@ -34,6 +34,7 @@ namespace Velvet
 		vector<shared_ptr<Scene>> scenes;
 		unsigned int sceneIndex = 0;
 	private:
+		unsigned int m_nextSceneIndex = 0;
 		GLFWwindow* m_window = nullptr;
 		shared_ptr<GUI> m_gui;
 		shared_ptr<GameInstance> m_game;

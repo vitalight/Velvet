@@ -19,7 +19,6 @@ namespace Velvet
 	class Light;
 	class RenderPipeline;
 	class GUI;
-	class Scene;
 	class Actor;
 	class Timer;
 

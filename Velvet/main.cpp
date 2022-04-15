@@ -122,10 +122,10 @@ public:
 	}
 };
 
-class SceneSimpleCloth : public Scene
+class SceneClothCollision : public Scene
 {
 public:
-	SceneSimpleCloth() { name = "Cloth / Simple"; }
+	SceneClothCollision() { name = "Cloth / SDF Collision"; }
 
 	void PopulateActors(GameInstance* game)  override
 	{
@@ -154,10 +154,10 @@ public:
 	}
 };
 
-class SceneClothCollision : public Scene
+class SceneClothHD : public Scene
 {
 public:
-	SceneClothCollision() { name = "Cloth / Self Collision"; }
+	SceneClothHD() { name = "Cloth / High Resolution"; }
 
 	void PopulateActors(GameInstance* game)  override
 	{
@@ -174,6 +174,36 @@ public:
 	}
 };
 
+class SceneClothFriction : public Scene
+{
+public:
+	SceneClothFriction() { name = "Cloth / Friction"; }
+
+	void PopulateActors(GameInstance* game)  override
+	{
+		SpawnCameraAndLight(game);
+		SpawnInfinitePlane(game);
+
+		ModifyParameter(&Global::simParams.friction, 0.6f);
+
+		auto sphere = SpawnSphere(game);
+		float radius = 0.5f;
+		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
+		
+		game->postUpdate.Register([sphere, game, radius]() {
+			float time = Timer::physicsFrameCount() * Timer::fixedDeltaTime() - 0.5f;
+			if (time > 0)
+			{
+				sphere->transform->position = glm::vec3(0.5 * sin(time * 0.5), radius, 0);
+			}
+			sphere->transform->rotation = glm::vec3(0, time * 90, 0);
+			});
+
+		int clothResolution = 64;
+		auto cloth = SpawnCloth(game, clothResolution);
+		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
+	}
+};
 
 int main()
 {
@@ -187,8 +217,9 @@ int main()
 	//=====================================
 	
 	vector<shared_ptr<Scene>> scenes = {
+		make_shared<SceneClothFriction>(),
 		make_shared<SceneClothCollision>(),
-		make_shared<SceneSimpleCloth>(),
+		make_shared<SceneClothHD>(),
 		make_shared<SceneColoredCubes>(),
 		make_shared<ScenePremitiveRendering>(),
 	};
