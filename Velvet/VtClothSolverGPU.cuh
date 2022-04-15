@@ -52,6 +52,15 @@ namespace Velvet
 	void SolveStretch(uint numConstraints, CONST(int*) stretchIndices, CONST(float*) stretchLengths,
 		CONST(float*) inverseMass, glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount);
 
+	void SolveBending(
+		glm::vec3* predicted,
+		glm::vec3* positionDeltas,
+		int* positionDeltaCount,
+		CONST(uint*) bendingIndices,
+		CONST(float*) bendingAngles,
+		CONST(float*) invMass,
+		uint numConstraints);
+
 	void SolveAttachment(int numConstraints, CONST(int*) attachIndices, CONST(glm::vec3*) attachPositions, glm::vec3* predicted);
 
 	void SolveSDFCollision(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted);

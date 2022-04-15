@@ -39,6 +39,7 @@ namespace Velvet
 			auto mesh = actor->GetComponent<MeshRenderer>()->mesh();
 			auto transformMatrix = actor->transform->matrix();
 			auto positions = mesh->vertices();
+			auto indices = mesh->indices();
 			m_particleDiameter = glm::length(positions[0] - positions[m_resolution + 1]) * 0.9f;
 
 			m_solver->Initialize(mesh, transformMatrix, m_particleDiameter);
@@ -47,6 +48,7 @@ namespace Velvet
 			ApplyTransform(positions, transformMatrix);
 			GenerateStretch(positions);
 			GenerateAttach(positions);
+			GenerateBending(indices);
 
 			m_colliders = Global::game->FindComponents<Collider>();
 		}
@@ -130,6 +132,22 @@ namespace Velvet
 			}
 		}
 	
+		void GenerateBending(const vector<unsigned int>& indices)
+		{
+			// HACK: not for every kind of mesh
+			for (int i = 0; i < indices.size(); i += 6)
+			{
+				int idx1 = indices[i];
+				int idx2 = indices[i + 1];
+				int idx3 = indices[i + 2];
+				int idx4 = indices[i + 5];
+
+				// TODO: calculate angle
+				float angle = 0;
+				m_solver->AddBend(idx1, idx2, idx3, idx4, angle);
+			}
+		}
+
 		void GenerateAttach(const vector<glm::vec3>& positions)
 		{
 			for (auto idx : m_attachedIndices)
@@ -137,6 +155,7 @@ namespace Velvet
 				m_solver->AddAttach(idx, positions[idx]);
 			}
 		}
+
 	
 	private:
 

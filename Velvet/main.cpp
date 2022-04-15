@@ -190,14 +190,14 @@ public:
 		float radius = 0.5f;
 		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
 		
-		game->postUpdate.Register([sphere, game, radius]() {
-			float time = Timer::physicsFrameCount() * Timer::fixedDeltaTime() - 0.5f;
-			if (time > 0)
-			{
-				sphere->transform->position = glm::vec3(0.5 * sin(time * 0.5), radius, 0);
-			}
-			sphere->transform->rotation = glm::vec3(0, time * 90, 0);
-			});
+		//game->postUpdate.Register([sphere, game, radius]() {
+		//	float time = Timer::physicsFrameCount() * Timer::fixedDeltaTime() - 0.5f;
+		//	if (time > 0)
+		//	{
+		//		sphere->transform->position = glm::vec3(0.5 * sin(time * 0.5), radius, 0);
+		//	}
+		//	sphere->transform->rotation = glm::vec3(0, time * 90, 0);
+		//	});
 
 		int clothResolution = 64;
 		auto cloth = SpawnCloth(game, clothResolution);

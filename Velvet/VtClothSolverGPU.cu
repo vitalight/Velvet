@@ -94,7 +94,7 @@ namespace Velvet
 		float count = (float)positionDeltaCount[id];
 		if (count > 0)
 		{
-			predicted[id] += positionDeltas[id] / count;
+			predicted[id] += positionDeltas[id] / count * d_params.relaxationFactor;
 			positionDeltas[id] = glm::vec3(0);
 			positionDeltaCount[id] = 0;
 		}
@@ -105,6 +105,75 @@ namespace Velvet
 	{
 		ScopedTimerGPU timer("Solver_SolveStretch");
 		CUDA_CALL(SolveStretch_Impl, numConstraints)(numConstraints, stretchIndices, stretchLengths, inverseMass, predicted, positionDeltas, positionDeltaCount);
+		CUDA_CALL(ApplyPositionDeltas_Impl, h_params.numParticles)(predicted, positionDeltas, positionDeltaCount);
+	}
+
+	__global__ void SolveBending_Impl(
+		glm::vec3* predicted,
+		glm::vec3* positionDeltas,
+		int* positionDeltaCount,
+		CONST(uint*) bendingIndices,
+		CONST(float*) bendingAngles,
+		CONST(float*) invMass,
+		uint numConstraints)
+	{
+		GET_CUDA_ID(id, numConstraints);
+		uint idx1 = bendingIndices[id * 4];
+		uint idx2 = bendingIndices[id * 4+1];
+		uint idx3 = bendingIndices[id * 4+2];
+		uint idx4 = bendingIndices[id * 4+3];
+		float expectedAngle = bendingAngles[id];
+
+		float w1 = invMass[idx1];
+		float w2 = invMass[idx2];
+		float w3 = invMass[idx3];
+		float w4 = invMass[idx4];
+
+		glm::vec3 p1 = predicted[idx1];
+		glm::vec3 p2 = predicted[idx2] - p1;
+		glm::vec3 p3 = predicted[idx3] - p1;
+		glm::vec3 p4 = predicted[idx4] - p1;
+		glm::vec3 n1 = glm::normalize(glm::cross(p2, p3));
+		glm::vec3 n2 = glm::normalize(glm::cross(p2, p4));
+
+		float d = clamp(glm::dot(n1, n2), 0.0f, 1.0f);
+		float angle = acos(d);
+		// cross product for two equal vector produces NAN
+		if (angle < EPSILON || isnan(d)) return;
+
+		glm::vec3 q3 = (glm::cross(p2, n2) + glm::cross(n1, p2) * d) / (glm::length(glm::cross(p2, p3)) + EPSILON);
+		glm::vec3 q4 = (glm::cross(p2, n1) + glm::cross(n2, p2) * d) / (glm::length(glm::cross(p2, p4)) + EPSILON);
+		glm::vec3 q2 = -(glm::cross(p3, n2) + glm::cross(n1, p3) * d) / (glm::length(glm::cross(p2, p3)) + EPSILON)
+			- (glm::cross(p4, n1) + glm::cross(n2, p4) * d) / (glm::length(glm::cross(p2, p4)) + EPSILON);
+		glm::vec3 q1 = -q2 - q3 - q4;
+
+		float xpbd_bend = d_params.bendCompliance / d_params.deltaTime / d_params.deltaTime;
+		float denom = xpbd_bend + (w1 * glm::dot(q1, q1) + w2 * glm::dot(q2, q2) + w3 * glm::dot(q3, q3) + w4 * glm::dot(q4, q4));
+		if (denom < EPSILON) return; // ?
+		float lambda = sqrt(1.0f - d * d) * (angle - expectedAngle) / denom;
+
+		int reorder = idx1 + idx2 + idx3 + idx4;
+		AtomicAdd(positionDeltas, idx1, w1 * lambda * q1, reorder);
+		AtomicAdd(positionDeltas, idx2, w2 * lambda * q2, reorder);
+		AtomicAdd(positionDeltas, idx3, w3 * lambda * q3, reorder);
+		AtomicAdd(positionDeltas, idx4, w4 * lambda * q4, reorder);
+		
+		atomicAdd(&positionDeltaCount[idx1], 1);
+		atomicAdd(&positionDeltaCount[idx2], 1);
+		atomicAdd(&positionDeltaCount[idx3], 1);
+		atomicAdd(&positionDeltaCount[idx4], 1);
+	}
+
+	void SolveBending(
+		glm::vec3* predicted,
+		glm::vec3* positionDeltas,
+		int* positionDeltaCount,
+		CONST(uint*) bendingIndices,
+		CONST(float*) bendingAngles,
+		CONST(float*) invMass,
+		uint numConstraints)
+	{
+		CUDA_CALL(SolveBending_Impl, numConstraints)(predicted, positionDeltas, positionDeltaCount, bendingIndices, bendingAngles, invMass, numConstraints);
 		CUDA_CALL(ApplyPositionDeltas_Impl, h_params.numParticles)(predicted, positionDeltas, positionDeltaCount);
 	}
 

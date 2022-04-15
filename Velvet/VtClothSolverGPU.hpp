@@ -80,7 +80,7 @@ namespace Velvet
 				{
 					SolveStretch((uint)stretchLengths.size(), stretchIndices, stretchLengths, inverseMass, predicted,
 						positionDeltas, positionDeltaCount);
-
+					SolveBending(predicted, positionDeltas, positionDeltaCount, bendIndices, bendAngles, inverseMass, (uint)bendAngles.size());
 					SolveParticleCollision(inverseMass, m_spatialHash->neighbors, positions, predicted, positionDeltas, positionDeltaCount);
 					SolveSDFCollision((uint)sdfColliders.size(), sdfColliders, positions, predicted);
 
@@ -115,6 +115,15 @@ namespace Velvet
 			attachPositions.push_back(position);
 		}
 
+		void AddBend(uint idx1, uint idx2, uint idx3, uint idx4, float angle)
+		{
+			bendIndices.push_back(idx1);
+			bendIndices.push_back(idx2);
+			bendIndices.push_back(idx3);
+			bendIndices.push_back(idx4);
+			bendAngles.push_back(angle);
+		}
+
 		void UpdateColliders(vector<Collider*>& colliders)
 		{
 			sdfColliders.resize(colliders.size());
@@ -144,6 +153,8 @@ namespace Velvet
 
 		VtBuffer<int> stretchIndices;
 		VtBuffer<float> stretchLengths;
+		VtBuffer<uint> bendIndices;
+		VtBuffer<float> bendAngles;
 		VtBuffer<int> attachIndices;
 		VtBuffer<glm::vec3> attachPositions;
 		VtBuffer<SDFCollider> sdfColliders;
