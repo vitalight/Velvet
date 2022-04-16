@@ -35,11 +35,9 @@ namespace Velvet
 		void ModifyParameter(T* ptr, T value)
 		{
 			onEnter.Register([this, ptr, value]() {
-				fmt::print("OnEnter: set to {}\n", value);
 				T prev = *ptr;
 				*ptr = value;
 				onExit.Register([ptr, prev]() {
-					fmt::print("OnExit: revert to {}\n", prev);
 					*ptr = prev;
 					});
 				});

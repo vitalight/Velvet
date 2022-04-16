@@ -21,6 +21,7 @@ struct SolverTiming
 		"Predict",
 		"SolveStretch",
 		"SolveAttach",
+		"SolveBending",
 		"CollideSDFs",
 		"CollideParticles",
 		"Finalize",
@@ -40,21 +41,27 @@ struct SolverTiming
 	ImVec4 color_high = ImVec4(1.000f, 0.244f, 0.000f, 1.000f);
 	ImVec4 color_mid = ImVec4(1.000f, 0.602f, 0.000f, 1.000f);
 	ImVec4 color_low = ImVec4(1.000f, 0.889f, 0.000f, 1.000f);
+	ImVec4 color_disabled = ImVec4(0.5f, 0.5f, 0.5f, 1.000f);
 	
 	void DisplayKernelTiming(const string name, bool autoColor = true)
 	{
 		double total = label2avgTime["Total"];
 		bool shouldPop = false;
 		float percentage = (total > 0) ? float(label2avgTime[name] / total * 100) : 0.0f;
-		if (autoColor && percentage > 10)
+		if (autoColor )
 		{
-			ImVec4 textColor = color_low;
-			if (percentage > 30)
-				textColor = color_high;
-			else if (percentage > 10)
-				textColor = color_mid;
-			ImGui::PushStyleColor(ImGuiCol_Text, textColor);
-			shouldPop = true;
+			if (percentage > 10 || percentage == 0.0f)
+			{
+				ImVec4 textColor = color_low;
+				if (percentage > 30)
+					textColor = color_high;
+				else if (percentage > 10)
+					textColor = color_mid;
+				else if (percentage == 0.0f)
+					textColor = color_disabled;
+				ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+				shouldPop = true;
+			}
 		}
 
 		ImGui::TableNextColumn(); 

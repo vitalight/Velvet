@@ -72,7 +72,7 @@ namespace Velvet
 			float substepTime = Timer::fixedDeltaTime() / Global::simParams.numSubsteps;
 
 			// Pre-stablization pass [Unified particle physics for real-time applications (4.4)]
-			SolveSDFCollision(m_positions);
+			CollideSDF(m_positions);
 
 			EstimatePositions(frameTime);
 			m_spatialHash->HashObjects(m_predicted);
@@ -87,8 +87,8 @@ namespace Velvet
 					SolveBending(substepTime);
 
 					//SolveSelfCollision();
-					SolveParticleCollision();
-					SolveSDFCollision(m_predicted);
+					CollideParticles();
+					CollideSDF(m_predicted);
 
 					SolveAttachment();
 				}
@@ -271,7 +271,7 @@ namespace Velvet
 			}
 		}
 
-		void SolveSDFCollision(vector<glm::vec3>& positions) const
+		void CollideSDF(vector<glm::vec3>& positions) const
 		{
 			// SDF collision
 			for (int i = 0; i < m_numVertices; i++)
@@ -313,7 +313,7 @@ namespace Velvet
 			}
 		}
 
-		void SolveParticleCollision()
+		void CollideParticles()
 		{
 			for (int i = 0; i < m_numVertices; i++)
 			{

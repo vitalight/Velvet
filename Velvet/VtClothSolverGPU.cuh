@@ -59,19 +59,18 @@ namespace Velvet
 		CONST(uint*) bendingIndices,
 		CONST(float*) bendingAngles,
 		CONST(float*) invMass,
-		uint numConstraints);
+		uint numConstraints,
+		float deltaTime);
 
 	void SolveAttachment(int numConstraints, CONST(int*) attachIndices, CONST(glm::vec3*) attachPositions, glm::vec3* predicted);
 
-	void SolveSDFCollision(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted);
+	void CollideSDF(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted);
 
-	void SolveParticleCollision(
+	void CollideParticles(
 		CONST(float*) inverseMass,
 		CONST(uint*) neighbors,
 		CONST(glm::vec3*) positions,
-		glm::vec3* predicted,
-		glm::vec3* positionDeltas,
-		int* positionDeltaCount);
+		glm::vec3* predicted);
 
 	void UpdatePositionsAndVelocities(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime);
 

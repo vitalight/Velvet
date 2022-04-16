@@ -1,6 +1,5 @@
 #include "SpatialHashGPU.cuh"
 
-//#include <cub/cub.cuh>
 #include <cub/device/device_radix_sort.cuh>
 
 #include "Timer.hpp"
@@ -137,7 +136,7 @@ __global__ void CacheNeighbors(
 					uint neighbor = particleIndex[i];
 					float distance = glm::length(position - positions[neighbor]);
 					// OPT: only store neighbor 'id' larger than self
-					if (neighbor > id && distance < d_hashCellSpacing)
+					if (distance < d_hashCellSpacing)
 					//if (neighbor != id && distance < d_hashCellSpacing)
 					{
 						neighbors[neighborIndex++] = neighbor;

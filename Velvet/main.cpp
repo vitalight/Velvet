@@ -171,7 +171,7 @@ public:
 		int clothResolution = 200;
 		auto cloth = SpawnCloth(game, clothResolution);
 		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
-	}
+}
 };
 
 class SceneClothFriction : public Scene
@@ -205,6 +205,34 @@ public:
 	}
 };
 
+class SceneClothAttach : public Scene
+{
+public:
+	SceneClothAttach() { name = "Cloth / Attach"; }
+
+	void PopulateActors(GameInstance* game)  override
+	{
+		SpawnCameraAndLight(game);
+		SpawnInfinitePlane(game);
+
+		ModifyParameter(&Global::simParams.enableSelfCollision, false);
+		//ModifyParameter(&Global::simParams.numSubsteps, 2);
+		//ModifyParameter(&Global::simParams.numIterations, 4);
+
+		auto sphere = SpawnSphere(game);
+		float radius = 0.5f;
+		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
+
+		int clothResolution = 40;
+		auto cloth = SpawnCloth(game, clothResolution);
+		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
+
+		auto clothObj = cloth->GetComponent<VtClothObjectGPU>();
+		if (clothObj) clothObj->SetAttachedIndices({ 0, clothResolution, (clothResolution + 1) * (clothResolution + 1) - 1, (clothResolution + 1) * (clothResolution) });
+
+	}
+};
+
 int main()
 {
 	//=====================================
@@ -217,9 +245,10 @@ int main()
 	//=====================================
 	
 	vector<shared_ptr<Scene>> scenes = {
+		make_shared<SceneClothHD>(),
+		make_shared<SceneClothAttach>(),
 		make_shared<SceneClothFriction>(),
 		make_shared<SceneClothCollision>(),
-		make_shared<SceneClothHD>(),
 		make_shared<SceneColoredCubes>(),
 		make_shared<ScenePremitiveRendering>(),
 	};

@@ -18,37 +18,44 @@
 
 struct VtSimParams
 {
-	int numSubsteps			HOST_INIT(5);
-	int numIterations		HOST_INIT(5);						//!< Number of solver iterations to perform per-substep
-	int maxNumNeighbors		HOST_INIT(64);
+	int numSubsteps				HOST_INIT(5);
+	int numIterations			HOST_INIT(5);						//!< Number of solver iterations to perform per-substep
+	int maxNumNeighbors			HOST_INIT(64);
+	float maxSpeed				HOST_INIT(50);						//!< The magnitude of particle velocity will be clamped to this value at the end of each step
 
-	glm::vec3 gravity		HOST_INIT(glm::vec3(0, -9.8f, 0));	//!< Constant acceleration applied to all particles
-	float bendCompliance	HOST_INIT(10.0f);
-	float damping			HOST_INIT(0.25f);					//!< Viscous drag force, applies a force proportional, and opposite to the particle velocity
-	float friction			HOST_INIT(0.1f);					//!< Coefficient of friction used when colliding against shapes
-	float collisionMargin	HOST_INIT(0.06f);					//!< Distance particles maintain against shapes, note that for robust collision against triangle meshes this distance should be greater than zero
-	float relaxationFactor	HOST_INIT(1.0f);					//!< Control the convergence rate of the parallel solver, default: 1, values greater than 1 may lead to instability
+	// forces
+	glm::vec3 gravity			HOST_INIT(glm::vec3(0, -9.8f, 0));	//!< Constant acceleration applied to all particles
+	float bendCompliance		HOST_INIT(10.0f);
+	float damping				HOST_INIT(0.25f);					//!< Viscous drag force, applies a force proportional, and opposite to the particle velocity
+	float relaxationFactor		HOST_INIT(1.0f);					//!< Control the convergence rate of the parallel solver, default: 1, values greater than 1 may lead to instability
 
-	unsigned int numParticles;									//!< Total number of particles 
-	float particleDiameter;										//!< The maximum interaction radius for particles
-	float deltaTime;
+	// collision
+	float collisionMargin		HOST_INIT(0.06f);					//!< Distance particles maintain against shapes, note that for robust collision against triangle meshes this distance should be greater than zero
+	float friction				HOST_INIT(0.1f);					//!< Coefficient of friction used when colliding against shapes
+	bool enableSelfCollision	HOST_INIT(true);
 
-	// === Future ===
-	float maxSpeed;												//!< The magnitude of particle velocity will be clamped to this value at the end of each step
-	//float wind[3];											//!< Constant acceleration applied to particles that belong to dynamic triangles, drag needs to be > 0 for wind to affect triangles
+	// runtime info
+	unsigned int numParticles;										//!< Total number of particles 
+	float particleDiameter;											//!< The maximum interaction radius for particles
+	float deltaTime;	
+
+	// future updates
+	//float wind[3];												//!< Constant acceleration applied to particles that belong to dynamic triangles, drag needs to be > 0 for wind to affect triangles
 	//int relaxationMode;											//!< How the relaxation is applied inside the solver
 
 	void OnGUI()
 	{
 		IMGUI_LEFT_LABEL(ImGui::SliderInt, "Num Substeps", &numSubsteps, 1, 20);
 		IMGUI_LEFT_LABEL(ImGui::SliderInt, "Num Iterations", &numIterations, 1, 20);
+		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Max Speed", &maxSpeed, 1e-2, 100);
 		ImGui::Separator();
 		IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "Gravity", (float*)&gravity, -50, 50);
-		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Friction", &friction, 0, 1);
-		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Damping", &damping, 0, 1);
+		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Damping", &damping, 0, 10.0f);
 		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Collision Margin", &collisionMargin, 0, 0.5);
-		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Relaxation Factor", &relaxationFactor, 0, 3.0);
+		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Friction", &friction, 0, 1);
+		IMGUI_LEFT_LABEL(ImGui::Checkbox, "Enable Self Collision", &enableSelfCollision);
 		ImGui::Separator();
+		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Relaxation Factor", &relaxationFactor, 0, 3.0);
 		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Bend Compliance", &bendCompliance, 1e-3, 100.0, "%.3f", ImGuiSliderFlags_Logarithmic);
 	}
 };

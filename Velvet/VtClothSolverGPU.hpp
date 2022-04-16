@@ -33,6 +33,7 @@ namespace Velvet
 			int numParticles = (int)mesh->vertices().size();
 			Global::simParams.numParticles = numParticles;
 			Global::simParams.particleDiameter = particleDiameter;
+			Global::simParams.deltaTime = Timer::fixedDeltaTime();
 
 			positions.registerBuffer(mesh->verticesVBO());
 			normals.registerBuffer(mesh->normalsVBO());
@@ -51,6 +52,7 @@ namespace Velvet
 			double time = Timer::EndTimer("INIT_SOLVER_GPU") * 1000;
 			//ShowDebugGUI();
 			fmt::print("Info(ClothSolverGPU): Initialize done. Took time {:.2f} ms\n", time);
+			fmt::print("Info(ClothSolverGPU): Recommond max vel = {}\n", 2 * particleDiameter / Timer::fixedDeltaTime());
 		}
 
 		void Simulate()
@@ -67,7 +69,7 @@ namespace Velvet
 			//==========================
 			SetSimulationParams(&Global::simParams);
 
-			SolveSDFCollision((uint)sdfColliders.size(), sdfColliders, positions, positions);
+			CollideSDF((uint)sdfColliders.size(), sdfColliders, positions, positions);
 
 			EstimatePositions(positions, predicted, velocities, frameTime);
 			m_spatialHash->Hash(predicted);
@@ -76,14 +78,17 @@ namespace Velvet
 			{
 				EstimatePositions(positions, predicted, velocities, substepTime);
 
+				if (Global::simParams.enableSelfCollision)
+				{
+					CollideParticles(inverseMass, m_spatialHash->neighbors, positions, predicted);
+				}
+				CollideSDF((uint)sdfColliders.size(), sdfColliders, positions, predicted);
+
 				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
 				{
 					SolveStretch((uint)stretchLengths.size(), stretchIndices, stretchLengths, inverseMass, predicted,
 						positionDeltas, positionDeltaCount);
-					SolveBending(predicted, positionDeltas, positionDeltaCount, bendIndices, bendAngles, inverseMass, (uint)bendAngles.size());
-					SolveParticleCollision(inverseMass, m_spatialHash->neighbors, positions, predicted, positionDeltas, positionDeltaCount);
-					SolveSDFCollision((uint)sdfColliders.size(), sdfColliders, positions, predicted);
-
+					//SolveBending(predicted, positionDeltas, positionDeltaCount, bendIndices, bendAngles, inverseMass, (uint)bendAngles.size(), substepTime);
 					SolveAttachment((uint)attachIndices.size(), attachIndices, attachPositions, predicted);
 				}
 				UpdatePositionsAndVelocities(predicted, velocities, positions, substepTime);
