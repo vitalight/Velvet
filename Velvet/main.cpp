@@ -188,6 +188,8 @@ public:
 		SpawnInfinitePlane(game);
 
 		ModifyParameter(&Global::simParams.friction, 0.6f);
+		ModifyParameter(&Global::simParams.numSubsteps, 5);
+		ModifyParameter(&Global::simParams.numIterations, 5);
 
 		auto sphere = SpawnSphere(game);
 		float radius = 0.5f;

@@ -51,7 +51,9 @@ namespace Velvet
 
 	void SolveStretch(uint numConstraints, CONST(int*) stretchIndices, CONST(float*) stretchLengths,
 		CONST(float*) inverseMass, glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount);
-
+	
+	// Bending doesn't work well with Jacobi. Small compliance lead to shaking, large compliance makes no effect.
+	// It's recommended to disable this.
 	void SolveBending(
 		glm::vec3* predicted,
 		glm::vec3* positionDeltas,

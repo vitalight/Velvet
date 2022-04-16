@@ -116,6 +116,7 @@ namespace Velvet
 			cudaEventRecord(stop);
 		}
 
+		// return time in mili seconds
 		static double GetTimerGPU(const string& label)
 		{
 			auto& events = s_timer->cudaEvents[label];

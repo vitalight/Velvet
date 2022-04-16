@@ -11,6 +11,20 @@ inline GUI* g_Gui;
 const float k_leftWindowWidth = 250.0f;
 const float k_rightWindowWidth = 330.0f;
 
+void HelpMarker(const char* desc)
+{
+	ImGui::SameLine();
+	ImGui::TextDisabled("(?)");
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+		ImGui::TextUnformatted(desc);
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+}
+
 struct SolverTiming
 {
 	int count = 0;
@@ -116,15 +130,16 @@ struct SolverTiming
 		}
 
 		float averageGPUTime = (float)(label2avgTime["KernelSum"] / count);
-		int averageFPS = (int)(1000.0f / averageGPUTime);
-		ImGui::Text("Average GPU time: %.2f ms (%d fps)", averageGPUTime, averageFPS);
+		int averageFPS = (averageGPUTime > 0.0f) ? (int)(1000.0f / (averageGPUTime)) : 0;
+		ImGui::Text("Avg Solver Time: %.2f ms (%d fps)", averageGPUTime, averageFPS);
+		HelpMarker("solver_time = kernel_time + cuda_dispatch_time");
 
 		static bool hasPrinted = false;
 		int printAtFrame = 300;
 		if (!hasPrinted && Timer::physicsFrameCount() == printAtFrame)
 		{
 			hasPrinted = true;
-			fmt::print("Info(GUI): Average GPU time at frame({}) is: {:.3f} ms\n", printAtFrame, label2avgTime["KernelSum"] / count);
+			fmt::print("Info(GUI): Average solver time at frame({}) is: {:.3f} ms\n", printAtFrame, label2avgTime["KernelSum"] / count);
 		}
 
 		if (ImGui::BeginTable("timing", 4))//,  ImGuiTableFlags_BordersOuter))
@@ -156,12 +171,14 @@ struct PerformanceStat
 	int frameCount = 0;
 	int physicsFrameCount = 0;
 
-	float graphValues[100] = {};
+	float graphValues[180] = {};
 	int graphIndex = 0;
 	float graphAverage = 0.0f;
 
 	double cpuTime = 0;
+	// include solver_time + cuda_sync_time
 	double gpuTime = 0;
+	double solverTime = 0;
 
 	void Update()
 	{
@@ -174,9 +191,9 @@ struct PerformanceStat
 		frameCount = Timer::frameCount();
 		physicsFrameCount = Timer::physicsFrameCount();
 
-		if (Timer::PeriodicUpdate("GUI_FAST", 0.03f))
+		if (Timer::PeriodicUpdate("GUI_FAST", Timer::fixedDeltaTime()))
 		{
-			graphValues[graphIndex] = deltaTimeMiliseconds;
+			graphValues[graphIndex] = Timer::GetTimerGPU("Solver_Total");
 			graphIndex = (graphIndex + 1) % IM_ARRAYSIZE(graphValues);
 		}
 
@@ -186,6 +203,7 @@ struct PerformanceStat
 			frameRate = elapsedTime > 0 ? (int)(frameCount / elapsedTime) : 0;
 			cpuTime = Timer::GetTimer("CPU_TIME") * 1000;
 			gpuTime = Timer::GetTimer("GPU_TIME") * 1000;
+			solverTime = Timer::GetTimerGPU("Solver_Total");
 
 			for (int n = 0; n < IM_ARRAYSIZE(graphValues); n++)
 				graphAverage += graphValues[n];
@@ -205,8 +223,8 @@ struct PerformanceStat
 			ImGui::TableNextColumn(); ImGui::Text("%d FPS", frameRate);
 			ImGui::TableNextColumn(); ImGui::Text("CPU time: ");
 			ImGui::TableNextColumn(); ImGui::Text("%.2f ms", cpuTime);
-			ImGui::TableNextColumn(); ImGui::Text("GPU time: ");
-			ImGui::TableNextColumn(); ImGui::Text("%.2f ms", gpuTime);
+			ImGui::TableNextColumn(); ImGui::Text("GPU time: "); 
+			ImGui::TableNextColumn(); ImGui::Text("%.2f ms", gpuTime); HelpMarker("gpu_time = solver_time + cuda_synchronize_time");
 			ImGui::TableNextColumn(); ImGui::Text("Num Particles: ");
 			ImGui::TableNextColumn(); ImGui::Text("%d", Global::simParams.numParticles);
 			ImGui::EndTable();
@@ -214,14 +232,13 @@ struct PerformanceStat
 
 		ImGui::Dummy(ImVec2(0, 5));
 		ImGui::PushItemWidth(-FLT_MIN);
-		auto overlay = fmt::format("{:.2f} ms ({:.2f} FPS)", deltaTime, 1000.0 / deltaTime);
+		auto overlay = fmt::format("Kernel: {:.2f} ms ({:.2f} FPS)", solverTime, solverTime > 0 ? (1000.0 / solverTime) : 0);
 		ImGui::PlotLines("##", graphValues, IM_ARRAYSIZE(graphValues), graphIndex, overlay.c_str(),
 			0, graphAverage * 2.0f, ImVec2(0, 80.0f));
 		ImGui::Dummy(ImVec2(0, 5));
 
 	}
 };
-
 
 void GUI::RegisterDebug(function<void()> callback)
 {
