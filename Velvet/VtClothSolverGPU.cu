@@ -68,7 +68,7 @@ namespace Velvet
 		float w1 = inverseMass[idx1];
 		float w2 = inverseMass[idx2];
 
-		if (distance > expectedDistance && w1 + w2 > 0)
+		if (distance != expectedDistance && w1 + w2 > 0)
 		{
 			glm::vec3 gradient = diff / (distance + EPSILON);
 			// compliance is zero, therefore XPBD=PBD
