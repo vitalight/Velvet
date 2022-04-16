@@ -190,23 +190,23 @@ namespace Velvet
 		RaycastCollision FindClosestVertexToRay(Ray ray)
 		{
 			int result = -1;
-			float minDistanceToRay = FLT_MAX;
-			float distanceToView = 0;
+			float minDistanceToView = FLT_MAX;
 
 			m_solver->positions.pull();
 
 			for (int i = 0; i < m_solver->positions.size(); i++)
 			{
 				const auto& position = m_solver->positions[i];
+				float distanceToView = glm::dot(ray.direction, position - ray.origin);
 				float distanceToRay = glm::length(glm::cross(ray.direction, position - ray.origin));
-				if (distanceToRay < minDistanceToRay)
+
+				if (distanceToRay < 2 * m_particleDiameter && distanceToView < minDistanceToView)
 				{
 					result = i;
-					minDistanceToRay = distanceToRay;
-					distanceToView = glm::dot(ray.direction, position - ray.origin);
+					minDistanceToView = distanceToView;
 				}
 			}
-			return RaycastCollision{ minDistanceToRay < 0.2, result, distanceToView };
+			return RaycastCollision{ result >= 0, result, minDistanceToView };
 		}
 
 		void UpdateGrappedVertex()

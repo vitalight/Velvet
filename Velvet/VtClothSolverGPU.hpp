@@ -78,10 +78,7 @@ namespace Velvet
 			{
 				EstimatePositions(positions, predicted, velocities, substepTime);
 
-				if (Global::simParams.enableSelfCollision)
-				{
-					CollideParticles(inverseMass, m_spatialHash->neighbors, positions, predicted);
-				}
+				if (Global::simParams.enableSelfCollision) CollideParticles(inverseMass, m_spatialHash->neighbors, positions, predicted);
 				CollideSDF((uint)sdfColliders.size(), sdfColliders, positions, predicted);
 
 				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
