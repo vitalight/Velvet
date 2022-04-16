@@ -85,7 +85,7 @@ namespace Velvet
 				{
 					SolveStretch((uint)stretchLengths.size(), stretchIndices, stretchLengths, inverseMass, predicted,
 						positionDeltas, positionDeltaCount);
-					SolveAttachment((uint)attachIndices.size(), attachIndices, attachPositions, attachDistances, predicted, positionDeltas, positionDeltaCount);
+					SolveAttachment((uint)attachIndices.size(), inverseMass, attachIndices, attachPositions, attachDistances, predicted, positionDeltas, positionDeltaCount);
 					ApplyDeltas(predicted, positionDeltas, positionDeltaCount);
 					//SolveBending(predicted, positionDeltas, positionDeltaCount, bendIndices, bendAngles, inverseMass, (uint)bendAngles.size(), substepTime);
 				}

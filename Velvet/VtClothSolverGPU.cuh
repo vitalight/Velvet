@@ -64,6 +64,7 @@ namespace Velvet
 
 	void SolveAttachment(
 		int numConstraints,
+		CONST(float*) invMass,
 		CONST(int*) attachIndices,
 		CONST(glm::vec3*) attachPositions,
 		CONST(float*) attachDistances,
