@@ -87,25 +87,12 @@ namespace Velvet
 		}
 	}
 
-	__global__ void ApplyPositionDeltas_Impl(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
-	{
-		GET_CUDA_ID(id, d_params.numParticles);
-
-		float count = (float)positionDeltaCount[id];
-		if (count > 0)
-		{
-			predicted[id] += positionDeltas[id] / count * d_params.relaxationFactor;
-			positionDeltas[id] = glm::vec3(0);
-			positionDeltaCount[id] = 0;
-		}
-	}
 
 	void SolveStretch(uint numConstraints, CONST(int*) stretchIndices, CONST(float*) stretchLengths,
 		CONST(float*) inverseMass, glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
 	{
 		ScopedTimerGPU timer("Solver_SolveStretch");
 		CUDA_CALL(SolveStretch_Impl, numConstraints)(numConstraints, stretchIndices, stretchLengths, inverseMass, predicted, positionDeltas, positionDeltaCount);
-		CUDA_CALL(ApplyPositionDeltas_Impl, h_params.numParticles)(predicted, positionDeltas, positionDeltaCount);
 	}
 
 	__global__ void SolveBending_Impl(
@@ -177,7 +164,6 @@ namespace Velvet
 	{
 		ScopedTimerGPU timer("Solver_SolveBending");
 		CUDA_CALL(SolveBending_Impl, numConstraints)(predicted, positionDeltas, positionDeltaCount, bendingIndices, bendingAngles, invMass, numConstraints, deltaTime);
-		CUDA_CALL(ApplyPositionDeltas_Impl, h_params.numParticles)(predicted, positionDeltas, positionDeltaCount);
 	}
 
 	__global__ void SolveAttachment_Impl(
@@ -185,7 +171,9 @@ namespace Velvet
 		CONST(int*) attachIndices, 
 		CONST(glm::vec3*) attachPositions, 
 		CONST(float*) attachDistances,
-		glm::vec3* predicted)
+		CONST(glm::vec3*) predicted,
+		glm::vec3* positionDeltas,
+		int* positionDeltaCount)
 	{
 		GET_CUDA_ID(id, numConstraints);
 
@@ -199,9 +187,10 @@ namespace Velvet
 
 		if (dist > targetDist)
 		{
-			float coefficient = 0.05 * targetDist + 0.95 * dist;
-			glm::vec3 newPos = attachPoint + diff / dist * coefficient;
-			predicted[pid] = newPos;
+			//float coefficient = max(targetDist, dist - 0.1*d_params.particleDiameter);// 0.05 * targetDist + 0.95 * dist;
+			glm::vec3 correction = -diff + diff / dist * targetDist;
+			AtomicAdd(positionDeltas, pid, correction, id);
+			atomicAdd(&positionDeltaCount[pid], 1);
 		}
 	}
 
@@ -210,10 +199,31 @@ namespace Velvet
 		CONST(int*) attachIndices,
 		CONST(glm::vec3*) attachPositions,
 		CONST(float*) attachDistances,
-		glm::vec3* predicted)
+		glm::vec3* predicted,
+		glm::vec3* positionDeltas,
+		int* positionDeltaCount)
 	{
 		ScopedTimerGPU timer("Solver_SolveAttach");
-		CUDA_CALL(SolveAttachment_Impl, numConstraints)(numConstraints, attachIndices, attachPositions, attachDistances, predicted);
+		CUDA_CALL(SolveAttachment_Impl, numConstraints)(numConstraints, attachIndices, attachPositions, attachDistances, predicted, positionDeltas, positionDeltaCount);
+	}
+
+	__global__ void ApplyPositionDeltas_Impl(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+	{
+		GET_CUDA_ID(id, d_params.numParticles);
+
+		float count = (float)positionDeltaCount[id];
+		if (count > 0)
+		{
+			predicted[id] += positionDeltas[id] / count * d_params.relaxationFactor;
+			positionDeltas[id] = glm::vec3(0);
+			positionDeltaCount[id] = 0;
+		}
+	}
+
+	void ApplyDeltas(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+	{
+		ScopedTimerGPU timer("Solver_ApplyDeltas");
+		CUDA_CALL(ApplyPositionDeltas_Impl, h_params.numParticles)(predicted, positionDeltas, positionDeltaCount);
 	}
 
 	__device__ glm::vec3 ComputeFriction(glm::vec3 correction, glm::vec3 relVel)

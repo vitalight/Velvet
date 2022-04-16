@@ -18,8 +18,8 @@
 
 struct VtSimParams
 {
-	int numSubsteps				HOST_INIT(5);
-	int numIterations			HOST_INIT(5);						//!< Number of solver iterations to perform per-substep
+	int numSubsteps				HOST_INIT(2);
+	int numIterations			HOST_INIT(4);						//!< Number of solver iterations to perform per-substep
 	int maxNumNeighbors			HOST_INIT(64);
 	float maxSpeed				HOST_INIT(50);						//!< The magnitude of particle velocity will be clamped to this value at the end of each step
 

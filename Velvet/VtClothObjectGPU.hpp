@@ -152,16 +152,14 @@ namespace Velvet
 		{
 			for (auto idx : m_attachedIndices)
 			{
-				//m_solver->AddAttach(idx, positions[idx], 0.5);
-
 				for (int i = 0; i < positions.size(); i++)
 				{
 					float restDistance = glm::length(positions[idx] - positions[i]);
 					m_solver->AddAttach(i, positions[idx], restDistance);
 				}
+				//m_solver->AddAttach(idx, positions[idx], 0);
 			}
 		}
-
 	
 	private:
 
@@ -206,7 +204,7 @@ namespace Velvet
 				float distanceToView = glm::dot(ray.direction, position - ray.origin);
 				float distanceToRay = glm::length(glm::cross(ray.direction, position - ray.origin));
 
-				if (distanceToRay < 2 * m_particleDiameter && distanceToView < minDistanceToView)
+				if (distanceToRay < 3 * m_particleDiameter && distanceToView < minDistanceToView)
 				{
 					result = i;
 					minDistanceToView = distanceToView;
@@ -228,7 +226,7 @@ namespace Velvet
 				glm::vec3 target = Helper::Lerp(mousePos, curPos, 0.8f);
 
 				m_solver->positions[id] = target;
-				m_solver->velocities[id] += (target - curPos) / Timer::fixedDeltaTime();
+				m_solver->velocities[id] = (target - curPos) / Timer::fixedDeltaTime();
 
 				m_solver->positions.push();
 			}

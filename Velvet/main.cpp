@@ -164,6 +164,9 @@ public:
 		SpawnCameraAndLight(game);
 		SpawnInfinitePlane(game);
 
+		ModifyParameter(&Global::simParams.numSubsteps, 10);
+		ModifyParameter(&Global::simParams.numIterations, 10);
+			
 		auto sphere = SpawnSphere(game);
 		float radius = 0.6f;
 		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
@@ -215,7 +218,7 @@ public:
 		SpawnCameraAndLight(game);
 		SpawnInfinitePlane(game);
 
-		ModifyParameter(&Global::simParams.enableSelfCollision, false);
+		//ModifyParameter(&Global::simParams.enableSelfCollision, false);
 		//ModifyParameter(&Global::simParams.numSubsteps, 2);
 		//ModifyParameter(&Global::simParams.numIterations, 4);
 
