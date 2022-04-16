@@ -4,6 +4,7 @@
 #include "VtClothSolverGPU.hpp"
 #include "Actor.hpp"
 #include "MeshRenderer.hpp"
+#include "VtEngine.hpp"
 
 namespace Velvet
 {
@@ -236,7 +237,8 @@ namespace Velvet
 		{
 			glm::vec2 screenPos = Global::input->GetMousePos();
 			// [0, 1]
-			auto normalizedScreenPos = 2.0f * screenPos / glm::vec2(Global::Config::screenWidth, Global::Config::screenHeight) - 1.0f;
+			auto windowSize = Global::engine->windowSize();
+			auto normalizedScreenPos = 2.0f * screenPos / glm::vec2(windowSize.x, windowSize.y) - 1.0f;
 			normalizedScreenPos.y = -normalizedScreenPos.y;
 
 			glm::mat4 invVP = glm::inverse(Global::camera->projection() * Global::camera->view());
