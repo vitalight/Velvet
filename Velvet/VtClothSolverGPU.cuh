@@ -62,7 +62,12 @@ namespace Velvet
 		uint numConstraints,
 		float deltaTime);
 
-	void SolveAttachment(int numConstraints, CONST(int*) attachIndices, CONST(glm::vec3*) attachPositions, glm::vec3* predicted);
+	void SolveAttachment(
+		int numConstraints,
+		CONST(int*) attachIndices,
+		CONST(glm::vec3*) attachPositions,
+		CONST(float*) attachDistances,
+		glm::vec3* predicted);
 
 	void CollideSDF(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted);
 

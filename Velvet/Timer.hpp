@@ -241,8 +241,8 @@ namespace Velvet
 	public:
 		ScopedTimerGPU(const string&& _label)
 		{
-			Timer::StartTimerGPU(_label);
 			label = _label;
+			Timer::StartTimerGPU(_label);
 		}
 
 		~ScopedTimerGPU()

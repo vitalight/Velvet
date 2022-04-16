@@ -152,7 +152,13 @@ namespace Velvet
 		{
 			for (auto idx : m_attachedIndices)
 			{
-				m_solver->AddAttach(idx, positions[idx]);
+				//m_solver->AddAttach(idx, positions[idx], 0.5);
+
+				for (int i = 0; i < positions.size(); i++)
+				{
+					float restDistance = glm::length(positions[idx] - positions[i]);
+					m_solver->AddAttach(i, positions[idx], restDistance);
+				}
 			}
 		}
 

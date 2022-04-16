@@ -86,12 +86,12 @@ namespace Velvet
 					SolveStretch((uint)stretchLengths.size(), stretchIndices, stretchLengths, inverseMass, predicted,
 						positionDeltas, positionDeltaCount);
 					//SolveBending(predicted, positionDeltas, positionDeltaCount, bendIndices, bendAngles, inverseMass, (uint)bendAngles.size(), substepTime);
-					SolveAttachment((uint)attachIndices.size(), attachIndices, attachPositions, predicted);
+					SolveAttachment((uint)attachIndices.size(), attachIndices, attachPositions, attachDistances, predicted);
 				}
+
 				UpdatePositionsAndVelocities(predicted, velocities, positions, substepTime);
 			}
 
-			// UpdateNormal
 			ComputeNormal((uint)(indices.size() / 3), positions, indices, normals);
 
 			//==========================
@@ -110,11 +110,12 @@ namespace Velvet
 			stretchLengths.push_back(distance);
 		}
 
-		void AddAttach(int index, glm::vec3 position)
+		void AddAttach(int index, glm::vec3 position, float distance)
 		{
-			inverseMass[index] = 0;
+			if (distance == 0) inverseMass[index] = 0;
 			attachIndices.push_back(index);
 			attachPositions.push_back(position);
+			attachDistances.push_back(distance);
 		}
 
 		void AddBend(uint idx1, uint idx2, uint idx3, uint idx4, float angle)
@@ -159,6 +160,7 @@ namespace Velvet
 		VtBuffer<float> bendAngles;
 		VtBuffer<int> attachIndices;
 		VtBuffer<glm::vec3> attachPositions;
+		VtBuffer<float> attachDistances;
 		VtBuffer<SDFCollider> sdfColliders;
 
 	private:

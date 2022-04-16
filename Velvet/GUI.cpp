@@ -361,7 +361,6 @@ void GUI::ShowOptionWindow()
 	}
 	ImGui::Dummy(ImVec2(0.0f, 10.0f));
 
-	if (ImGui::CollapsingHeader("Global", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		static bool radio = false;
 		ImGui::Checkbox("Pause (P, O)", &Global::gameState.pause);

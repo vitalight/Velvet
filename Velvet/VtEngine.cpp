@@ -100,6 +100,7 @@ int VtEngine::Run()
 		scenes[sceneIndex]->onEnter.Invoke();
 		m_game->Run();
 		scenes[sceneIndex]->onExit.Invoke();
+		scenes[sceneIndex]->ClearCallbacks();
 
 		Resource::ClearCache();
 		m_gui->ClearCallback();

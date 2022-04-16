@@ -27,6 +27,8 @@ namespace Velvet
 
 		virtual void PopulateActors(GameInstance* game) = 0;
 
+		void ClearCallbacks() { onEnter.Clear(); onExit.Clear(); }
+
 		VtCallback<void()> onEnter;
 		VtCallback<void()> onExit;
 
@@ -37,7 +39,8 @@ namespace Velvet
 			onEnter.Register([this, ptr, value]() {
 				T prev = *ptr;
 				*ptr = value;
-				onExit.Register([ptr, prev]() {
+				onExit.Register([ptr, prev, value]() {
+					//fmt::print("Revert ptr[{}] from {} to value {}\n", (int)ptr, value, prev);
 					*ptr = prev;
 					});
 				});

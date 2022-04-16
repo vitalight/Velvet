@@ -180,17 +180,40 @@ namespace Velvet
 		CUDA_CALL(ApplyPositionDeltas_Impl, h_params.numParticles)(predicted, positionDeltas, positionDeltaCount);
 	}
 
-	__global__ void SolveAttachment_Impl(int numConstraints, CONST(int*) attachIndices, CONST(glm::vec3*) attachPositions, glm::vec3* predicted)
+	__global__ void SolveAttachment_Impl(
+		int numConstraints, 
+		CONST(int*) attachIndices, 
+		CONST(glm::vec3*) attachPositions, 
+		CONST(float*) attachDistances,
+		glm::vec3* predicted)
 	{
 		GET_CUDA_ID(id, numConstraints);
 
-		predicted[attachIndices[id]] = attachPositions[id];
+		uint pid = attachIndices[id];
+		glm::vec3 attachPoint = attachPositions[id];
+		float targetDist = attachDistances[id] * d_params.longRangeStretchiness;
+
+		glm::vec3 pred = predicted[pid];
+		glm::vec3 diff = pred - attachPoint;
+		float dist = glm::length(diff);
+
+		if (dist > targetDist)
+		{
+			float coefficient = 0.05 * targetDist + 0.95 * dist;
+			glm::vec3 newPos = attachPoint + diff / dist * coefficient;
+			predicted[pid] = newPos;
+		}
 	}
 
-	void SolveAttachment(int numConstraints, CONST(int*) attachIndices, CONST(glm::vec3*) attachPositions, glm::vec3* predicted)
+	void SolveAttachment(
+		int numConstraints,
+		CONST(int*) attachIndices,
+		CONST(glm::vec3*) attachPositions,
+		CONST(float*) attachDistances,
+		glm::vec3* predicted)
 	{
 		ScopedTimerGPU timer("Solver_SolveAttach");
-		CUDA_CALL(SolveAttachment_Impl, numConstraints)(numConstraints, attachIndices, attachPositions, predicted);
+		CUDA_CALL(SolveAttachment_Impl, numConstraints)(numConstraints, attachIndices, attachPositions, attachDistances, predicted);
 	}
 
 	__device__ glm::vec3 ComputeFriction(glm::vec3 correction, glm::vec3 relVel)
