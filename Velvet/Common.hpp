@@ -48,16 +48,16 @@ struct VtSimParams
 	{
 		IMGUI_LEFT_LABEL(ImGui::SliderInt, "Num Substeps", &numSubsteps, 1, 20);
 		IMGUI_LEFT_LABEL(ImGui::SliderInt, "Num Iterations", &numIterations, 1, 20);
-		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Max Speed", &maxSpeed, 1e-2, 100);
+		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Max Speed", &maxSpeed, 1e-2f, 100);
 		ImGui::Separator();
 		IMGUI_LEFT_LABEL(ImGui::SliderFloat3, "Gravity", (float*)&gravity, -50, 50);
 		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Damping", &damping, 0, 10.0f);
-		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Collision Margin", &collisionMargin, 0, 0.5);
 		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Friction", &friction, 0, 1);
+		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Collision Margin", &collisionMargin, 0, 0.5);
 		IMGUI_LEFT_LABEL(ImGui::Checkbox, "Enable Self Collision", &enableSelfCollision);
 		ImGui::Separator();
 		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Relaxation Factor", &relaxationFactor, 0, 3.0);
-		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Bend Compliance", &bendCompliance, 1e-3, 100.0, "%.3f", ImGuiSliderFlags_Logarithmic);
+		//IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Bend Compliance", &bendCompliance, 1e-3, 100.0, "%.3f", ImGuiSliderFlags_Logarithmic);
 		IMGUI_LEFT_LABEL(ImGui::SliderFloat, "Long Range Stretch", &longRangeStretchiness, 1.0, 2.0, "%.3f");
 	}
 };
@@ -69,6 +69,7 @@ struct VtGameState
 	bool renderWireframe = false;
 	bool drawParticles = false;
 	bool hideGUI = false;
+	bool detailTimer = false;
 };
 
 template <class T, class... TArgs>

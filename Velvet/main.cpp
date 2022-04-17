@@ -283,8 +283,8 @@ int main()
 	//=====================================
 	
 	vector<shared_ptr<Scene>> scenes = {
-		make_shared<SceneClothSelfCollision>(),
 		make_shared<SceneClothHD>(),
+		make_shared<SceneClothSelfCollision>(),
 		make_shared<SceneClothAttach>(),
 		make_shared<SceneClothFriction>(),
 		make_shared<SceneClothCollision>(),

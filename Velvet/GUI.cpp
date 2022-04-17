@@ -126,13 +126,15 @@ struct SolverTiming
 	{
 		if (!ImGui::CollapsingHeader("Solver timing"))// , ImGuiTreeNodeFlags_DefaultOpen))
 		{
+			Global::gameState.detailTimer = false;
 			return;
 		}
+		Global::gameState.detailTimer = true;
 
-		float averageGPUTime = (float)(label2avgTime["KernelSum"] / count);
-		int averageFPS = (averageGPUTime > 0.0f) ? (int)(1000.0f / (averageGPUTime)) : 0;
-		ImGui::Text("Avg Solver Time: %.2f ms (%d fps)", averageGPUTime, averageFPS);
-		HelpMarker("solver_time = kernel_time + cuda_dispatch_time");
+		//float averageGPUTime = (float)(label2avgTime["KernelSum"] / count);
+		//int averageFPS = (averageGPUTime > 0.0f) ? (int)(1000.0f / (averageGPUTime)) : 0;
+		//ImGui::Text("Avg Kernel Time: %.2f ms (%d fps)", averageGPUTime, averageFPS);
+		HelpMarker("solver_total = kernel_sum + cuda_dispatch_time");
 
 		static bool hasPrinted = false;
 		int printAtFrame = 300;
@@ -193,11 +195,11 @@ struct PerformanceStat
 
 		if (Timer::PeriodicUpdate("GUI_FAST", Timer::fixedDeltaTime()))
 		{
-			graphValues[graphIndex] = Timer::GetTimerGPU("Solver_Total");
+			graphValues[graphIndex] = (float)Timer::GetTimerGPU("Solver_Total");
 			graphIndex = (graphIndex + 1) % IM_ARRAYSIZE(graphValues);
 		}
 
-		if (Timer::PeriodicUpdate("GUI_SLOW", 0.2f))
+		if (Timer::PeriodicUpdate("GUI_SLOW", 0.3f))
 		{
 			deltaTime = deltaTimeMiliseconds;
 			frameRate = elapsedTime > 0 ? (int)(frameCount / elapsedTime) : 0;
@@ -232,7 +234,7 @@ struct PerformanceStat
 
 		ImGui::Dummy(ImVec2(0, 5));
 		ImGui::PushItemWidth(-FLT_MIN);
-		auto overlay = fmt::format("Kernel: {:.2f} ms ({:.2f} FPS)", solverTime, solverTime > 0 ? (1000.0 / solverTime) : 0);
+		auto overlay = fmt::format("Solver: {:.2f} ms ({:.2f} FPS)", solverTime, solverTime > 0 ? (1000.0 / solverTime) : 0);
 		ImGui::PlotLines("##", graphValues, IM_ARRAYSIZE(graphValues), graphIndex, overlay.c_str(),
 			0, graphAverage * 2.0f, ImVec2(0, 80.0f));
 		ImGui::Dummy(ImVec2(0, 5));

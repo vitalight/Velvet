@@ -173,7 +173,7 @@ namespace Velvet
 			vector<glm::vec2> uvs;
 			vector<unsigned int> indices;
 			const float clothSize = 2.0f;
-			float noiseSize = 1.0f / resolution * 0.4;
+			float noiseSize = 1.0f / resolution * 0.4f;
 
 			auto IsBoundary = [resolution](int x, int y) {
 				return x == 0 || y == 0 || x == resolution || y == resolution;
@@ -263,8 +263,8 @@ namespace Velvet
 				mat->specular = 0.01f;
 			};
 
-			//auto mesh = GenerateClothMesh(resolution);
-			auto mesh = GenerateClothMeshIrregular(resolution);
+			auto mesh = GenerateClothMesh(resolution);
+			//auto mesh = GenerateClothMeshIrregular(resolution);
 
 			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 			renderer->SetMaterialProperty(materialProperty);

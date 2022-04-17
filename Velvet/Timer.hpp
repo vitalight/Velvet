@@ -9,6 +9,8 @@
 #include <fmt/printf.h>
 #include <cuda_runtime.h>
 
+#include "Global.hpp"
+
 using namespace std;
 
 namespace Velvet
@@ -242,12 +244,14 @@ namespace Velvet
 	public:
 		ScopedTimerGPU(const string&& _label)
 		{
+			if (!Global::gameState.detailTimer) return;
 			label = _label;
 			Timer::StartTimerGPU(_label);
 		}
 
 		~ScopedTimerGPU()
 		{
+			if (!Global::gameState.detailTimer) return;
 			Timer::EndTimerGPU(label);
 		}
 
