@@ -107,13 +107,14 @@ __global__ void CacheNeighbors(
 	CONST(uint*) cellStart,
 	CONST(uint*) cellEnd,
 	CONST(glm::vec3*) positions,
+	CONST(glm::vec3*) originalPositions,
 	const uint numObjects,
 	const uint maxNumNeihgbors)
 {
 	GET_CUDA_ID(id, numObjects);
 
 	glm::vec3 position = positions[id];
-
+	glm::vec3 originalPos = originalPositions[id];
 	int ix = ComputeIntCoord(position.x);
 	int iy = ComputeIntCoord(position.y);
 	int iz = ComputeIntCoord(position.z);
@@ -135,9 +136,9 @@ __global__ void CacheNeighbors(
 				{
 					uint neighbor = particleIndex[i];
 					float distance = glm::length(position - positions[neighbor]);
-					// OPT: only store neighbor 'id' larger than self
-					if (distance < d_hashCellSpacing)
-					//if (neighbor != id && distance < d_hashCellSpacing)
+					// ignore collision when particles are initially close
+					bool filterCollision = glm::length(originalPos - originalPositions[neighbor]) > d_hashCellSpacing;
+					if (distance < d_hashCellSpacing && filterCollision)
 					{
 						neighbors[neighborIndex++] = neighbor;
 					}
@@ -186,6 +187,7 @@ void Velvet::HashObjects(
 	uint* cellEnd,
 	uint* neighbors,
 	CONST(glm::vec3*) positions,
+	CONST(glm::vec3*) originalPositions,
 	const uint numObjects,
 	const uint maxNumNeighbors,
 	const float hashCellSpacing, 
@@ -215,7 +217,7 @@ void Velvet::HashObjects(
 	}
 	{
 		ScopedTimerGPU timer("Solver_HashCache");
-		CUDA_CALL(CacheNeighbors, numObjects)(neighbors, particleIndex, cellStart, cellEnd, positions, numObjects, maxNumNeighbors);
+		CUDA_CALL(CacheNeighbors, numObjects)(neighbors, particleIndex, cellStart, cellEnd, positions, originalPositions, numObjects, maxNumNeighbors);
 	}
 }
 

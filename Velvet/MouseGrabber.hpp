@@ -97,7 +97,7 @@ namespace Velvet
 				float distanceToView = glm::dot(ray.direction, position - ray.origin);
 				float distanceToRay = glm::length(glm::cross(ray.direction, position - ray.origin));
 
-				if (distanceToRay < 3 * Global::simParams.particleDiameter && distanceToView < minDistanceToView)
+				if (distanceToRay < Global::simParams.particleDiameter && distanceToView < minDistanceToView)
 				{
 					result = i;
 					minDistanceToView = distanceToView;

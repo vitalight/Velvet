@@ -11,6 +11,7 @@ namespace Velvet
 		uint* cellEnd,
 		uint* neighbors,
 		CONST(glm::vec3*) positions,
+		CONST(glm::vec3*) originalPositions,
 		const uint numObjects,
 		const uint maxNumNeighbors,
 		const float hashCellSpacing,

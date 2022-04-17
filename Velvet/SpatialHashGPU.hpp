@@ -28,19 +28,29 @@ namespace Velvet
 			cellEnd.resize(m_tableSize);
 		}
 
+		// particles that are initially close won't generate collision in the future
+		void SetInitialPositions(const VtMergedBuffer<glm::vec3>& positions)
+		{
+			initialPositions.resize(positions.size());
+			for (int i = 0; i < positions.size(); i++)
+			{
+				initialPositions[i] = positions[i];
+			}
+		}
+
 		void Hash(const VtBuffer<glm::vec3>& positions)
 		{
-			HashObjects(particleHash, particleIndex, cellStart, cellEnd, neighbors, positions, (uint)positions.size(), 
+			HashObjects(particleHash, particleIndex, cellStart, cellEnd, neighbors, positions, initialPositions, (uint)positions.size(),
 				Global::simParams.maxNumNeighbors, m_spacing, m_tableSize);
 		}
 
 		VtBuffer<uint> neighbors;
+		VtBuffer<glm::vec3> initialPositions;
 
 		VtBuffer<uint> particleHash;
 		VtBuffer<uint> particleIndex;
 		VtBuffer<uint> cellStart;
 		VtBuffer<uint> cellEnd; // BUG_LOG: early optimization (cpu differs from gpu)
-	
 
 	public://debug
 		inline int ComputeIntCoord(float value)
@@ -73,8 +83,6 @@ namespace Velvet
 		}
 
 	private:
-		//VtBuffer<uint> cellEnd;
-
 		float m_spacing;
 		int m_tableSize;
 

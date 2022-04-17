@@ -208,7 +208,7 @@ namespace Velvet
 			cudaMemcpy(m_vbuffer.data() + offset, rbuf->data(), rbuf->size() * sizeof(T), cudaMemcpyDefault);
 		}
 
-		size_t size()
+		size_t size() const
 		{
 			return m_vbuffer.size();
 		}

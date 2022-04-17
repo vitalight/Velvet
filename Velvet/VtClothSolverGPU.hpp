@@ -20,7 +20,7 @@ using namespace std;
 
 namespace Velvet
 {
-	const float k_hashCellSizeScalar = 1.5f;
+	const float k_hashCellSizeScalar = 1.1f;
 
 	class VtClothSolverGPU: public Component
 	{
@@ -77,7 +77,8 @@ namespace Velvet
 
 			InitializePositions(positions, prevNumParticles, newParticles, modelMatrix);
 
-			m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter * k_hashCellSizeScalar, Global::simParams.numParticles);;
+			m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter * k_hashCellSizeScalar, Global::simParams.numParticles);
+			m_spatialHash->SetInitialPositions(positions);
 
 			double time = Timer::EndTimer("INIT_SOLVER_GPU") * 1000;
 			fmt::print("Info(ClothSolverGPU): Initialize done. Took time {:.2f} ms\n", time);
