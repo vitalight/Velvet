@@ -247,7 +247,12 @@ namespace Velvet
 		return friction;
 	}
 
-	__global__ void CollideSDF_Impl(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted)
+	__global__ void CollideSDF_Impl(
+		glm::vec3* predicted,
+		CONST(SDFCollider*) colliders, 
+		CONST(glm::vec3*) positions,
+		const uint numColliders,
+		const float deltaTime)
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
 
@@ -259,19 +264,27 @@ namespace Velvet
 			glm::vec3 correction = collider.ComputeSDF(pred, d_params.collisionMargin);
 			pred += correction;
 
-			glm::vec3 relVel = pred - pos;
-			auto friction = ComputeFriction(correction, relVel);
-			pred += friction;
+			if (glm::dot(correction, correction) > 0)
+			{
+				glm::vec3 relVel = pred - pos - collider.VelocityAt(pred) * deltaTime;
+				auto friction = ComputeFriction(correction, relVel);
+				pred += friction;
+			}
 		}
 		predicted[id] = pred;
 	}
 
-	void CollideSDF(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted)
+	void CollideSDF(
+		glm::vec3* predicted,
+		CONST(SDFCollider*) colliders,
+		CONST(glm::vec3*) positions,
+		const uint numColliders,
+		const float deltaTime)
 	{
 		ScopedTimerGPU timer("Solver_CollideSDFs");
 		if (numColliders == 0) return;
 		
-		CUDA_CALL(CollideSDF_Impl, h_params.numParticles)(numColliders, colliders, positions, predicted);
+		CUDA_CALL(CollideSDF_Impl, h_params.numParticles)(predicted, colliders, positions, numColliders, deltaTime);
 	}
 
 	__global__ void CollideParticles_Impl(

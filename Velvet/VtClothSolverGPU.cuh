@@ -14,8 +14,13 @@ namespace Velvet
 		};
 
 		SDFColliderType type;
+
 		glm::vec3 position;
 		glm::vec3 scale;
+
+		float deltaTime;
+		glm::mat4 invCurTransform;
+		glm::mat4 lastTransform;
 
 		__device__ glm::vec3 ComputeSDF(const glm::vec3 targetPosition, const float collisionMargin) const
 		{
@@ -40,6 +45,13 @@ namespace Velvet
 				}
 			}
 			return glm::vec3(0);
+		}
+	
+		__device__ glm::vec3 VelocityAt(const glm::vec3 targetPosition)
+		{
+			glm::vec4 lastPos = lastTransform * invCurTransform * glm::vec4(targetPosition, 1.0);
+			glm::vec3 vel = (targetPosition - glm::vec3(lastPos)) / deltaTime;
+			return vel;
 		}
 	};
 
@@ -76,7 +88,12 @@ namespace Velvet
 
 	void ApplyDeltas(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount);
 
-	void CollideSDF(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted);
+	void CollideSDF(
+		glm::vec3* predicted,
+		CONST(SDFCollider*) colliders,
+		CONST(glm::vec3*) positions,
+		const uint numColliders,
+		const float deltaTime);
 
 	void CollideParticles(
 		CONST(float*) inverseMass,

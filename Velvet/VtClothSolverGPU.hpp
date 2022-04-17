@@ -69,7 +69,10 @@ namespace Velvet
 			//==========================
 			SetSimulationParams(&Global::simParams);
 
-			CollideSDF((uint)sdfColliders.size(), sdfColliders, positions, positions);
+			// External colliders can move relatively fast, and cloth will have large velocity after colliding with them.
+			// This can produce unstable behavior, such as vertex flashing between two sides.
+			// We include a pre-stabilization step to mitigate this issue. Collision here will not influence velocity.
+			CollideSDF(positions, sdfColliders, positions, (uint)sdfColliders.size(), frameTime);
 
 			PredictPositions(positions, predicted, velocities, frameTime);
 			m_spatialHash->Hash(predicted);
@@ -79,7 +82,7 @@ namespace Velvet
 				PredictPositions(positions, predicted, velocities, substepTime);
 
 				if (Global::simParams.enableSelfCollision) CollideParticles(inverseMass, m_spatialHash->neighbors, positions, predicted);
-				CollideSDF((uint)sdfColliders.size(), sdfColliders, positions, predicted);
+				CollideSDF(predicted, sdfColliders, positions, (uint)sdfColliders.size(), substepTime);
 
 				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
 				{
@@ -139,6 +142,9 @@ namespace Velvet
 				sc.position = c->actor->transform->position;
 				sc.scale = c->actor->transform->scale;
 				sc.type = c->sphereOrPlane ? SDFCollider::SDFColliderType::Plane : SDFCollider::SDFColliderType::Sphere;
+				sc.invCurTransform = glm::inverse(c->curTransform);
+				sc.lastTransform = c->lastTransform;
+				sc.deltaTime = Timer::fixedDeltaTime();
 				sdfColliders[i] = sc;
 			}
 		}
