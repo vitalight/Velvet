@@ -14,46 +14,146 @@
 #include "VtClothSolverGPU.cuh"
 #include "VtBuffer.hpp"
 #include "SpatialHashGPU.hpp"
+#include "MouseGrabber.hpp"
 
 using namespace std;
-
 
 namespace Velvet
 {
 	const float k_hashCellSizeScalar = 1.5f;
 
-	class VtClothSolverGPU
+	class VtClothSolverGPU: public Component
 	{
 	public:
 
-		void Initialize(shared_ptr<Mesh> mesh, glm::mat4 modelMatrix, float particleDiameter)
+		void Start() override
+		{
+			Global::simParams.numParticles = 0;
+			m_colliders = Global::game->FindComponents<Collider>();
+			m_mouseGrabber.Initialize(&positions, &velocities, &inverseMass);
+			//ShowDebugGUI();
+		}
+
+		void Update() override
+		{
+			m_mouseGrabber.HandleMouseInteraction();
+		}
+
+		void FixedUpdate() override
+		{
+			m_mouseGrabber.UpdateGrappedVertex();
+			UpdateColliders(m_colliders);
+
+			Timer::StartTimer("GPU_TIME");
+			Simulate();
+			Timer::EndTimer("GPU_TIME");
+		}
+
+	public:
+
+		int AddCloth(shared_ptr<Mesh> mesh, glm::mat4 modelMatrix, float particleDiameter)
 		{
 			Timer::StartTimer("INIT_SOLVER_GPU");
 
-			int numParticles = (int)mesh->vertices().size();
-			Global::simParams.numParticles = numParticles;
+			int prevNumParticles = Global::simParams.numParticles;
+			int newParticles = (int)mesh->vertices().size();
+			Global::simParams.numParticles += newParticles;
 			Global::simParams.particleDiameter = particleDiameter;
 			Global::simParams.deltaTime = Timer::fixedDeltaTime();
 
-			positions.registerBuffer(mesh->verticesVBO());
-			normals.registerBuffer(mesh->normalsVBO());
+			positions.registerNewBuffer(mesh->verticesVBO());
+			normals.registerNewBuffer(mesh->normalsVBO());
 
-			indices.wrap(mesh->indices());
-			velocities.resize(numParticles, glm::vec3(0));
-			predicted.resize(numParticles, glm::vec3(0));
-			positionDeltas.resize(numParticles, glm::vec3(0));
-			positionDeltaCount.resize(numParticles, 0);
-			inverseMass.resize(numParticles, 1.0f);
+			for (int i = 0; i < mesh->indices().size(); i++)
+			{
+				indices.push_back(mesh->indices()[i] + prevNumParticles);
+			}
 
-			InitializePositions(positions, numParticles, modelMatrix);
+			velocities.push_back(newParticles, glm::vec3(0));
+			predicted.push_back(newParticles, glm::vec3(0));
+			positionDeltas.push_back(newParticles, glm::vec3(0));
+			positionDeltaCount.push_back(newParticles, 0);
+			inverseMass.push_back(newParticles, 1.0f);
 
-			m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter * k_hashCellSizeScalar, numParticles);;
+			InitializePositions(positions, prevNumParticles, newParticles, modelMatrix);
+
+			m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter * k_hashCellSizeScalar, Global::simParams.numParticles);;
 
 			double time = Timer::EndTimer("INIT_SOLVER_GPU") * 1000;
-			//ShowDebugGUI();
 			fmt::print("Info(ClothSolverGPU): Initialize done. Took time {:.2f} ms\n", time);
 			fmt::print("Info(ClothSolverGPU): Recommond max vel = {}\n", 2 * particleDiameter / Timer::fixedDeltaTime());
+
+			return prevNumParticles;
 		}
+
+		void AddStretch(int idx1, int idx2, float distance)
+		{
+			stretchIndices.push_back(idx1);
+			stretchIndices.push_back(idx2);
+			stretchLengths.push_back(distance);
+		}
+
+		void AddAttach(int index, glm::vec3 position, float distance)
+		{
+			if (distance == 0) inverseMass[index] = 0;
+			attachIndices.push_back(index);
+			attachPositions.push_back(position);
+			attachDistances.push_back(distance);
+		}
+
+		void AddBend(uint idx1, uint idx2, uint idx3, uint idx4, float angle)
+		{
+			bendIndices.push_back(idx1);
+			bendIndices.push_back(idx2);
+			bendIndices.push_back(idx3);
+			bendIndices.push_back(idx4);
+			bendAngles.push_back(angle);
+		}
+
+		void UpdateColliders(vector<Collider*>& colliders)
+		{
+			sdfColliders.resize(colliders.size());
+
+			for (int i = 0; i < colliders.size(); i++)
+			{
+				const Collider* c = colliders[i];
+				SDFCollider sc;
+				sc.position = c->actor->transform->position;
+				sc.scale = c->actor->transform->scale;
+				sc.type = c->sphereOrPlane ? SDFCollider::SDFColliderType::Plane : SDFCollider::SDFColliderType::Sphere;
+				sc.invCurTransform = glm::inverse(c->curTransform);
+				sc.lastTransform = c->lastTransform;
+				sc.deltaTime = Timer::fixedDeltaTime();
+				sdfColliders[i] = sc;
+			}
+		}
+
+	public: // Sim buffers
+
+		VtMergedBuffer<glm::vec3> positions;
+		VtMergedBuffer<glm::vec3> normals;
+		VtBuffer<uint> indices;
+
+		VtBuffer<glm::vec3> velocities;
+		VtBuffer<glm::vec3> predicted;
+		VtBuffer<glm::vec3> positionDeltas;
+		VtBuffer<int> positionDeltaCount;
+		VtBuffer<float> inverseMass;
+
+		VtBuffer<int> stretchIndices;
+		VtBuffer<float> stretchLengths;
+		VtBuffer<uint> bendIndices;
+		VtBuffer<float> bendAngles;
+		VtBuffer<int> attachIndices;
+		VtBuffer<glm::vec3> attachPositions;
+		VtBuffer<float> attachDistances;
+		VtBuffer<SDFCollider> sdfColliders;
+
+	private:
+
+		shared_ptr<SpatialHashGPU> m_spatialHash;
+		vector<Collider*> m_colliders;
+		MouseGrabber m_mouseGrabber;
 
 		void Simulate()
 		{
@@ -103,76 +203,11 @@ namespace Velvet
 			//==========================
 			Timer::EndTimerGPU("Solver_Total");
 			cudaDeviceSynchronize();
+
+			positions.sync();
+			normals.sync();
 		}
 
-	public:
-
-		void AddStretch(int idx1, int idx2, float distance)
-		{
-			stretchIndices.push_back(idx1);
-			stretchIndices.push_back(idx2);
-			stretchLengths.push_back(distance);
-		}
-
-		void AddAttach(int index, glm::vec3 position, float distance)
-		{
-			if (distance == 0) inverseMass[index] = 0;
-			attachIndices.push_back(index);
-			attachPositions.push_back(position);
-			attachDistances.push_back(distance);
-		}
-
-		void AddBend(uint idx1, uint idx2, uint idx3, uint idx4, float angle)
-		{
-			bendIndices.push_back(idx1);
-			bendIndices.push_back(idx2);
-			bendIndices.push_back(idx3);
-			bendIndices.push_back(idx4);
-			bendAngles.push_back(angle);
-		}
-
-		void UpdateColliders(vector<Collider*>& colliders)
-		{
-			sdfColliders.resize(colliders.size());
-
-			for (int i = 0; i < colliders.size(); i++)
-			{
-				const Collider* c = colliders[i];
-				SDFCollider sc;
-				sc.position = c->actor->transform->position;
-				sc.scale = c->actor->transform->scale;
-				sc.type = c->sphereOrPlane ? SDFCollider::SDFColliderType::Plane : SDFCollider::SDFColliderType::Sphere;
-				sc.invCurTransform = glm::inverse(c->curTransform);
-				sc.lastTransform = c->lastTransform;
-				sc.deltaTime = Timer::fixedDeltaTime();
-				sdfColliders[i] = sc;
-			}
-		}
-
-	public: // Sim buffers
-
-		VtRegisteredBuffer<glm::vec3> positions;
-		VtRegisteredBuffer<glm::vec3> normals;
-		VtBuffer<uint> indices;
-
-		VtBuffer<glm::vec3> velocities;
-		VtBuffer<glm::vec3> predicted;
-		VtBuffer<glm::vec3> positionDeltas;
-		VtBuffer<int> positionDeltaCount;
-		VtBuffer<float> inverseMass;
-
-		VtBuffer<int> stretchIndices;
-		VtBuffer<float> stretchLengths;
-		VtBuffer<uint> bendIndices;
-		VtBuffer<float> bendAngles;
-		VtBuffer<int> attachIndices;
-		VtBuffer<glm::vec3> attachPositions;
-		VtBuffer<float> attachDistances;
-		VtBuffer<SDFCollider> sdfColliders;
-
-	private:
-
-		shared_ptr<SpatialHashGPU> m_spatialHash;
 
 		void ShowDebugGUI()
 		{
@@ -186,6 +221,8 @@ namespace Velvet
 					auto hash3i = m_spatialHash->HashPosition3i(predicted[particleIndex1]);
 					auto hash = m_spatialHash->HashPosition(predicted[particleIndex1]);
 					ImGui::Text(fmt::format("Hash: {}[{},{},{}]", hash, hash3i.x, hash3i.y, hash3i.z).c_str());
+					auto norm = normals[particleIndex1];
+					ImGui::Text(fmt::format("Normal: [{:.3f},{:.3f},{:.3f}]", norm.x, norm.y, norm.z).c_str());
 
 					static int neighborRange1 = 0;
 					IMGUI_LEFT_LABEL(ImGui::SliderInt, "NeighborRange1", &neighborRange1, 0, 63);

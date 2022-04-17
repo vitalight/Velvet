@@ -3,21 +3,10 @@
 #include "Component.hpp"
 #include "VtClothSolver.hpp"
 #include "MeshRenderer.hpp"
+#include "MouseGrabber.hpp"
 
 namespace Velvet
 {
-	struct Ray
-	{
-		glm::vec3 origin;
-		glm::vec3 direction;
-	};
-
-	struct RaycastCollision
-	{
-		bool collide = false;
-		int objectIndex;
-		float distanceToOrigin;
-	};
 
 	class VtClothObject : public Component
 	{

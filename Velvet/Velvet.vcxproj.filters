@@ -177,6 +177,9 @@
     <ClInclude Include="GeometryRenderer.hpp">
       <Filter>Physics</Filter>
     </ClInclude>
+    <ClInclude Include="MouseGrabber.hpp">
+      <Filter>Physics\ClothSolver</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shader\_Default.frag">

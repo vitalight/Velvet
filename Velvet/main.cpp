@@ -270,6 +270,61 @@ public:
 	}
 };
 
+class SceneClothMultiple : public Scene
+{
+public:
+	SceneClothMultiple() { name = "Cloth / Multiple Object"; }
+
+	void PopulateActors(GameInstance* game)  override
+	{
+		SpawnCameraAndLight(game);
+		SpawnInfinitePlane(game);
+
+		ModifyParameter(&Global::simParams.friction, 0.6f);
+		ModifyParameter(&Global::simParams.numSubsteps, 5);
+		ModifyParameter(&Global::simParams.numIterations, 5);
+
+		auto sphere = SpawnSphere(game);
+		float radius = 0.5f;
+		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
+
+		//game->postUpdate.Register([sphere, game, radius]() {
+		//	float time = Timer::physicsFrameCount() * Timer::fixedDeltaTime() - 0.5f;
+		//	if (time > 0)
+		//	{
+		//		sphere->transform->position = glm::vec3(sin(time), radius, 0);
+		//	}
+
+		//	if ((int)time % 4 > 1)
+		//	{
+		//		sphere->transform->rotation = glm::vec3(0, -time * 180, 0);
+		//	}
+		//	else
+		//	{
+		//		sphere->transform->rotation = glm::vec3(0, time * 180, 0);
+		//	}
+		//	});
+
+		auto solverActor = game->CreateActor("ClothSolver");
+		auto solver = make_shared<VtClothSolverGPU>();
+		solverActor->AddComponent(solver);
+
+		int clothResolution = 64;
+		{
+			auto cloth = SpawnCloth(game, clothResolution, solver);
+			cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
+		}
+		{
+			auto cloth = SpawnCloth(game, clothResolution, solver);
+			cloth->Initialize(glm::vec3(0.0f, 1.8f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
+		}
+		//{
+		//	auto cloth = SpawnCloth(game, clothResolution, solver);
+		//	cloth->Initialize(glm::vec3(0.0f, 2.1f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
+		//}
+	}
+};
+
 
 int main()
 {
@@ -283,6 +338,7 @@ int main()
 	//=====================================
 	
 	vector<shared_ptr<Scene>> scenes = {
+		make_shared<SceneClothMultiple>(),
 		make_shared<SceneClothHD>(),
 		make_shared<SceneClothSelfCollision>(),
 		make_shared<SceneClothAttach>(),

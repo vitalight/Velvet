@@ -41,6 +41,21 @@ namespace Velvet
 			m_buffer[m_count++] = t;
 		}
 
+		void push_back(size_t newCount, const T& val)
+		{
+			for (int i = 0; i < newCount; i++)
+			{
+				push_back(val);
+			}
+		}
+
+		void push_back(const vector<T>& data)
+		{
+			size_t offset = m_count;
+			resize(m_count + data.size());
+			memcpy(m_buffer + offset, data.data(), data.size() * sizeof(T));
+		}
+
 		void reserve(size_t minCapacity)
 		{
 			if (minCapacity > m_capacity)
@@ -97,12 +112,6 @@ namespace Velvet
 			m_buffer = nullptr;
 		}
 
-		void wrap(const vector<T>& data)
-		{
-			m_count = data.size();
-			reserve(m_count);
-			memcpy(m_buffer, data.data(), m_count * sizeof(T));
-		}
 	private:
 		size_t m_count = 0;
 		size_t m_capacity = 0;
@@ -123,6 +132,8 @@ namespace Velvet
 		{
 			destroy();
 		}
+
+		T* data() const { return m_buffer; }
 
 		operator T* () const { return m_buffer; }
 
@@ -167,25 +178,54 @@ namespace Velvet
 			checkCudaErrors(cudaGraphicsUnmapResources(1, &m_cudaVboResource, 0));
 		}
 
-		void pull()
-		{
-			if (m_bufferCPU == nullptr)
-			{
-				cudaMallocHost(&m_bufferCPU, m_numBytes);
-			}
-			cudaMemcpy(m_bufferCPU, m_buffer, m_numBytes, cudaMemcpyDefault); 
-		}
-
-		void push()
-		{
-			assert(m_bufferCPU);
-			cudaMemcpyAsync(m_buffer, m_bufferCPU, m_numBytes, cudaMemcpyDefault);
-		}
-
 		size_t m_count = 0;
 		size_t m_numBytes = 0;
 		T* m_buffer = nullptr;
 		T* m_bufferCPU = nullptr;
 		struct cudaGraphicsResource* m_cudaVboResource = nullptr;
+	};
+
+	template <class T>
+	class VtMergedBuffer
+	{
+	public:
+		VtMergedBuffer() {}
+		VtMergedBuffer(const VtMergedBuffer&) = delete;
+		VtMergedBuffer& operator=(const VtMergedBuffer&) = delete;
+
+		void registerNewBuffer(GLuint vbo)
+		{
+			auto rbuf = make_shared<VtRegisteredBuffer<T>>();
+			rbuf->registerBuffer(vbo);
+			m_rbuffers.push_back(rbuf);
+
+			int last = m_offsets.size() - 1;
+			size_t offset = m_offsets.empty() ? 0 : m_offsets[last] + m_rbuffers[last]->size();
+			m_offsets.push_back(offset);
+
+			// copy from rbuffers to vbuffer
+			m_vbuffer.resize(m_vbuffer.size() + rbuf->size());
+			cudaMemcpy(m_vbuffer.data() + offset, rbuf->data(), rbuf->size() * sizeof(T), cudaMemcpyDefault);
+		}
+
+		size_t size()
+		{
+			return m_vbuffer.size();
+		}
+
+		void sync()
+		{
+			// copy from vbuffer to rbuffers
+			for (int i = 0; i < m_rbuffers.size(); i++)
+			{
+				cudaMemcpy(m_rbuffers[i]->data(), m_vbuffer.data() + m_offsets[i], m_rbuffers[i]->size() * sizeof(T), cudaMemcpyDefault);
+			}
+		}
+
+		operator T* () const { return m_vbuffer; }
+	private:
+		vector<shared_ptr<VtRegisteredBuffer<T>>> m_rbuffers;
+		vector<size_t> m_offsets;
+		VtBuffer<T> m_vbuffer;
 	};
 }

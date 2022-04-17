@@ -247,7 +247,7 @@ namespace Velvet
 		}
 
 
-		shared_ptr<Actor> SpawnCloth(GameInstance* game, int resolution = 16)
+		shared_ptr<Actor> SpawnCloth(GameInstance* game, int resolution = 16, shared_ptr<VtClothSolverGPU> solver = nullptr)
 		{
 			auto cloth = game->CreateActor("Cloth Generated");
 
@@ -269,14 +269,19 @@ namespace Velvet
 			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 			renderer->SetMaterialProperty(materialProperty);
 
+			//auto prenderer = make_shared<ParticleRenderer>();
+			auto prenderer = make_shared<GeometryRenderer>();
+
 #ifdef SOLVER_CPU
 			auto clothObj = make_shared<VtClothObject>(resolution);
 #else
-			auto clothObj = make_shared<VtClothObjectGPU>(resolution);
+			if (solver == nullptr)
+			{
+				solver = make_shared<VtClothSolverGPU>();
+				cloth->AddComponent(solver);
+			}
+			auto clothObj = make_shared<VtClothObjectGPU>(resolution, solver);
 #endif
-
-			//auto prenderer = make_shared<ParticleRenderer>();
-			auto prenderer = make_shared<GeometryRenderer>();
 
 			cloth->AddComponents({ renderer, clothObj, prenderer });
 

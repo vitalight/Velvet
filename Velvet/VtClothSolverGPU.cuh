@@ -57,7 +57,7 @@ namespace Velvet
 
 	void SetSimulationParams(VtSimParams* hostParams);
 
-	void InitializePositions(glm::vec3* positions, int count, glm::mat4 modelMatrix);
+	void InitializePositions(glm::vec3* positions, int start, int count, glm::mat4 modelMatrix);
 
 	void PredictPositions(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime);
 

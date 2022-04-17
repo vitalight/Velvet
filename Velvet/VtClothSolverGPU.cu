@@ -17,16 +17,16 @@ namespace Velvet
 		h_params = *hostParams;
 	}
 
-	__global__ void InitializePositions_Impl(glm::vec3* positions, const int count, const glm::mat4 modelMatrix)
+	__global__ void InitializePositions_Impl(glm::vec3* positions, int start, const int count, const glm::mat4 modelMatrix)
 	{
 		GET_CUDA_ID(id, count);
-		positions[id] = modelMatrix * glm::vec4(positions[id], 1);
+		positions[start + id] = modelMatrix * glm::vec4(positions[start+id], 1);
 	}
 
-	void InitializePositions(glm::vec3* positions, int count, glm::mat4 modelMatrix)
+	void InitializePositions(glm::vec3* positions, int start, int count, glm::mat4 modelMatrix)
 	{
 		ScopedTimerGPU timer("Solver_Initialize");
-		CUDA_CALL(InitializePositions_Impl, count)(positions, count, modelMatrix);
+		CUDA_CALL(InitializePositions_Impl, count)(positions, start, count, modelMatrix);
 	}
 
 	__global__ void PredictPositions_Impl(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
@@ -377,6 +377,8 @@ namespace Velvet
 		auto p3 = positions[idx3];
 
 		auto normal = glm::cross(p2 - p1, p3 - p1);
+		//if (isnan(normal.x) || isnan(normal.y) || isnan(normal.z)) normal = glm::vec3(0, 1, 0);
+
 		int reorder = idx1 + idx2 + idx3;
 		AtomicAdd(normals, idx1, normal, reorder);
 		AtomicAdd(normals, idx2, normal, reorder);
@@ -387,8 +389,9 @@ namespace Velvet
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
 
+		auto normal = glm::normalize(normals[id]);
 		//normals[id] = glm::vec3(0,1,0);
-		normals[id] = glm::normalize(normals[id]);
+		normals[id] = normal;
 	}
 
 	void ComputeNormal(uint numTriangles, CONST(glm::vec3*) positions, CONST(uint*) indices, glm::vec3* normals)
