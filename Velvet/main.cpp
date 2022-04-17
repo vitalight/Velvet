@@ -246,6 +246,31 @@ public:
 	}
 };
 
+class SceneClothSelfCollision : public Scene
+{
+public:
+	SceneClothSelfCollision() { name = "Cloth / Self Collision"; }
+
+	void PopulateActors(GameInstance* game)  override
+	{
+		SpawnCameraAndLight(game);
+		SpawnInfinitePlane(game);
+
+		//auto sphere = SpawnSphere(game);
+		//float radius = 0.5f;
+		//sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
+
+		int clothResolution = 60;
+		auto cloth = SpawnCloth(game, clothResolution);
+		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(-15, 10, 10));
+
+		auto clothObj = cloth->GetComponent<VtClothObjectGPU>();
+		//if (clothObj) clothObj->SetAttachedIndices({ 0, clothResolution, (clothResolution + 1) * (clothResolution + 1) - 1, (clothResolution + 1) * (clothResolution) });
+
+	}
+};
+
+
 int main()
 {
 	//=====================================
@@ -258,6 +283,7 @@ int main()
 	//=====================================
 	
 	vector<shared_ptr<Scene>> scenes = {
+		make_shared<SceneClothSelfCollision>(),
 		make_shared<SceneClothHD>(),
 		make_shared<SceneClothAttach>(),
 		make_shared<SceneClothFriction>(),

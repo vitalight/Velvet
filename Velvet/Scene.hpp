@@ -166,6 +166,87 @@ namespace Velvet
 			return mesh;
 		}
 
+		shared_ptr<Mesh> GenerateClothMeshIrregular(int resolution)
+		{
+			vector<glm::vec3> vertices;
+			vector<glm::vec3> normals;
+			vector<glm::vec2> uvs;
+			vector<unsigned int> indices;
+			const float clothSize = 2.0f;
+			float noiseSize = 1.0f / resolution * 0.4;
+
+			auto IsBoundary = [resolution](int x, int y) {
+				return x == 0 || y == 0 || x == resolution || y == resolution;
+			};
+
+			auto VertexIndexAt = [resolution](int x, int y) {
+				return x * (resolution + 1) + y;
+			};
+
+			auto Angle = [](glm::vec3 left, glm::vec3 mid, glm::vec3 right) {
+				auto line1 = left - mid;
+				auto line2 = right - mid;
+				return acos(glm::dot(line1, line2));
+			};
+
+			for (int y = 0; y <= resolution; y++)
+			{
+				for (int x = 0; x <= resolution; x++)
+				{
+					glm::vec2 noise = IsBoundary(x,y)? glm::vec2(0) : noiseSize * glm::vec2(Helper::Random(), Helper::Random());
+					glm::vec2 uv = noise + glm::vec2((float)x / (float)resolution, (float)y / (float)resolution);
+					auto vertex = glm::vec3(uv.x - 0.5f, -uv.y, 0);
+
+					vertices.push_back(clothSize * (vertex));
+					normals.push_back(glm::vec3(0, 0, 1));
+					uvs.push_back(uv);
+				}
+			}
+
+			for (int y = 0; y < resolution; y++)
+			{
+				for (int x = 0; x < resolution; x++)
+				{
+					if (x < resolution && y < resolution)
+					{
+						auto pos1 = vertices[VertexIndexAt(x, y)];
+						auto pos2 = vertices[VertexIndexAt(x+1, y)];
+						auto pos3 = vertices[VertexIndexAt(x, y+1)];
+						auto pos4 = vertices[VertexIndexAt(x+1, y+1)];
+
+						auto angle1 = Angle(pos3, pos1, pos2);
+						auto angle2 = Angle(pos1, pos2, pos4);
+						auto angle3 = Angle(pos1, pos3, pos4);
+						auto angle4 = Angle(pos3, pos4, pos2);
+
+						if (angle1 + angle4 > angle2 + angle3)
+						{
+							indices.push_back(VertexIndexAt(x, y));
+							indices.push_back(VertexIndexAt(x + 1, y+1));
+							indices.push_back(VertexIndexAt(x, y + 1));
+
+							indices.push_back(VertexIndexAt(x, y));
+							indices.push_back(VertexIndexAt(x + 1, y));
+							indices.push_back(VertexIndexAt(x + 1, y + 1));
+						}
+						else
+						{
+							indices.push_back(VertexIndexAt(x, y));
+							indices.push_back(VertexIndexAt(x + 1, y));
+							indices.push_back(VertexIndexAt(x, y + 1));
+
+							indices.push_back(VertexIndexAt(x, y + 1));
+							indices.push_back(VertexIndexAt(x + 1, y));
+							indices.push_back(VertexIndexAt(x + 1, y + 1));
+						}
+					}
+				}
+			}
+			auto mesh = make_shared<Mesh>(vertices, normals, uvs, indices);
+			return mesh;
+		}
+
+
 		shared_ptr<Actor> SpawnCloth(GameInstance* game, int resolution = 16)
 		{
 			auto cloth = game->CreateActor("Cloth Generated");
@@ -182,7 +263,8 @@ namespace Velvet
 				mat->specular = 0.01f;
 			};
 
-			auto mesh = GenerateClothMesh(resolution);
+			//auto mesh = GenerateClothMesh(resolution);
+			auto mesh = GenerateClothMeshIrregular(resolution);
 
 			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 			renderer->SetMaterialProperty(materialProperty);
