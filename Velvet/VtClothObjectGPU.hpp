@@ -42,7 +42,7 @@ namespace Velvet
 			auto transformMatrix = actor->transform->matrix();
 			auto positions = mesh->vertices();
 			auto indices = mesh->indices();
-			m_particleDiameter = glm::length(positions[0] - positions[1]) * 1.5f;
+			m_particleDiameter = glm::length(positions[0] - positions[1]) * Global::simParams.particleDiameterScalar;
 
 			m_indexOffset = m_solver->AddCloth(mesh, transformMatrix, m_particleDiameter);
 			actor->transform->Reset();

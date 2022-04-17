@@ -15,10 +15,10 @@ namespace Velvet
 	class SpatialHashGPU
 	{
 	public:
-		SpatialHashGPU(float spacing, int maxNumObjects)
+		SpatialHashGPU(float particleDiameter, int maxNumObjects)
 		{
 			// BUG_LOG: m_spacing was miswritten as int
-			m_spacing = spacing;
+			m_spacing = particleDiameter * Global::simParams.hashCellSizeScalar;
 			m_tableSize = 2 * maxNumObjects;
 
 			neighbors.resize(maxNumObjects * Global::simParams.maxNumNeighbors);
@@ -41,7 +41,7 @@ namespace Velvet
 		void Hash(const VtBuffer<glm::vec3>& positions)
 		{
 			HashObjects(particleHash, particleIndex, cellStart, cellEnd, neighbors, positions, initialPositions, (uint)positions.size(),
-				Global::simParams.maxNumNeighbors, m_spacing, m_tableSize);
+				Global::simParams.maxNumNeighbors, m_spacing, m_tableSize, Global::simParams.particleDiameter);
 		}
 
 		VtBuffer<uint> neighbors;

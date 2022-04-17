@@ -8,6 +8,7 @@
 using namespace Velvet;
 
 __device__ __constant__ float d_hashCellSpacing;
+__device__ __constant__ float d_hashCellSpacing2;
 __device__ __constant__ int d_hashTableSize;
 int h_hashTableSize;
 
@@ -109,7 +110,8 @@ __global__ void CacheNeighbors(
 	CONST(glm::vec3*) positions,
 	CONST(glm::vec3*) originalPositions,
 	const uint numObjects,
-	const uint maxNumNeihgbors)
+	const uint maxNumNeihgbors,
+	const float particleDiameter)
 {
 	GET_CUDA_ID(id, numObjects);
 
@@ -137,7 +139,7 @@ __global__ void CacheNeighbors(
 					uint neighbor = particleIndex[i];
 					float distance = glm::length(position - positions[neighbor]);
 					// ignore collision when particles are initially close
-					bool filterCollision = glm::length(originalPos - originalPositions[neighbor]) > d_hashCellSpacing;
+					bool filterCollision =  glm::length(originalPos - originalPositions[neighbor]) > particleDiameter;
 					if (distance < d_hashCellSpacing && filterCollision)
 					{
 						neighbors[neighborIndex++] = neighbor;
@@ -191,13 +193,16 @@ void Velvet::HashObjects(
 	const uint numObjects,
 	const uint maxNumNeighbors,
 	const float hashCellSpacing, 
-	const int hashTableSize)
+	const int hashTableSize,
+	const float particleDiameter)
 {
 	{
 		ScopedTimerGPU timer("Solver_HashParticle");
 
+		float hashCellSpacing2 = hashCellSpacing * hashCellSpacing;
 		h_hashTableSize = hashTableSize;
 		checkCudaErrors(cudaMemcpyToSymbolAsync(d_hashCellSpacing, &hashCellSpacing, sizeof(float)));
+		checkCudaErrors(cudaMemcpyToSymbolAsync(d_hashCellSpacing2, &hashCellSpacing2, sizeof(float)));
 		checkCudaErrors(cudaMemcpyToSymbolAsync(d_hashTableSize, &hashTableSize, sizeof(int)));
 		CUDA_CALL(ComputeParticleHash, numObjects)(particleHash, particleIndex, positions, numObjects);
 	}
@@ -217,7 +222,8 @@ void Velvet::HashObjects(
 	}
 	{
 		ScopedTimerGPU timer("Solver_HashCache");
-		CUDA_CALL(CacheNeighbors, numObjects)(neighbors, particleIndex, cellStart, cellEnd, positions, originalPositions, numObjects, maxNumNeighbors);
+		CUDA_CALL(CacheNeighbors, numObjects)(neighbors, particleIndex, cellStart, cellEnd, 
+			positions, originalPositions, numObjects, maxNumNeighbors, particleDiameter);
 	}
 }
 

@@ -99,7 +99,9 @@ namespace Velvet
 		CONST(float*) inverseMass,
 		CONST(uint*) neighbors,
 		CONST(glm::vec3*) positions,
-		glm::vec3* predicted);
+		glm::vec3* predicted,
+		glm::vec3* positionDeltas,
+		int* positionDeltaCounts);
 
 	void Finalize(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime);
 

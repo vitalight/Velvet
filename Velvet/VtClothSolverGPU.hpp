@@ -20,8 +20,6 @@ using namespace std;
 
 namespace Velvet
 {
-	const float k_hashCellSizeScalar = 1.1f;
-
 	class VtClothSolverGPU: public Component
 	{
 	public:
@@ -77,7 +75,7 @@ namespace Velvet
 
 			InitializePositions(positions, prevNumParticles, newParticles, modelMatrix);
 
-			m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter * k_hashCellSizeScalar, Global::simParams.numParticles);
+			m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter, Global::simParams.numParticles);
 			m_spatialHash->SetInitialPositions(positions);
 
 			double time = Timer::EndTimer("INIT_SOLVER_GPU") * 1000;
@@ -175,14 +173,15 @@ namespace Velvet
 			// We include a pre-stabilization step to mitigate this issue. Collision here will not influence velocity.
 			CollideSDF(positions, sdfColliders, positions, (uint)sdfColliders.size(), frameTime);
 
-			PredictPositions(positions, predicted, velocities, frameTime);
-			m_spatialHash->Hash(predicted);
+			//PredictPositions(positions, predicted, velocities, frameTime);
+			//m_spatialHash->Hash(predicted);
 
 			for (int substep = 0; substep < Global::simParams.numSubsteps; substep++)
 			{
 				PredictPositions(positions, predicted, velocities, substepTime);
+				m_spatialHash->Hash(predicted);
 
-				if (Global::simParams.enableSelfCollision) CollideParticles(inverseMass, m_spatialHash->neighbors, positions, predicted);
+				if (Global::simParams.enableSelfCollision) CollideParticles(inverseMass, m_spatialHash->neighbors, positions, predicted, positionDeltas, positionDeltaCount);
 				CollideSDF(predicted, sdfColliders, positions, (uint)sdfColliders.size(), substepTime);
 
 				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
@@ -208,7 +207,6 @@ namespace Velvet
 			positions.sync();
 			normals.sync();
 		}
-
 
 		void ShowDebugGUI()
 		{

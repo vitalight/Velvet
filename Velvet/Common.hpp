@@ -40,6 +40,10 @@ struct VtSimParams
 	float particleDiameter;											//!< The maximum interaction radius for particles
 	float deltaTime;	
 
+	// misc
+	float particleDiameterScalar HOST_INIT(1.5f);					//!< multiply original stretch length by this scalar to obtain particle diameter
+	float hashCellSizeScalar	HOST_INIT(1.5f);					//!< multiply particle diameter by this scalar to obtain hash cell size
+
 	// future updates
 	//float wind[3];												//!< Constant acceleration applied to particles that belong to dynamic triangles, drag needs to be > 0 for wind to affect triangles
 	//int relaxationMode;											//!< How the relaxation is applied inside the solver

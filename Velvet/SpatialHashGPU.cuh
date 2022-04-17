@@ -15,5 +15,6 @@ namespace Velvet
 		const uint numObjects,
 		const uint maxNumNeighbors,
 		const float hashCellSpacing,
-		const int hashTableSize);
+		const int hashTableSize,
+		const float particleDiameter);
 }

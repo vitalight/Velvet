@@ -291,7 +291,9 @@ namespace Velvet
 		CONST(float*) inverseMass,
 		CONST(uint*) neighbors,
 		CONST(glm::vec3*) positions,
-		glm::vec3* predicted)
+		CONST(glm::vec3*) predicted,
+		glm::vec3* positionDeltas,
+		int* positionDeltaCounts)
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
 
@@ -321,25 +323,31 @@ namespace Velvet
 				float lambda = (distance - expectedDistance) / denom;
 				glm::vec3 common = lambda * gradient;
 
+				deltaCount++;
 				positionDelta -= w_i * common;
 
 				glm::vec3 relativeVelocity = vel_i - (pred_j - positions[j]);
 				glm::vec3 friction = ComputeFriction(common, relativeVelocity);
 				positionDelta += w_i * friction;
+
 			}
 		}
 
-		predicted[id] += positionDelta;
+		positionDeltas[id] = positionDelta;
+		positionDeltaCounts[id] = deltaCount;
 	}
 
 	void CollideParticles(
 		CONST(float*) inverseMass,
 		CONST(uint*) neighbors,
 		CONST(glm::vec3*) positions,
-		glm::vec3* predicted)
+		glm::vec3* predicted,
+		glm::vec3* positionDeltas,
+		int* positionDeltaCounts)
 	{
 		ScopedTimerGPU timer("Solver_CollideParticles");
-		CUDA_CALL(CollideParticles_Impl, h_params.numParticles)(inverseMass, neighbors, positions, predicted);
+		CUDA_CALL(CollideParticles_Impl, h_params.numParticles)(inverseMass, neighbors, positions, predicted, positionDeltas , positionDeltaCounts);
+		CUDA_CALL(ApplyDeltas_Impl, h_params.numParticles)(predicted, positionDeltas, positionDeltaCounts);
 	}
 
 	__global__ void Finalize_Impl(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)

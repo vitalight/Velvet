@@ -45,6 +45,11 @@ namespace Velvet
 
 	const uint BLOCK_SIZE = 256;
 
+	__device__ inline float length2(glm::vec3 vec)
+	{
+		return glm::dot(vec, vec);
+	}
+
 	inline void ComputeGridSize(const uint& n, uint& numBlocks, uint& numThreads)
 	{
 		if (n == 0)
