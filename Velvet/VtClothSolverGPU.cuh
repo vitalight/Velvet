@@ -62,14 +62,14 @@ namespace Velvet
 	void PredictPositions(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime);
 
 	void SolveStretch(uint numConstraints, CONST(int*) stretchIndices, CONST(float*) stretchLengths,
-		CONST(float*) inverseMass, glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount);
+		CONST(float*) invMasses, glm::vec3* predicted, glm::vec3* deltas, int* deltaCounts);
 	
 	// Bending doesn't work well with Jacobi. Small compliance lead to shaking, large compliance makes no effect.
 	// It's recommended to disable this.
 	void SolveBending(
 		glm::vec3* predicted,
-		glm::vec3* positionDeltas,
-		int* positionDeltaCount,
+		glm::vec3* deltas,
+		int* deltaCounts,
 		CONST(uint*) bendingIndices,
 		CONST(float*) bendingAngles,
 		CONST(float*) invMass,
@@ -83,10 +83,10 @@ namespace Velvet
 		CONST(glm::vec3*) attachPositions,
 		CONST(float*) attachDistances,
 		glm::vec3* predicted,
-		glm::vec3* positionDeltas,
-		int* positionDeltaCount);
+		glm::vec3* deltas,
+		int* deltaCounts);
 
-	void ApplyDeltas(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount);
+	void ApplyDeltas(glm::vec3* predicted, glm::vec3* deltas, int* deltaCounts);
 
 	void CollideSDF(
 		glm::vec3* predicted,
@@ -96,12 +96,12 @@ namespace Velvet
 		const float deltaTime);
 
 	void CollideParticles(
-		CONST(float*) inverseMass,
-		CONST(uint*) neighbors,
-		CONST(glm::vec3*) positions,
 		glm::vec3* predicted,
-		glm::vec3* positionDeltas,
-		int* positionDeltaCounts);
+		glm::vec3* deltas,
+		int* deltaCounts,
+		CONST(float*) invMasses,
+		CONST(uint*) neighbors,
+		CONST(glm::vec3*) positions);
 
 	void Finalize(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime);
 

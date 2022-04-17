@@ -28,7 +28,7 @@ namespace Velvet
 		{
 			Global::simParams.numParticles = 0;
 			m_colliders = Global::game->FindComponents<Collider>();
-			m_mouseGrabber.Initialize(&positions, &velocities, &inverseMass);
+			m_mouseGrabber.Initialize(&positions, &velocities, &invMasses);
 			//ShowDebugGUI();
 		}
 
@@ -69,9 +69,9 @@ namespace Velvet
 
 			velocities.push_back(newParticles, glm::vec3(0));
 			predicted.push_back(newParticles, glm::vec3(0));
-			positionDeltas.push_back(newParticles, glm::vec3(0));
-			positionDeltaCount.push_back(newParticles, 0);
-			inverseMass.push_back(newParticles, 1.0f);
+			deltas.push_back(newParticles, glm::vec3(0));
+			deltaCounts.push_back(newParticles, 0);
+			invMasses.push_back(newParticles, 1.0f);
 
 			InitializePositions(positions, prevNumParticles, newParticles, modelMatrix);
 
@@ -94,7 +94,7 @@ namespace Velvet
 
 		void AddAttach(int index, glm::vec3 position, float distance)
 		{
-			if (distance == 0) inverseMass[index] = 0;
+			if (distance == 0) invMasses[index] = 0;
 			attachIndices.push_back(index);
 			attachPositions.push_back(position);
 			attachDistances.push_back(distance);
@@ -135,9 +135,9 @@ namespace Velvet
 
 		VtBuffer<glm::vec3> velocities;
 		VtBuffer<glm::vec3> predicted;
-		VtBuffer<glm::vec3> positionDeltas;
-		VtBuffer<int> positionDeltaCount;
-		VtBuffer<float> inverseMass;
+		VtBuffer<glm::vec3> deltas;
+		VtBuffer<int> deltaCounts;
+		VtBuffer<float> invMasses;
 
 		VtBuffer<int> stretchIndices;
 		VtBuffer<float> stretchLengths;
@@ -181,15 +181,15 @@ namespace Velvet
 				PredictPositions(positions, predicted, velocities, substepTime);
 				m_spatialHash->Hash(predicted);
 
-				if (Global::simParams.enableSelfCollision) CollideParticles(inverseMass, m_spatialHash->neighbors, positions, predicted, positionDeltas, positionDeltaCount);
+				if (Global::simParams.enableSelfCollision) CollideParticles(predicted, deltas, deltaCounts, invMasses, m_spatialHash->neighbors, positions);
 				CollideSDF(predicted, sdfColliders, positions, (uint)sdfColliders.size(), substepTime);
 
 				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
 				{
-					SolveStretch((uint)stretchLengths.size(), stretchIndices, stretchLengths, inverseMass, predicted,
-						positionDeltas, positionDeltaCount);
-					SolveAttachment((uint)attachIndices.size(), inverseMass, attachIndices, attachPositions, attachDistances, predicted, positionDeltas, positionDeltaCount);
-					ApplyDeltas(predicted, positionDeltas, positionDeltaCount);
+					SolveStretch((uint)stretchLengths.size(), stretchIndices, stretchLengths, invMasses, predicted,
+						deltas, deltaCounts);
+					SolveAttachment((uint)attachIndices.size(), invMasses, attachIndices, attachPositions, attachDistances, predicted, deltas, deltaCounts);
+					ApplyDeltas(predicted, deltas, deltaCounts);
 					//SolveBending(predicted, positionDeltas, positionDeltaCount, bendIndices, bendAngles, inverseMass, (uint)bendAngles.size(), substepTime);
 				}
 

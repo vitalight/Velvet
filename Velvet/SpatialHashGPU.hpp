@@ -40,8 +40,14 @@ namespace Velvet
 
 		void Hash(const VtBuffer<glm::vec3>& positions)
 		{
-			HashObjects(particleHash, particleIndex, cellStart, cellEnd, neighbors, positions, initialPositions, (uint)positions.size(),
-				Global::simParams.maxNumNeighbors, m_spacing, m_tableSize, Global::simParams.particleDiameter);
+			HashParams params;
+			params.numObjects = (uint)positions.size();
+			params.cellSpacing = m_spacing;
+			params.tableSize = m_tableSize;
+			params.maxNumNeighbors = Global::simParams.maxNumNeighbors;
+			params.particleDiameter = Global::simParams.particleDiameter;
+
+			HashObjects(particleHash, particleIndex, cellStart, cellEnd, neighbors, positions, initialPositions, params);
 		}
 
 		VtBuffer<uint> neighbors;

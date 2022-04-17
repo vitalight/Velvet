@@ -7,20 +7,18 @@
 
 using namespace Velvet;
 
-__device__ __constant__ float d_hashCellSpacing;
-__device__ __constant__ float d_hashCellSpacing2;
-__device__ __constant__ int d_hashTableSize;
-int h_hashTableSize;
+__device__ __constant__ HashParams d_params;
+HashParams h_params;
 
 __device__ inline int ComputeIntCoord(float value)
 {
-	return (int)floor(value / d_hashCellSpacing);
+	return (int)floor(value / d_params.cellSpacing);
 }
 
 __device__ inline int HashCoords(int x, int y, int z)
 {
 	int h = (x * 92837111) ^ (y * 689287499) ^ (z * 283923481);	// fantasy function
-	return abs(h % d_hashTableSize);
+	return abs(h % d_params.tableSize);
 }
 
 __device__ inline int HashPosition(glm::vec3 position)
@@ -37,10 +35,9 @@ __device__ inline int HashPosition(glm::vec3 position)
 __global__ void ComputeParticleHash(
 	uint* particleHash,
 	uint* particleIndex,
-	CONST(glm::vec3*) positions,
-	uint numObjects)
+	CONST(glm::vec3*) positions)
 {
-	GET_CUDA_ID(id, numObjects);
+	GET_CUDA_ID(id, d_params.numObjects);
 	particleHash[id] = HashPosition(positions[id]);
 	particleIndex[id] = id;
 }
@@ -48,12 +45,11 @@ __global__ void ComputeParticleHash(
 __global__ void FindCellStart(
 	uint* cellStart,
 	uint* cellEnd,
-	CONST(uint*) particleHash,
-	uint numObjects)
+	CONST(uint*) particleHash)
 {
 	extern __shared__ uint sharedHash[];
 
-	GET_CUDA_ID_NO_RETURN(id, numObjects);
+	GET_CUDA_ID_NO_RETURN(id, d_params.numObjects);
 
 	uint hash = particleHash[id];
 	sharedHash[threadIdx.x + 1] = hash;
@@ -63,7 +59,7 @@ __global__ void FindCellStart(
 	}
 	__syncthreads();
 
-	if (id >= numObjects) return;
+	if (id >= d_params.numObjects) return;
 
 	if (id == 0 || hash != sharedHash[threadIdx.x])
 	{
@@ -75,7 +71,7 @@ __global__ void FindCellStart(
 		}
 	}
 
-	if (id == numObjects - 1)
+	if (id == d_params.numObjects - 1)
 	{
 		cellEnd[hash] = id + 1;
 	}
@@ -86,16 +82,14 @@ __global__ void CacheNeighbors_BF(
 	uint* neighbors,
 	CONST(uint*) particleIndex,
 	CONST(uint*) cellStart,
-	CONST(glm::vec3*) positions,
-	const uint numObjects,
-	const uint maxNumNeihgbors)
+	CONST(glm::vec3*) positions)
 {
-	GET_CUDA_ID(id, numObjects);
-	int neighborIndex = id * maxNumNeihgbors;
-	for (int neighbor = 0; neighbor < numObjects; neighbor++)
+	GET_CUDA_ID(id, d_params.numObjects);
+	int neighborIndex = id * d_params.maxNumNeighbors;
+	for (int neighbor = 0; neighbor < d_params.numObjects; neighbor++)
 	{
 		float distance = glm::length(positions[id] - positions[neighbor]);
-		if (neighbor != id && distance < d_hashCellSpacing)
+		if (neighbor != id && distance < d_params.cellSpacing)
 		{
 			neighbors[neighborIndex++] = neighbor;
 		}
@@ -108,12 +102,9 @@ __global__ void CacheNeighbors(
 	CONST(uint*) cellStart,
 	CONST(uint*) cellEnd,
 	CONST(glm::vec3*) positions,
-	CONST(glm::vec3*) originalPositions,
-	const uint numObjects,
-	const uint maxNumNeihgbors,
-	const float particleDiameter)
+	CONST(glm::vec3*) originalPositions)
 {
-	GET_CUDA_ID(id, numObjects);
+	GET_CUDA_ID(id, d_params.numObjects);
 
 	glm::vec3 position = positions[id];
 	glm::vec3 originalPos = originalPositions[id];
@@ -121,7 +112,7 @@ __global__ void CacheNeighbors(
 	int iy = ComputeIntCoord(position.y);
 	int iz = ComputeIntCoord(position.z);
 
-	int neighborIndex = id * maxNumNeihgbors;
+	int neighborIndex = id * d_params.maxNumNeighbors;
 	for (int x = ix - 1; x <= ix + 1; x++)
 	{
 		for (int y = iy - 1; y <= iy + 1; y++)
@@ -132,15 +123,15 @@ __global__ void CacheNeighbors(
 				int start = cellStart[h];
 				if (start == 0xffffffff) continue;
 
-				int end = min(cellEnd[h], start+ maxNumNeihgbors);
+				int end = min(cellEnd[h], start+ d_params.maxNumNeighbors);
 
 				for (int i = start; i < end; i++)
 				{
 					uint neighbor = particleIndex[i];
 					float distance = glm::length(position - positions[neighbor]);
 					// ignore collision when particles are initially close
-					bool filterCollision =  glm::length(originalPos - originalPositions[neighbor]) > particleDiameter;
-					if (distance < d_hashCellSpacing && filterCollision)
+					bool filterCollision =  glm::length(originalPos - originalPositions[neighbor]) > d_params.particleDiameter;
+					if (distance < d_params.cellSpacing && filterCollision)
 					{
 						neighbors[neighborIndex++] = neighbor;
 					}
@@ -148,7 +139,7 @@ __global__ void CacheNeighbors(
 			}
 		}
 	}
-	if (neighborIndex < (id+1) * maxNumNeihgbors)
+	if (neighborIndex < (id+1) * d_params.maxNumNeighbors)
 	{
 		neighbors[neighborIndex] = 0xffffffff;
 	}
@@ -158,14 +149,13 @@ __global__ void CacheNeighbors(
 void Sort(
 	uint* d_keys_in,
 	uint* d_values_in,
-	int num_items)
+	int num_items,
+	int maxBit)
 {
 	//static void* d_temp_storage = NULL;
 	static VtBuffer<void*> d_temp_storage;
 	static size_t temp_storage_bytes = 0;
 
-
-	int maxBit = (int)ceil(log2(h_hashTableSize));
 	// Determine temporary device storage requirements
 	size_t new_storage_bytes = 0;
 	cub::DeviceRadixSort::SortPairs(NULL, new_storage_bytes,
@@ -190,40 +180,34 @@ void Velvet::HashObjects(
 	uint* neighbors,
 	CONST(glm::vec3*) positions,
 	CONST(glm::vec3*) originalPositions,
-	const uint numObjects,
-	const uint maxNumNeighbors,
-	const float hashCellSpacing, 
-	const int hashTableSize,
-	const float particleDiameter)
+	const HashParams params)
 {
 	{
 		ScopedTimerGPU timer("Solver_HashParticle");
 
-		float hashCellSpacing2 = hashCellSpacing * hashCellSpacing;
-		h_hashTableSize = hashTableSize;
-		checkCudaErrors(cudaMemcpyToSymbolAsync(d_hashCellSpacing, &hashCellSpacing, sizeof(float)));
-		checkCudaErrors(cudaMemcpyToSymbolAsync(d_hashCellSpacing2, &hashCellSpacing2, sizeof(float)));
-		checkCudaErrors(cudaMemcpyToSymbolAsync(d_hashTableSize, &hashTableSize, sizeof(int)));
-		CUDA_CALL(ComputeParticleHash, numObjects)(particleHash, particleIndex, positions, numObjects);
+		h_params = params;
+		checkCudaErrors(cudaMemcpyToSymbolAsync(d_params, &params, sizeof(HashParams)));
+		CUDA_CALL(ComputeParticleHash, h_params.numObjects)(particleHash, particleIndex, positions);
 	}
 
 	{
 		ScopedTimerGPU timer("Solver_HashSort");
-		Sort(particleHash, particleIndex, numObjects);
+		int maxBit = (int)ceil(log2(h_params.tableSize));
+		Sort(particleHash, particleIndex, h_params.numObjects, maxBit);
 	}
 
 	{
 		ScopedTimerGPU timer("Solver_HashBuildCell");
-		cudaMemsetAsync(cellStart, 0xffffffff, sizeof(uint) * (hashTableSize + 1));
+		cudaMemsetAsync(cellStart, 0xffffffff, sizeof(uint) * (h_params.tableSize + 1));
 		uint numBlocks, numThreads;
-		ComputeGridSize(numObjects, numBlocks, numThreads);
+		ComputeGridSize(h_params.numObjects, numBlocks, numThreads);
 		uint smemSize = sizeof(uint) * (numThreads + 1);
-		CUDA_CALL_V(FindCellStart, numBlocks, numThreads, smemSize)(cellStart, cellEnd, particleHash, numObjects);
+		CUDA_CALL_V(FindCellStart, numBlocks, numThreads, smemSize)(cellStart, cellEnd, particleHash);
 	}
 	{
 		ScopedTimerGPU timer("Solver_HashCache");
-		CUDA_CALL(CacheNeighbors, numObjects)(neighbors, particleIndex, cellStart, cellEnd, 
-			positions, originalPositions, numObjects, maxNumNeighbors, particleDiameter);
+		CUDA_CALL(CacheNeighbors, h_params.numObjects)(neighbors, particleIndex, cellStart, cellEnd,
+			positions, originalPositions);
 	}
 }
 

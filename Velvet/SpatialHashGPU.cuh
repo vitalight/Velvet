@@ -4,6 +4,15 @@
 
 namespace Velvet
 {
+	struct HashParams
+	{
+		uint numObjects;
+		uint maxNumNeighbors;
+		float cellSpacing;
+		int tableSize;
+		float particleDiameter;
+	};
+
 	void HashObjects(
 		uint* particleHash,
 		uint* particleIndex,
@@ -12,9 +21,5 @@ namespace Velvet
 		uint* neighbors,
 		CONST(glm::vec3*) positions,
 		CONST(glm::vec3*) originalPositions,
-		const uint numObjects,
-		const uint maxNumNeighbors,
-		const float hashCellSpacing,
-		const int hashTableSize,
-		const float particleDiameter);
+		const HashParams params);
 }
