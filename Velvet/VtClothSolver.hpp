@@ -74,12 +74,12 @@ namespace Velvet
 			// Pre-stablization pass [Unified particle physics for real-time applications (4.4)]
 			CollideSDF(m_positions);
 
-			EstimatePositions(frameTime);
+			PredictPositions(frameTime);
 			m_spatialHash->HashObjects(m_predicted);
 
 			for (int substep = 0; substep < Global::simParams.numSubsteps; substep++)
 			{
-				EstimatePositions(substepTime);
+				PredictPositions(substepTime);
 				//GenerateSelfCollision();
 				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
 				{
@@ -92,7 +92,7 @@ namespace Velvet
 
 					SolveAttachment();
 				}
-				UpdatePositionsAndVelocities(substepTime);
+				Finalize(substepTime);
 			}
 
 			auto normals = ComputeNormals(m_positions);
@@ -182,7 +182,7 @@ namespace Velvet
 
 	private: // Core physics
 
-		void EstimatePositions(float deltaTime)
+		void PredictPositions(float deltaTime)
 		{
 			for (int i = 0; i < m_numVertices; i++)
 			{
@@ -348,7 +348,7 @@ namespace Velvet
 			}
 		}
 
-		void UpdatePositionsAndVelocities(float deltaTime)
+		void Finalize(float deltaTime)
 		{
 			// apply force and update positions
 			for (int i = 0; i < m_numVertices; i++)

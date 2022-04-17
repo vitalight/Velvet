@@ -71,12 +71,12 @@ namespace Velvet
 
 			CollideSDF((uint)sdfColliders.size(), sdfColliders, positions, positions);
 
-			EstimatePositions(positions, predicted, velocities, frameTime);
+			PredictPositions(positions, predicted, velocities, frameTime);
 			m_spatialHash->Hash(predicted);
 
 			for (int substep = 0; substep < Global::simParams.numSubsteps; substep++)
 			{
-				EstimatePositions(positions, predicted, velocities, substepTime);
+				PredictPositions(positions, predicted, velocities, substepTime);
 
 				if (Global::simParams.enableSelfCollision) CollideParticles(inverseMass, m_spatialHash->neighbors, positions, predicted);
 				CollideSDF((uint)sdfColliders.size(), sdfColliders, positions, predicted);
@@ -90,7 +90,7 @@ namespace Velvet
 					//SolveBending(predicted, positionDeltas, positionDeltaCount, bendIndices, bendAngles, inverseMass, (uint)bendAngles.size(), substepTime);
 				}
 
-				UpdatePositionsAndVelocities(predicted, velocities, positions, substepTime);
+				Finalize(predicted, velocities, positions, substepTime);
 			}
 
 			ComputeNormal((uint)(indices.size() / 3), positions, indices, normals);

@@ -29,7 +29,7 @@ namespace Velvet
 		CUDA_CALL(InitializePositions_Impl, count)(positions, count, modelMatrix);
 	}
 
-	__global__ void EstimatePositions_Impl(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
+	__global__ void PredictPositions_Impl(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
 
@@ -38,10 +38,10 @@ namespace Velvet
 		predicted[id] = positions[id] + velocities[id] * deltaTime;
 	}
 
-	void EstimatePositions(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
+	void PredictPositions(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime)
 	{
 		ScopedTimerGPU timer("Solver_Predict");
-		CUDA_CALL(EstimatePositions_Impl, h_params.numParticles)(positions, predicted, velocities, deltaTime);
+		CUDA_CALL(PredictPositions_Impl, h_params.numParticles)(positions, predicted, velocities, deltaTime);
 	}
 
 	__device__ void AtomicAdd(glm::vec3* address, int index, glm::vec3 val, int reorder)
@@ -211,7 +211,7 @@ namespace Velvet
 		CUDA_CALL(SolveAttachment_Impl, numConstraints)(numConstraints, invMass, attachIndices, attachPositions, attachDistances, predicted, positionDeltas, positionDeltaCount);
 	}
 
-	__global__ void ApplyPositionDeltas_Impl(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
+	__global__ void ApplyDeltas_Impl(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
 
@@ -227,7 +227,7 @@ namespace Velvet
 	void ApplyDeltas(glm::vec3* predicted, glm::vec3* positionDeltas, int* positionDeltaCount)
 	{
 		ScopedTimerGPU timer("Solver_ApplyDeltas");
-		CUDA_CALL(ApplyPositionDeltas_Impl, h_params.numParticles)(predicted, positionDeltas, positionDeltaCount);
+		CUDA_CALL(ApplyDeltas_Impl, h_params.numParticles)(predicted, positionDeltas, positionDeltaCount);
 	}
 
 	__device__ glm::vec3 ComputeFriction(glm::vec3 correction, glm::vec3 relVel)
@@ -247,7 +247,7 @@ namespace Velvet
 		return friction;
 	}
 
-	__global__ void SolveSDFCollision_Impl(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted)
+	__global__ void CollideSDF_Impl(const uint numColliders, CONST(SDFCollider*) colliders, CONST(glm::vec3*) positions, glm::vec3* predicted)
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
 
@@ -271,10 +271,10 @@ namespace Velvet
 		ScopedTimerGPU timer("Solver_CollideSDFs");
 		if (numColliders == 0) return;
 		
-		CUDA_CALL(SolveSDFCollision_Impl, h_params.numParticles)(numColliders, colliders, positions, predicted);
+		CUDA_CALL(CollideSDF_Impl, h_params.numParticles)(numColliders, colliders, positions, predicted);
 	}
 
-	__global__ void SolveParticleCollision_Impl(
+	__global__ void CollideParticles_Impl(
 		CONST(float*) inverseMass,
 		CONST(uint*) neighbors,
 		CONST(glm::vec3*) positions,
@@ -326,10 +326,10 @@ namespace Velvet
 		glm::vec3* predicted)
 	{
 		ScopedTimerGPU timer("Solver_CollideParticles");
-		CUDA_CALL(SolveParticleCollision_Impl, h_params.numParticles)(inverseMass, neighbors, positions, predicted);
+		CUDA_CALL(CollideParticles_Impl, h_params.numParticles)(inverseMass, neighbors, positions, predicted);
 	}
 
-	__global__ void UpdatePositionsAndVelocities_Impl(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
+	__global__ void Finalize_Impl(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
 	{
 		GET_CUDA_ID(id, d_params.numParticles);
 
@@ -346,10 +346,10 @@ namespace Velvet
 		positions[id] = new_pos;
 	}
 
-	void UpdatePositionsAndVelocities(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
+	void Finalize(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime)
 	{
 		ScopedTimerGPU timer("Solver_Finalize");
-		CUDA_CALL(UpdatePositionsAndVelocities_Impl, h_params.numParticles)(predicted, velocities, positions, deltaTime);
+		CUDA_CALL(Finalize_Impl, h_params.numParticles)(predicted, velocities, positions, deltaTime);
 	}
 
 	__global__ void ComputeTriangleNormals(uint numTriangles, CONST(glm::vec3*) positions, CONST(uint*) indices, glm::vec3* normals)
