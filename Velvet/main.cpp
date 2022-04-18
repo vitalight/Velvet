@@ -352,7 +352,7 @@ int main()
 		make_shared<SceneClothMultiple>(),
 		make_shared<SceneClothHD>(),
 		make_shared<SceneClothSwirl>(),
-		make_shared<SceneColoredCubes>(),
+		//make_shared<SceneColoredCubes>(),
 		//make_shared<ScenePremitiveRendering>(),
 	};
 	engine->SetScenes(scenes);

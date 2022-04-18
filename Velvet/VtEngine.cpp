@@ -88,7 +88,7 @@ int VtEngine::Run()
 	{
 #pragma warning( push )
 #pragma warning( disable : 4129)
-		fmt::print(fg(fmt::color::green),
+		fmt::print(
 			"©°{0:\-^{2}}©´\n"
 			"©¦{1: ^{2}}©¦\n"
 			"©¸{0:\-^{2}}©¼\n", "", "Hello, Velvet!", 30);
