@@ -32,7 +32,7 @@ __device__ inline int HashPosition(glm::vec3 position)
 }
 
 // TODO(low): make all parameters conform (output, input, constants)
-__global__ void ComputeParticleHash(
+__global__ void ComputeParticleHash_Kernel(
 	uint* particleHash,
 	uint* particleIndex,
 	CONST(glm::vec3*) positions)
@@ -42,7 +42,7 @@ __global__ void ComputeParticleHash(
 	particleIndex[id] = id;
 }
 
-__global__ void FindCellStart(
+__global__ void FindCellStart_Kernel(
 	uint* cellStart,
 	uint* cellEnd,
 	CONST(uint*) particleHash)
@@ -77,7 +77,7 @@ __global__ void FindCellStart(
 	}
 }
 
-__global__ void CacheNeighbors(
+__global__ void CacheNeighbors_Kernel(
 	uint* neighbors,
 	CONST(uint*) particleIndex,
 	CONST(uint*) cellStart,
@@ -130,7 +130,7 @@ __global__ void CacheNeighbors(
 	}
 }
 
-// Cub::sort provides better performance (2x) than thrust
+// cub::sort outperform thrust (roughly half time)
 void Sort(
 	uint* d_keys_in,
 	uint* d_values_in,
@@ -172,7 +172,7 @@ void Velvet::HashObjects(
 
 		h_params = params;
 		checkCudaErrors(cudaMemcpyToSymbolAsync(d_params, &params, sizeof(HashParams)));
-		CUDA_CALL(ComputeParticleHash, h_params.numObjects)(particleHash, particleIndex, positions);
+		CUDA_CALL(ComputeParticleHash_Kernel, h_params.numObjects)(particleHash, particleIndex, positions);
 	}
 
 	{
@@ -187,11 +187,11 @@ void Velvet::HashObjects(
 		uint numBlocks, numThreads;
 		ComputeGridSize(h_params.numObjects, numBlocks, numThreads);
 		uint smemSize = sizeof(uint) * (numThreads + 1);
-		CUDA_CALL_V(FindCellStart, numBlocks, numThreads, smemSize)(cellStart, cellEnd, particleHash);
+		CUDA_CALL_V(FindCellStart_Kernel, numBlocks, numThreads, smemSize)(cellStart, cellEnd, particleHash);
 	}
 	{
 		ScopedTimerGPU timer("Solver_HashCache");
-		CUDA_CALL(CacheNeighbors, h_params.numObjects)(neighbors, particleIndex, cellStart, cellEnd,
+		CUDA_CALL(CacheNeighbors_Kernel, h_params.numObjects)(neighbors, particleIndex, cellStart, cellEnd,
 			positions, originalPositions);
 	}
 }

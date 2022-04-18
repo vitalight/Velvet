@@ -5,7 +5,7 @@
       <Filter>Physics\SpatialHash</Filter>
     </CudaCompile>
     <CudaCompile Include="VtClothSolverGPU.cu">
-      <Filter>Physics\ClothSolver</Filter>
+      <Filter>Physics\ClothSolverGPU</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -63,11 +63,14 @@
     <Filter Include="Physics\SpatialHash">
       <UniqueIdentifier>{46f4577e-1752-48b0-8847-7af9e24f2ac5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Physics\ClothSolver">
-      <UniqueIdentifier>{d10f78e9-ceb6-4a17-96ac-5c8788dfac70}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader\Instanced">
       <UniqueIdentifier>{e7482bc9-797a-4f0c-9af3-4dceb5ce50e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics\ClothSolverGPU">
+      <UniqueIdentifier>{d10f78e9-ceb6-4a17-96ac-5c8788dfac70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics\ClothSolverCPU">
+      <UniqueIdentifier>{2a11c8e6-2062-4e7c-9bf0-91efa99a1f0a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -154,19 +157,13 @@
       <Filter>Physics\SpatialHash</Filter>
     </ClInclude>
     <ClInclude Include="VtClothSolverGPU.hpp">
-      <Filter>Physics\ClothSolver</Filter>
-    </ClInclude>
-    <ClInclude Include="VtClothObject.hpp">
-      <Filter>Physics\ClothSolver</Filter>
+      <Filter>Physics\ClothSolverGPU</Filter>
     </ClInclude>
     <ClInclude Include="VtClothObjectGPU.hpp">
-      <Filter>Physics\ClothSolver</Filter>
-    </ClInclude>
-    <ClInclude Include="VtClothSolver.hpp">
-      <Filter>Physics\ClothSolver</Filter>
+      <Filter>Physics\ClothSolverGPU</Filter>
     </ClInclude>
     <ClInclude Include="VtClothSolverGPU.cuh">
-      <Filter>Physics\ClothSolver</Filter>
+      <Filter>Physics\ClothSolverGPU</Filter>
     </ClInclude>
     <ClInclude Include="Common.hpp">
       <Filter>Physics</Filter>
@@ -178,7 +175,13 @@
       <Filter>Physics</Filter>
     </ClInclude>
     <ClInclude Include="MouseGrabber.hpp">
-      <Filter>Physics\ClothSolver</Filter>
+      <Filter>Physics\ClothSolverGPU</Filter>
+    </ClInclude>
+    <ClInclude Include="VtClothSolver.hpp">
+      <Filter>Physics\ClothSolverCPU</Filter>
+    </ClInclude>
+    <ClInclude Include="VtClothObject.hpp">
+      <Filter>Physics\ClothSolverCPU</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

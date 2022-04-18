@@ -53,6 +53,61 @@ namespace Velvet
 			normals.destroy();
 		}
 
+		void Simulate()
+		{
+			Timer::StartTimerGPU("Solver_Total");
+			//==========================
+			// Prepare
+			//==========================
+			float frameTime = Timer::fixedDeltaTime();
+			float substepTime = Timer::fixedDeltaTime() / Global::simParams.numSubsteps;
+
+			//==========================
+			// Launch kernel
+			//==========================
+			SetSimulationParams(&Global::simParams);
+
+			// External colliders can move relatively fast, and cloth will have large velocity after colliding with them.
+			// This can produce unstable behavior, such as vertex flashing between two sides.
+			// We include a pre-stabilization step to mitigate this issue. Collision here will not influence velocity.
+			CollideSDF(positions, sdfColliders, positions, (uint)sdfColliders.size(), frameTime);
+
+			for (int substep = 0; substep < Global::simParams.numSubsteps; substep++)
+			{
+				PredictPositions(predicted, velocities, positions, substepTime);
+
+				if (Global::simParams.enableSelfCollision)
+				{
+					if (substep % Global::simParams.interleavedHash == 0)
+					{
+						m_spatialHash->Hash(predicted);
+					}
+					CollideParticles(deltas, deltaCounts, predicted, invMasses, m_spatialHash->neighbors, positions);
+				}
+				CollideSDF(predicted, sdfColliders, positions, (uint)sdfColliders.size(), substepTime);
+
+				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
+				{
+					SolveStretch(predicted, deltas, deltaCounts, stretchIndices, stretchLengths, invMasses, (uint)stretchLengths.size());
+					SolveAttachment(predicted, deltas, deltaCounts, invMasses, attachIndices, attachPositions, attachDistances, (uint)attachIndices.size());
+					ApplyDeltas(predicted, deltas, deltaCounts);
+					//SolveBending(predicted, positionDeltas, positionDeltaCount, bendIndices, bendAngles, inverseMass, (uint)bendAngles.size(), substepTime);
+				}
+
+				Finalize(velocities, positions, predicted, substepTime);
+			}
+
+			ComputeNormal(normals, positions, indices, (uint)(indices.size() / 3));
+
+			//==========================
+			// Sync
+			//==========================
+			Timer::EndTimerGPU("Solver_Total");
+			cudaDeviceSynchronize();
+
+			positions.sync();
+			normals.sync();
+		}
 	public:
 
 		int AddCloth(shared_ptr<Mesh> mesh, glm::mat4 modelMatrix, float particleDiameter)
@@ -61,10 +116,14 @@ namespace Velvet
 
 			int prevNumParticles = Global::simParams.numParticles;
 			int newParticles = (int)mesh->vertices().size();
+
+			// Set global parameters
 			Global::simParams.numParticles += newParticles;
 			Global::simParams.particleDiameter = particleDiameter;
 			Global::simParams.deltaTime = Timer::fixedDeltaTime();
+			Global::simParams.maxSpeed = 2 * particleDiameter / Timer::fixedDeltaTime() * Global::simParams.numSubsteps;
 
+			// Allocate managed buffers
 			positions.registerNewBuffer(mesh->verticesVBO());
 			normals.registerNewBuffer(mesh->normalsVBO());
 
@@ -79,13 +138,16 @@ namespace Velvet
 			deltaCounts.push_back(newParticles, 0);
 			invMasses.push_back(newParticles, 1.0f);
 
+			// Initialize buffer datas
 			InitializePositions(positions, prevNumParticles, newParticles, modelMatrix);
+			cudaDeviceSynchronize();
+			positions.sync();
 
+			// Initialize member variables
 			m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter, Global::simParams.numParticles);
 			m_spatialHash->SetInitialPositions(positions);
-			Global::simParams.maxSpeed = 4 * particleDiameter / Timer::fixedDeltaTime();
+
 			double time = Timer::EndTimer("INIT_SOLVER_GPU") * 1000;
-			
 			fmt::print("Info(ClothSolverGPU): AddCloth done. Took time {:.2f} ms\n", time);
 			fmt::print("Info(ClothSolverGPU): Use recommond max vel = {}\n", Global::simParams.maxSpeed);
 
@@ -160,66 +222,6 @@ namespace Velvet
 		shared_ptr<SpatialHashGPU> m_spatialHash;
 		vector<Collider*> m_colliders;
 		MouseGrabber m_mouseGrabber;
-
-		void Simulate()
-		{
-			Timer::StartTimerGPU("Solver_Total");
-			//==========================
-			// Prepare
-			//==========================
-			float frameTime = Timer::fixedDeltaTime();
-			float substepTime = Timer::fixedDeltaTime() / Global::simParams.numSubsteps;
-
-			//==========================
-			// Launch kernel
-			//==========================
-			SetSimulationParams(&Global::simParams);
-
-			// External colliders can move relatively fast, and cloth will have large velocity after colliding with them.
-			// This can produce unstable behavior, such as vertex flashing between two sides.
-			// We include a pre-stabilization step to mitigate this issue. Collision here will not influence velocity.
-			CollideSDF(positions, sdfColliders, positions, (uint)sdfColliders.size(), frameTime);
-
-			//PredictPositions(positions, predicted, velocities, frameTime);
-			//m_spatialHash->Hash(predicted);
-
-			for (int substep = 0; substep < Global::simParams.numSubsteps; substep++)
-			{
-				PredictPositions(positions, predicted, velocities, substepTime);
-
-				if (Global::simParams.enableSelfCollision)
-				{
-					if (substep % Global::simParams.interleavedHash == 0)
-					{
-						m_spatialHash->Hash(predicted);
-					}
-					CollideParticles(deltas, deltaCounts, predicted, invMasses, m_spatialHash->neighbors, positions);
-				}
-				CollideSDF(predicted, sdfColliders, positions, (uint)sdfColliders.size(), substepTime);
-
-				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
-				{
-					SolveStretch((uint)stretchLengths.size(), stretchIndices, stretchLengths, invMasses, predicted,
-						deltas, deltaCounts);
-					SolveAttachment((uint)attachIndices.size(), invMasses, attachIndices, attachPositions, attachDistances, predicted, deltas, deltaCounts);
-					ApplyDeltas(predicted, deltas, deltaCounts);
-					//SolveBending(predicted, positionDeltas, positionDeltaCount, bendIndices, bendAngles, inverseMass, (uint)bendAngles.size(), substepTime);
-				}
-
-				Finalize(predicted, velocities, positions, substepTime);
-			}
-
-			ComputeNormal((uint)(indices.size() / 3), positions, indices, normals);
-
-			//==========================
-			// Sync
-			//==========================
-			Timer::EndTimerGPU("Solver_Total");
-			cudaDeviceSynchronize();
-
-			positions.sync();
-			normals.sync();
-		}
 
 		void ShowDebugGUI()
 		{

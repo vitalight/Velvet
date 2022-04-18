@@ -205,7 +205,7 @@ namespace Velvet
 			rbuf->registerBuffer(vbo);
 			m_rbuffers.push_back(rbuf);
 
-			int last = m_offsets.size() - 1;
+			size_t last = m_offsets.size() - 1;
 			size_t offset = m_offsets.empty() ? 0 : m_offsets[last] + m_rbuffers[last]->size();
 			m_offsets.push_back(offset);
 
@@ -228,7 +228,7 @@ namespace Velvet
 			}
 		}
 
-		operator T* () const { return m_vbuffer; }
+		operator T* () const { return m_vbuffer.data(); }
 	private:
 		vector<shared_ptr<VtRegisteredBuffer<T>>> m_rbuffers;
 		vector<size_t> m_offsets;

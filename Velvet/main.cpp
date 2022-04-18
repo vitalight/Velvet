@@ -122,6 +122,31 @@ public:
 	}
 };
 
+
+class SceneClothAttach : public Scene
+{
+public:
+	SceneClothAttach() { name = "Cloth / Attach"; }
+
+	void PopulateActors(GameInstance* game)  override
+	{
+		SpawnCameraAndLight(game);
+		SpawnInfinitePlane(game);
+
+		auto sphere = SpawnSphere(game);
+		float radius = 0.5f;
+		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
+
+		int clothResolution = 40;
+		auto cloth = SpawnCloth(game, clothResolution);
+		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
+
+		auto clothObj = cloth->GetComponent<VtClothObjectGPU>();
+		if (clothObj) clothObj->SetAttachedIndices({ 0, clothResolution, (clothResolution + 1) * (clothResolution + 1) - 1, (clothResolution + 1) * (clothResolution) });
+
+	}
+};
+
 class SceneClothCollision : public Scene
 {
 public:
@@ -142,38 +167,37 @@ public:
 			});
 
 		int clothResolution = 16;
-		auto cloth = SpawnCloth(game, clothResolution, 3);
+		auto cloth = SpawnCloth(game, clothResolution, 2);
 		cloth->Initialize(glm::vec3(0, 2.5f, 0), glm::vec3(1.0));
 #ifdef SOLVER_CPU
-		auto clothObj = cloth->GetComponent<VtClothObject>(); 
+		auto clothObj = cloth->GetComponent<VtClothObject>();
 #else
-		auto clothObj = cloth->GetComponent<VtClothObjectGPU>(); 
+		auto clothObj = cloth->GetComponent<VtClothObjectGPU>();
 #endif
 		if (clothObj) clothObj->SetAttachedIndices({ 0, clothResolution });
 	}
 };
 
-class SceneClothHD : public Scene
+class SceneClothSelfCollision : public Scene
 {
 public:
-	SceneClothHD() { name = "Cloth / High Resolution"; }
+	SceneClothSelfCollision() { name = "Cloth / Self Collision"; }
 
 	void PopulateActors(GameInstance* game)  override
 	{
 		SpawnCameraAndLight(game);
 		SpawnInfinitePlane(game);
 
-		ModifyParameter(&Global::simParams.numSubsteps, 10);
-		ModifyParameter(&Global::simParams.numIterations, 10);
-			
-		auto sphere = SpawnSphere(game);
-		float radius = 0.6f;
-		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
+		ModifyParameter(&Global::simParams.numSubsteps, 3);
+		ModifyParameter(&Global::simParams.numSubsteps, 8);
+		ModifyParameter(&Global::simParams.friction, 0.3f);
 
-		int clothResolution = 200;
-		auto cloth = SpawnCloth(game, clothResolution, 2);
-		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
-}
+		int clothResolution = 60;
+		auto cloth = SpawnCloth(game, clothResolution, 1);
+		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(-15, 10, 10));
+
+		auto clothObj = cloth->GetComponent<VtClothObjectGPU>();
+	}
 };
 
 class SceneClothFriction : public Scene
@@ -193,7 +217,7 @@ public:
 		auto sphere = SpawnSphere(game);
 		float radius = 0.5f;
 		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
-		
+
 		game->postUpdate.Register([sphere, game, radius]() {
 			float time = Timer::physicsFrameCount() * Timer::fixedDeltaTime() - 0.5f;
 			if (time > 0)
@@ -212,64 +236,8 @@ public:
 			});
 
 		int clothResolution = 64;
-		auto cloth = SpawnCloth(game, clothResolution);
-		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
-	}
-};
-
-class SceneClothAttach : public Scene
-{
-public:
-	SceneClothAttach() { name = "Cloth / Attach"; }
-
-	void PopulateActors(GameInstance* game)  override
-	{
-		SpawnCameraAndLight(game);
-		SpawnInfinitePlane(game);
-
-		//ModifyParameter(&Global::simParams.enableSelfCollision, false);
-		//ModifyParameter(&Global::simParams.numSubsteps, 2);
-		//ModifyParameter(&Global::simParams.numIterations, 4);
-
-		auto sphere = SpawnSphere(game);
-		float radius = 0.5f;
-		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
-
-		int clothResolution = 40;
-		auto cloth = SpawnCloth(game, clothResolution);
-		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
-
-		auto clothObj = cloth->GetComponent<VtClothObjectGPU>();
-		if (clothObj) clothObj->SetAttachedIndices({ 0, clothResolution, (clothResolution + 1) * (clothResolution + 1) - 1, (clothResolution + 1) * (clothResolution) });
-
-	}
-};
-
-class SceneClothSelfCollision : public Scene
-{
-public:
-	SceneClothSelfCollision() { name = "Cloth / Self Collision"; }
-
-	void PopulateActors(GameInstance* game)  override
-	{
-		SpawnCameraAndLight(game);
-		SpawnInfinitePlane(game);
-
-		ModifyParameter(&Global::simParams.numSubsteps, 3);
-		ModifyParameter(&Global::simParams.numSubsteps, 8);
-		ModifyParameter(&Global::simParams.friction, 0.3f);
-
-		//auto sphere = SpawnSphere(game);
-		//float radius = 0.5f;
-		//sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
-
-		int clothResolution = 60;
 		auto cloth = SpawnCloth(game, clothResolution, 2);
-		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(-15, 10, 10));
-
-		auto clothObj = cloth->GetComponent<VtClothObjectGPU>();
-		//if (clothObj) clothObj->SetAttachedIndices({ 0, clothResolution, (clothResolution + 1) * (clothResolution + 1) - 1, (clothResolution + 1) * (clothResolution) });
-
+		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
 	}
 };
 
@@ -291,23 +259,6 @@ public:
 		float radius = 0.5f;
 		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
 
-		//game->postUpdate.Register([sphere, game, radius]() {
-		//	float time = Timer::physicsFrameCount() * Timer::fixedDeltaTime() - 0.5f;
-		//	if (time > 0)
-		//	{
-		//		sphere->transform->position = glm::vec3(sin(time), radius, 0);
-		//	}
-
-		//	if ((int)time % 4 > 1)
-		//	{
-		//		sphere->transform->rotation = glm::vec3(0, -time * 180, 0);
-		//	}
-		//	else
-		//	{
-		//		sphere->transform->rotation = glm::vec3(0, time * 180, 0);
-		//	}
-		//	});
-
 		auto solverActor = game->CreateActor("ClothSolver");
 		auto solver = make_shared<VtClothSolverGPU>();
 		solverActor->AddComponent(solver);
@@ -328,6 +279,28 @@ public:
 	}
 };
 
+class SceneClothHD : public Scene
+{
+public:
+	SceneClothHD() { name = "Cloth / High Resolution"; }
+
+	void PopulateActors(GameInstance* game)  override
+	{
+		SpawnCameraAndLight(game);
+		SpawnInfinitePlane(game);
+
+		ModifyParameter(&Global::simParams.numSubsteps, 10);
+		ModifyParameter(&Global::simParams.numIterations, 10);
+
+		auto sphere = SpawnSphere(game);
+		float radius = 0.6f;
+		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
+
+		int clothResolution = 200;
+		auto cloth = SpawnCloth(game, clothResolution, 2);
+		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
+	}
+};
 
 int main()
 {
@@ -341,12 +314,12 @@ int main()
 	//=====================================
 	
 	vector<shared_ptr<Scene>> scenes = {
-		make_shared<SceneClothHD>(),
 		make_shared<SceneClothAttach>(),
 		make_shared<SceneClothCollision>(),
 		make_shared<SceneClothSelfCollision>(),
 		make_shared<SceneClothFriction>(),
 		make_shared<SceneClothMultiple>(),
+		make_shared<SceneClothHD>(),
 		make_shared<SceneColoredCubes>(),
 		//make_shared<ScenePremitiveRendering>(),
 	};

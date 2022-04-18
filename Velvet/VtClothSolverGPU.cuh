@@ -57,12 +57,22 @@ namespace Velvet
 
 	void SetSimulationParams(VtSimParams* hostParams);
 
-	void InitializePositions(glm::vec3* positions, int start, int count, glm::mat4 modelMatrix);
+	void InitializePositions(glm::vec3* positions, const int start, const int count, const glm::mat4 modelMatrix);
 
-	void PredictPositions(CONST(glm::vec3*) positions, glm::vec3* predicted, glm::vec3* velocities, float deltaTime);
+	void PredictPositions(
+		glm::vec3* predicted,
+		glm::vec3* velocities,
+		CONST(glm::vec3*) positions,
+		const float deltaTime);
 
-	void SolveStretch(uint numConstraints, CONST(int*) stretchIndices, CONST(float*) stretchLengths,
-		CONST(float*) invMasses, glm::vec3* predicted, glm::vec3* deltas, int* deltaCounts);
+	void SolveStretch(
+		glm::vec3* predicted,
+		glm::vec3* deltas,
+		int* deltaCounts,
+		CONST(int*) stretchIndices,
+		CONST(float*) stretchLengths,
+		CONST(float*) invMasses,
+		const uint numConstraints);
 	
 	// Bending doesn't work well with Jacobi. Small compliance lead to shaking, large compliance makes no effect.
 	// It's recommended to disable this.
@@ -73,18 +83,18 @@ namespace Velvet
 		CONST(uint*) bendingIndices,
 		CONST(float*) bendingAngles,
 		CONST(float*) invMass,
-		uint numConstraints,
-		float deltaTime);
+		const uint numConstraints,
+		const float deltaTime);
 
 	void SolveAttachment(
-		int numConstraints,
+		glm::vec3* predicted,
+		glm::vec3* deltas,
+		int* deltaCounts,
 		CONST(float*) invMass,
 		CONST(int*) attachIndices,
 		CONST(glm::vec3*) attachPositions,
 		CONST(float*) attachDistances,
-		glm::vec3* predicted,
-		glm::vec3* deltas,
-		int* deltaCounts);
+		const int numConstraints);
 
 	void ApplyDeltas(glm::vec3* predicted, glm::vec3* deltas, int* deltaCounts);
 
@@ -103,8 +113,15 @@ namespace Velvet
 		CONST(uint*) neighbors,
 		CONST(glm::vec3*) positions);
 
-	void Finalize(CONST(glm::vec3*) predicted, glm::vec3* velocities, glm::vec3* positions, float deltaTime);
+	void Finalize(
+		glm::vec3* velocities,
+		glm::vec3* positions,
+		CONST(glm::vec3*) predicted,
+		const float deltaTime);
 
-	void ComputeNormal(uint numTriangles, CONST(glm::vec3*) positions, CONST(uint*) indices, glm::vec3* normals);
-
+	void ComputeNormal(
+		glm::vec3* normals,
+		CONST(glm::vec3*) positions,
+		CONST(uint*) indices,
+		const uint numTriangles);
 }
