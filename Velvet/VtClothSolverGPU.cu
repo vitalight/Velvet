@@ -190,21 +190,22 @@ namespace Velvet
 		glm::vec3* deltas,
 		int* deltaCounts,
 		CONST(float*) invMass,
-		CONST(int*) attachIndices,
-		CONST(glm::vec3*) attachPositions,
+		CONST(int*) attachParticleIDs,
+		CONST(int*) attachSlotIDs,
+		CONST(glm::vec3*) attachSlotPositions,
 		CONST(float*) attachDistances,
 		const int numConstraints)
 	{
 		GET_CUDA_ID(id, numConstraints);
 
-		uint pid = attachIndices[id];
+		uint pid = attachParticleIDs[id];
 
-		glm::vec3 attachPoint = attachPositions[id];
+		glm::vec3 slotPos = attachSlotPositions[attachSlotIDs[id]];
 		float targetDist = attachDistances[id] * d_params.longRangeStretchiness;
 		if (invMass[pid] == 0 && targetDist > 0) return;
 
 		glm::vec3 pred = predicted[pid];
-		glm::vec3 diff = pred - attachPoint;
+		glm::vec3 diff = pred - slotPos;
 		float dist = glm::length(diff);
 
 		if (dist > targetDist)
@@ -221,13 +222,15 @@ namespace Velvet
 		glm::vec3* deltas,
 		int* deltaCounts,
 		CONST(float*) invMass,
-		CONST(int*) attachIndices,
-		CONST(glm::vec3*) attachPositions,
+		CONST(int*) attachParticleIDs,
+		CONST(int*) attachSlotIDs,
+		CONST(glm::vec3*) attachSlotPositions,
 		CONST(float*) attachDistances,
 		const int numConstraints)
 	{
 		ScopedTimerGPU timer("Solver_SolveAttach");
-		CUDA_CALL(SolveAttachment_Kernel, numConstraints)(predicted, deltas, deltaCounts, invMass, attachIndices, attachPositions, attachDistances, numConstraints);
+		CUDA_CALL(SolveAttachment_Kernel, numConstraints)(predicted, deltas, deltaCounts, 
+			invMass, attachParticleIDs, attachSlotIDs, attachSlotPositions, attachDistances, numConstraints);
 	}
 
 	__global__ void ApplyDeltas_Kernel(glm::vec3* predicted, glm::vec3* deltas, int* deltaCounts)

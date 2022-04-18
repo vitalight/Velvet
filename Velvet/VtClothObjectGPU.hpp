@@ -35,6 +35,11 @@ namespace Velvet
 			return m_solver;
 		}
 
+		VtBuffer<glm::vec3> &attachSlotPositions() const
+		{
+			return m_solver->attachSlotPositions;
+		}
+
 	public:
 		void Start() override
 		{
@@ -129,12 +134,15 @@ namespace Velvet
 
 		void GenerateAttach(const vector<glm::vec3>& positions)
 		{
-			for (auto idx : m_attachedIndices)
+			for (int slotIdx = 0; slotIdx < m_attachedIndices.size(); slotIdx++)
 			{
+				int particleID = m_attachedIndices[slotIdx];
+				glm::vec3 slotPos = positions[particleID];
+				m_solver->AddAttachSlot(slotPos);
 				for (int i = 0; i < positions.size(); i++)
 				{
-					float restDistance = glm::length(positions[idx] - positions[i]);
-					m_solver->AddAttach(m_indexOffset + i, positions[idx], restDistance);
+					float restDistance = glm::length(slotPos - positions[i]);
+					m_solver->AddAttach(m_indexOffset + i, slotIdx, restDistance);
 				}
 				//m_solver->AddAttach(idx, positions[idx], 0);
 			}

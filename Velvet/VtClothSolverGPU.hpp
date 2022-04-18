@@ -20,7 +20,7 @@ using namespace std;
 
 namespace Velvet
 {
-	class VtClothSolverGPU: public Component
+	class VtClothSolverGPU : public Component
 	{
 	public:
 
@@ -89,7 +89,8 @@ namespace Velvet
 				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)
 				{
 					SolveStretch(predicted, deltas, deltaCounts, stretchIndices, stretchLengths, invMasses, (uint)stretchLengths.size());
-					SolveAttachment(predicted, deltas, deltaCounts, invMasses, attachIndices, attachPositions, attachDistances, (uint)attachIndices.size());
+					SolveAttachment(predicted, deltas, deltaCounts, invMasses,
+						attachParticleIDs, attachSlotIDs, attachSlotPositions, attachDistances, (uint)attachParticleIDs.size());
 					ApplyDeltas(predicted, deltas, deltaCounts);
 					//SolveBending(predicted, positionDeltas, positionDeltaCount, bendIndices, bendAngles, inverseMass, (uint)bendAngles.size(), substepTime);
 				}
@@ -161,11 +162,16 @@ namespace Velvet
 			stretchLengths.push_back(distance);
 		}
 
-		void AddAttach(int index, glm::vec3 position, float distance)
+		void AddAttachSlot(glm::vec3 attachSlotPos)
 		{
-			if (distance == 0) invMasses[index] = 0;
-			attachIndices.push_back(index);
-			attachPositions.push_back(position);
+			attachSlotPositions.push_back(attachSlotPos);
+		}
+
+		void AddAttach(int particleIndex, int slotIndex, float distance)
+		{
+			if (distance == 0) invMasses[particleIndex] = 0;
+			attachParticleIDs.push_back(particleIndex);
+			attachSlotIDs.push_back(slotIndex);
 			attachDistances.push_back(distance);
 		}
 
@@ -185,6 +191,7 @@ namespace Velvet
 			for (int i = 0; i < colliders.size(); i++)
 			{
 				const Collider* c = colliders[i];
+				if (!c->enabled) continue;
 				SDFCollider sc;
 				sc.position = c->actor->transform->position;
 				sc.scale = c->actor->transform->scale;
@@ -212,9 +219,14 @@ namespace Velvet
 		VtBuffer<float> stretchLengths;
 		VtBuffer<uint> bendIndices;
 		VtBuffer<float> bendAngles;
-		VtBuffer<int> attachIndices;
-		VtBuffer<glm::vec3> attachPositions;
+
+		// Attach attachParticleIndices[i] with attachSlotIndices[i] w
+		// where their expected distance is attachDistances[i]
+		VtBuffer<int> attachParticleIDs;
+		VtBuffer<int> attachSlotIDs;
 		VtBuffer<float> attachDistances;
+		VtBuffer<glm::vec3> attachSlotPositions;
+
 		VtBuffer<SDFCollider> sdfColliders;
 
 	private:

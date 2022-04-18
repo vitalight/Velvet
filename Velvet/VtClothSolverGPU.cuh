@@ -91,8 +91,9 @@ namespace Velvet
 		glm::vec3* deltas,
 		int* deltaCounts,
 		CONST(float*) invMass,
-		CONST(int*) attachIndices,
-		CONST(glm::vec3*) attachPositions,
+		CONST(int*) attachParticleIDs,
+		CONST(int*) attachSlotIDs,
+		CONST(glm::vec3*) attachSlotPositions,
 		CONST(float*) attachDistances,
 		const int numConstraints);
 

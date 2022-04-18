@@ -302,6 +302,37 @@ public:
 	}
 };
 
+class SceneClothSwirl : public Scene
+{
+public:
+	SceneClothSwirl() { name = "Cloth / Swirl"; }
+
+	void PopulateActors(GameInstance* game)  override
+	{
+		SpawnCameraAndLight(game);
+		SpawnInfinitePlane(game);
+
+		auto sphere = SpawnSphere(game);
+		float radius = 0.1f;
+		sphere->GetComponent<Collider>()->enabled = false;
+		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
+
+		int clothResolution = 36;
+		auto cloth = SpawnCloth(game, clothResolution);
+		cloth->Initialize(glm::vec3(0.0f, 1.5f, 1.0f), glm::vec3(1.0), glm::vec3(90, 0, 0));
+
+		auto clothObj = cloth->GetComponent<VtClothObjectGPU>();
+		if (clothObj) clothObj->SetAttachedIndices({ 0});
+
+		game->postUpdate.Register([clothObj, sphere]() {
+			float time = Timer::fixedDeltaTime() * Timer::physicsFrameCount() * 3;
+			auto pos = glm::vec3(sin(time), cos(time) + 2, 0);
+			clothObj->attachSlotPositions()[0] = pos;
+			sphere->transform->position = pos;
+			});
+	}
+};
+
 int main()
 {
 	//=====================================
@@ -320,6 +351,7 @@ int main()
 		make_shared<SceneClothFriction>(),
 		make_shared<SceneClothMultiple>(),
 		make_shared<SceneClothHD>(),
+		make_shared<SceneClothSwirl>(),
 		make_shared<SceneColoredCubes>(),
 		//make_shared<ScenePremitiveRendering>(),
 	};
