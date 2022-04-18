@@ -9,8 +9,9 @@ namespace Velvet
 		uint numObjects;
 		uint maxNumNeighbors;
 		float cellSpacing;
+		float cellSpacing2;
 		int tableSize;
-		float particleDiameter;
+		float particleDiameter2;
 	};
 
 	void HashObjects(

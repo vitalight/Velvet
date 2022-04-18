@@ -43,9 +43,10 @@ namespace Velvet
 			HashParams params;
 			params.numObjects = (uint)positions.size();
 			params.cellSpacing = m_spacing;
+			params.cellSpacing2 = m_spacing * m_spacing;
 			params.tableSize = m_tableSize;
 			params.maxNumNeighbors = Global::simParams.maxNumNeighbors;
-			params.particleDiameter = Global::simParams.particleDiameter;
+			params.particleDiameter2 = Global::simParams.particleDiameter * Global::simParams.particleDiameter;
 
 			HashObjects(particleHash, particleIndex, cellStart, cellEnd, neighbors, positions, initialPositions, params);
 		}

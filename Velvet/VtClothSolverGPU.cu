@@ -303,7 +303,7 @@ namespace Velvet
 		glm::vec3 vel_i = (pred_i - positions[id]);
 		float w_i = invMasses[id];
 
-		for (int neighbor = id * d_params.maxNumNeighbors; neighbor < (id + 1) * d_params.maxNumNeighbors; neighbor++)
+		for (int neighbor = id; neighbor < d_params.numParticles * d_params.maxNumNeighbors; neighbor += d_params.numParticles)
 		{
 			uint j = neighbors[neighbor];
 			if (j > d_params.numParticles) break;

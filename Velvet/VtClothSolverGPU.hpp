@@ -179,9 +179,13 @@ namespace Velvet
 			for (int substep = 0; substep < Global::simParams.numSubsteps; substep++)
 			{
 				PredictPositions(positions, predicted, velocities, substepTime);
-				m_spatialHash->Hash(predicted);
 
-				if (Global::simParams.enableSelfCollision) CollideParticles(predicted, deltas, deltaCounts, invMasses, m_spatialHash->neighbors, positions);
+				if (Global::simParams.enableSelfCollision)
+				{
+					CollideParticles(predicted, deltas, deltaCounts, invMasses, m_spatialHash->neighbors, positions);
+					m_spatialHash->Hash(predicted);
+				}
+
 				CollideSDF(predicted, sdfColliders, positions, (uint)sdfColliders.size(), substepTime);
 
 				for (int iteration = 0; iteration < Global::simParams.numIterations; iteration++)

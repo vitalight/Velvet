@@ -263,8 +263,8 @@ namespace Velvet
 				mat->specular = 0.01f;
 			};
 
-			auto mesh = GenerateClothMesh(resolution);
-			//auto mesh = GenerateClothMeshIrregular(resolution);
+			//auto mesh = GenerateClothMesh(resolution);
+			auto mesh = GenerateClothMeshIrregular(resolution);
 
 			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 			renderer->SetMaterialProperty(materialProperty);

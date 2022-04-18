@@ -104,7 +104,9 @@ __global__ void CacheNeighbors(
 	CONST(glm::vec3*) positions,
 	CONST(glm::vec3*) originalPositions)
 {
-	GET_CUDA_ID(id, d_params.numObjects);
+	GET_CUDA_ID(thread_id, d_params.numObjects);
+	uint id = particleIndex[thread_id];
+	//GET_CUDA_ID(id, d_params.numObjects);
 
 	glm::vec3 position = positions[id];
 	glm::vec3 originalPos = originalPositions[id];
@@ -112,7 +114,7 @@ __global__ void CacheNeighbors(
 	int iy = ComputeIntCoord(position.y);
 	int iz = ComputeIntCoord(position.z);
 
-	int neighborIndex = id * d_params.maxNumNeighbors;
+	int neighborIndex = id;
 	for (int x = ix - 1; x <= ix + 1; x++)
 	{
 		for (int y = iy - 1; y <= iy + 1; y++)
@@ -128,18 +130,19 @@ __global__ void CacheNeighbors(
 				for (int i = start; i < end; i++)
 				{
 					uint neighbor = particleIndex[i];
-					float distance = glm::length(position - positions[neighbor]);
 					// ignore collision when particles are initially close
-					bool filterCollision =  glm::length(originalPos - originalPositions[neighbor]) > d_params.particleDiameter;
-					if (distance < d_params.cellSpacing && filterCollision)
+					if ((length2(position - positions[neighbor]) < d_params.cellSpacing2) && 
+						(length2(originalPos - originalPositions[neighbor]) > d_params.particleDiameter2))
 					{
-						neighbors[neighborIndex++] = neighbor;
+						neighbors[neighborIndex] = neighbor;
+						neighborIndex += d_params.numObjects;
+						if (neighborIndex >= d_params.numObjects * d_params.maxNumNeighbors) return;
 					}
 				}
 			}
 		}
 	}
-	if (neighborIndex < (id+1) * d_params.maxNumNeighbors)
+	if (neighborIndex < d_params.numObjects * d_params.maxNumNeighbors)
 	{
 		neighbors[neighborIndex] = 0xffffffff;
 	}
