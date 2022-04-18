@@ -193,6 +193,12 @@ namespace Velvet
 		VtMergedBuffer(const VtMergedBuffer&) = delete;
 		VtMergedBuffer& operator=(const VtMergedBuffer&) = delete;
 
+		void destroy()
+		{
+			m_vbuffer.destroy();
+			m_rbuffers.clear();
+		}
+
 		void registerNewBuffer(GLuint vbo)
 		{
 			auto rbuf = make_shared<VtRegisteredBuffer<T>>();

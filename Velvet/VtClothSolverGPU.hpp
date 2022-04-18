@@ -47,6 +47,12 @@ namespace Velvet
 			Timer::EndTimer("GPU_TIME");
 		}
 
+		void OnDestroy() override
+		{
+			positions.destroy();
+			normals.destroy();
+		}
+
 	public:
 
 		int AddCloth(shared_ptr<Mesh> mesh, glm::mat4 modelMatrix, float particleDiameter)
@@ -77,10 +83,11 @@ namespace Velvet
 
 			m_spatialHash = make_shared<SpatialHashGPU>(particleDiameter, Global::simParams.numParticles);
 			m_spatialHash->SetInitialPositions(positions);
-
+			Global::simParams.maxSpeed = 4 * particleDiameter / Timer::fixedDeltaTime();
 			double time = Timer::EndTimer("INIT_SOLVER_GPU") * 1000;
-			fmt::print("Info(ClothSolverGPU): Initialize done. Took time {:.2f} ms\n", time);
-			fmt::print("Info(ClothSolverGPU): Recommond max vel = {}\n", 2 * particleDiameter / Timer::fixedDeltaTime());
+			
+			fmt::print("Info(ClothSolverGPU): AddCloth done. Took time {:.2f} ms\n", time);
+			fmt::print("Info(ClothSolverGPU): Use recommond max vel = {}\n", Global::simParams.maxSpeed);
 
 			return prevNumParticles;
 		}

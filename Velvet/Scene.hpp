@@ -118,9 +118,10 @@ namespace Velvet
 				quad->AddComponent(renderer);
 				renderer->enabled = false;
 
-				game->postUpdate.Register([renderer]() {
+				game->godUpdate.Register([renderer]() {
 					if (Global::input->GetKeyDown(GLFW_KEY_X))
 					{
+						fmt::print("Info(Scene): Visualize shadow texutre. Turn on/off by key X.\n");
 						renderer->enabled = !renderer->enabled;
 					}
 					});
@@ -247,7 +248,7 @@ namespace Velvet
 		}
 
 
-		shared_ptr<Actor> SpawnCloth(GameInstance* game, int resolution = 16, shared_ptr<VtClothSolverGPU> solver = nullptr)
+		shared_ptr<Actor> SpawnCloth(GameInstance* game, int resolution = 16, int textureFile = 1, shared_ptr<VtClothSolverGPU> solver = nullptr)
 		{
 			auto cloth = game->CreateActor("Cloth Generated");
 
@@ -256,15 +257,16 @@ namespace Velvet
 			material->doubleSided = true;
 
 			MaterialProperty materialProperty;
-			materialProperty.preRendering = [](Material* mat) {
+			auto texture = Resource::LoadTexture(fmt::format("fabric{}.jpg", clamp(textureFile, 1, 3)));
+			materialProperty.preRendering = [texture](Material* mat) {
 				mat->SetVec3("material.tint", glm::vec3(0.0f, 0.5f, 1.0f));
 				mat->SetBool("material.useTexture", true);
-				mat->SetTexture("material.diffuse", Resource::LoadTexture("fabric.jpg"));
+				mat->SetTexture("material.diffuse", texture);
 				mat->specular = 0.01f;
 			};
 
-			//auto mesh = GenerateClothMesh(resolution);
-			auto mesh = GenerateClothMeshIrregular(resolution);
+			auto mesh = GenerateClothMesh(resolution);
+			//auto mesh = GenerateClothMeshIrregular(resolution);
 
 			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 			renderer->SetMaterialProperty(materialProperty);
