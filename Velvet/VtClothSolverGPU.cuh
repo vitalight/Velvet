@@ -7,24 +7,21 @@ namespace Velvet
 {
 	struct SDFCollider
 	{
-		enum class SDFColliderType
-		{
-			Sphere,
-			Plane,
-		};
-
-		SDFColliderType type;
+		ColliderType type;
 
 		glm::vec3 position;
 		glm::vec3 scale;
 
 		float deltaTime;
+		glm::mat3 curTransform;
 		glm::mat4 invCurTransform;
 		glm::mat4 lastTransform;
 
+		__device__ float sgn(float value) const { return (value > 0) ? 1 : (value < 0 ? -1 : 0); }
+
 		__device__ glm::vec3 ComputeSDF(const glm::vec3 targetPosition, const float collisionMargin) const
 		{
-			if (type == SDFColliderType::Plane)
+			if (type == ColliderType::Plane)
 			{
 				float offset = targetPosition.y - (position.y + collisionMargin);
 				if (offset < 0)
@@ -32,7 +29,7 @@ namespace Velvet
 					return glm::vec3(0, -offset, 0);
 				}
 			}
-			else if (type == SDFColliderType::Sphere)
+			else if (type == ColliderType::Sphere)
 			{
 				float radius = scale.x + collisionMargin;
 				auto diff = targetPosition - position;
@@ -43,6 +40,50 @@ namespace Velvet
 					glm::vec3 direction = diff / distance;
 					return -offset * direction;
 				}
+			}
+			else if (type == ColliderType::Cube)
+			{
+				glm::vec3 correction = glm::vec3(0);
+				glm::vec3 localPos = invCurTransform * glm::vec4(targetPosition, 1.0);
+				glm::vec3 cubeSize = glm::vec3(0.5f, 0.5f, 0.5f) + collisionMargin / scale;
+				glm::vec3 offset = glm::abs(localPos) - cubeSize;
+
+				float maxVal = max(offset.x, max(offset.y, offset.z));
+				float minVal = min(offset.x, min(offset.y, offset.z)); 
+				float midVal = offset.x  + offset.y + offset.z - maxVal - minVal;
+				float scalar = 1.0f;
+
+				if (maxVal < 0)
+				{
+					// HACK: make cube corner round to avoid particle vibration	
+					float margin = 0.03f;
+					if (midVal > -margin) scalar = 0.2f;
+					if (minVal > -margin)
+					{
+						glm::vec3 mask;
+						mask.x = offset.x < 0 ? sgn(localPos.x) : 0;
+						mask.y = offset.y < 0 ? sgn(localPos.y) : 0;
+						mask.z = offset.z < 0 ? sgn(localPos.z) : 0;
+
+						glm::vec3 vec = offset + glm::vec3(margin);
+						float len = glm::length(vec);
+						if (len < margin)
+							correction = mask * glm::normalize(vec) * (margin - len);
+					}
+					else if (offset.x == maxVal)
+					{
+						correction = glm::vec3(copysignf(-offset.x, localPos.x), 0, 0);
+					}
+					else if (offset.y == maxVal)
+					{
+						correction = glm::vec3(0, copysignf(-offset.y, localPos.y), 0);
+					}
+					else if (offset.z == maxVal)
+					{
+						correction = glm::vec3(0, 0, copysignf(-offset.z, localPos.z));
+					}
+				}
+				return curTransform * scalar * correction;
 			}
 			return glm::vec3(0);
 		}

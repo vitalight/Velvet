@@ -159,7 +159,7 @@ void GameInstance::MainLoop()
 			{
 				for (const auto& go : m_actors) go->FixedUpdate();
 
-				postUpdate.Invoke();
+				animationUpdate.Invoke();
 
 				if (Global::gameState.step)
 				{

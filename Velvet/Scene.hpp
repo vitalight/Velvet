@@ -304,7 +304,7 @@ namespace Velvet
 			auto mesh = Resource::LoadMesh("sphere.obj");
 			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 			renderer->SetMaterialProperty(materialProperty);
-			auto collider = make_shared<Collider>(false);
+			auto collider = make_shared<Collider>(ColliderType::Sphere);
 			sphere->AddComponents({ renderer, collider });
 			return sphere;
 		}
@@ -345,7 +345,7 @@ namespace Velvet
 
 			auto mesh = make_shared<Mesh>(vertices, vector<glm::vec3>(), vector<glm::vec2>(), indices);
 			auto renderer = make_shared<MeshRenderer>(mesh, mat);
-			auto collider = make_shared<Collider>(true);
+			auto collider = make_shared<Collider>(ColliderType::Plane);
 			infPlane->AddComponents({ renderer, collider });
 			return infPlane;
 		}
@@ -365,7 +365,8 @@ namespace Velvet
 			auto renderer = make_shared<MeshRenderer>(mesh, material, true);
 			renderer->SetMaterialProperty(materialProperty);
 
-			cube->AddComponent(renderer);
+			auto collider = make_shared<Collider>(ColliderType::Cube);
+			cube->AddComponents({ renderer, collider });
 			return cube;
 		}
 	};

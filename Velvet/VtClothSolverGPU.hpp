@@ -193,9 +193,10 @@ namespace Velvet
 				const Collider* c = colliders[i];
 				if (!c->enabled) continue;
 				SDFCollider sc;
+				sc.type = c->type;
 				sc.position = c->actor->transform->position;
 				sc.scale = c->actor->transform->scale;
-				sc.type = c->sphereOrPlane ? SDFCollider::SDFColliderType::Plane : SDFCollider::SDFColliderType::Sphere;
+				sc.curTransform = c->curTransform;
 				sc.invCurTransform = glm::inverse(c->curTransform);
 				sc.lastTransform = c->lastTransform;
 				sc.deltaTime = Timer::fixedDeltaTime();

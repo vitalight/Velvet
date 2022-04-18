@@ -109,3 +109,10 @@ public:
 private:
 	std::vector<std::function<T>> m_funcs;
 };
+
+enum class ColliderType
+{
+	Sphere,
+	Plane,
+	Cube,
+};

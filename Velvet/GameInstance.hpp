@@ -59,7 +59,7 @@ namespace Velvet
 
 		VtCallback<void(double, double)> onMouseScroll;
 		VtCallback<void(double, double)> onMouseMove;
-		VtCallback<void()> postUpdate;
+		VtCallback<void()> animationUpdate;
 		VtCallback<void()> godUpdate; // update when main logic is paused (for debugging purpose)
 		VtCallback<void()> onFinalize;
 

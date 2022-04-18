@@ -10,16 +10,16 @@ namespace Velvet
 	class Collider : public Component
 	{
 	public:
-		int sphereOrPlane = 0;
+		ColliderType type = ColliderType::Sphere;
 		glm::vec3 lastPos;
 		glm::vec3 velocity;
 		glm::mat4 curTransform;
 		glm::mat4 lastTransform;
 
-		Collider(bool _sphereOrPlane)
+		Collider(ColliderType _type)
 		{
 			name = __func__;
-			sphereOrPlane = _sphereOrPlane;
+			type = _type;
 		}
 
 		void Start() override
@@ -42,11 +42,11 @@ namespace Velvet
 
 		virtual glm::vec3 ComputeSDF(glm::vec3 position)
 		{
-			if (sphereOrPlane)
+			if (type == ColliderType::Plane)
 			{
 				return ComputePlaneSDF(position);
 			}
-			else
+			else if (type == ColliderType::Sphere)
 			{
 				return ComputeSphereSDF(position);
 			}

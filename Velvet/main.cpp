@@ -100,7 +100,7 @@ public:
 			velocities.push_back(glm::vec3(0.0));
 		}
 
-		game->postUpdate.Register([cubes, game]() {
+		game->animationUpdate.Register([cubes, game]() {
 			for (int i = 0; i < cubes.size(); i++)
 			{
 				auto cube = cubes[i];
@@ -161,7 +161,7 @@ public:
 		auto sphere = SpawnSphere(game);
 		float radius = 0.6f;
 		sphere->Initialize(glm::vec3(0, radius, -1), glm::vec3(radius));
-		game->postUpdate.Register([sphere, game, radius]() {
+		game->animationUpdate.Register([sphere, game, radius]() {
 			float time = Timer::fixedDeltaTime() * Timer::physicsFrameCount();
 			sphere->transform->position = glm::vec3(0, radius, -cos(time * 2));
 			});
@@ -218,7 +218,7 @@ public:
 		float radius = 0.5f;
 		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
 
-		game->postUpdate.Register([sphere, game, radius]() {
+		game->animationUpdate.Register([sphere, game, radius]() {
 			float time = Timer::physicsFrameCount() * Timer::fixedDeltaTime() - 0.5f;
 			if (time > 0)
 			{
@@ -255,9 +255,9 @@ public:
 		ModifyParameter(&Global::simParams.numSubsteps, 5);
 		ModifyParameter(&Global::simParams.numIterations, 5);
 
-		auto sphere = SpawnSphere(game);
-		float radius = 0.5f;
-		sphere->Initialize(glm::vec3(0, radius, 0), glm::vec3(radius));
+		auto cube = SpawnColoredCube(game);
+		float radius = 1.0f;
+		cube->Initialize(glm::vec3(0, 0.5 * radius, 0), glm::vec3(radius));
 
 		auto solverActor = game->CreateActor("ClothSolver");
 		auto solver = make_shared<VtClothSolverGPU>();
@@ -324,7 +324,7 @@ public:
 		auto clothObj = cloth->GetComponent<VtClothObjectGPU>();
 		if (clothObj) clothObj->SetAttachedIndices({ 0});
 
-		game->postUpdate.Register([clothObj, sphere]() {
+		game->animationUpdate.Register([clothObj, sphere]() {
 			float time = Timer::fixedDeltaTime() * Timer::physicsFrameCount() * 3;
 			auto pos = glm::vec3(sin(time), cos(time) + 2, 0);
 			clothObj->attachSlotPositions()[0] = pos;
