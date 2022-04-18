@@ -77,25 +77,6 @@ __global__ void FindCellStart(
 	}
 }
 
-
-__global__ void CacheNeighbors_BF(
-	uint* neighbors,
-	CONST(uint*) particleIndex,
-	CONST(uint*) cellStart,
-	CONST(glm::vec3*) positions)
-{
-	GET_CUDA_ID(id, d_params.numObjects);
-	int neighborIndex = id * d_params.maxNumNeighbors;
-	for (int neighbor = 0; neighbor < d_params.numObjects; neighbor++)
-	{
-		float distance = glm::length(positions[id] - positions[neighbor]);
-		if (neighbor != id && distance < d_params.cellSpacing)
-		{
-			neighbors[neighborIndex++] = neighbor;
-		}
-	}
-}
-
 __global__ void CacheNeighbors(
 	uint* neighbors,
 	CONST(uint*) particleIndex,
@@ -125,13 +106,14 @@ __global__ void CacheNeighbors(
 				int start = cellStart[h];
 				if (start == 0xffffffff) continue;
 
-				int end = min(cellEnd[h], start+ d_params.maxNumNeighbors);
+				int end = min(cellEnd[h], start + d_params.maxNumNeighbors);
 
 				for (int i = start; i < end; i++)
 				{
 					uint neighbor = particleIndex[i];
 					// ignore collision when particles are initially close
-					if ((length2(position - positions[neighbor]) < d_params.cellSpacing2) && 
+					if (neighbor != id &&
+						(length2(position - positions[neighbor]) < d_params.cellSpacing2) &&
 						(length2(originalPos - originalPositions[neighbor]) > d_params.particleDiameter2))
 					{
 						neighbors[neighborIndex] = neighbor;

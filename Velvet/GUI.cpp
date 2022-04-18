@@ -217,11 +217,11 @@ struct PerformanceStat
 	{
 		if (ImGui::BeginTable("stat", 2, ImGuiTableFlags_SizingStretchProp))
 		{
-			ImGui::TableNextColumn(); ImGui::Text("Frame: ");
+			ImGui::TableNextColumn(); ImGui::Text("Render Frame: ");
 			ImGui::TableNextColumn(); ImGui::Text("%d", frameCount);
 			ImGui::TableNextColumn(); ImGui::Text("Physics Frame: ");
 			ImGui::TableNextColumn(); ImGui::Text("%d", physicsFrameCount);
-			ImGui::TableNextColumn(); ImGui::Text("Avg FrameRate: ");
+			ImGui::TableNextColumn(); ImGui::Text("Render FrameRate: ");
 			ImGui::TableNextColumn(); ImGui::Text("%d FPS", frameRate);
 			ImGui::TableNextColumn(); ImGui::Text("CPU time: ");
 			ImGui::TableNextColumn(); ImGui::Text("%.2f ms", cpuTime);

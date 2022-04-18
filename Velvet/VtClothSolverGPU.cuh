@@ -96,9 +96,9 @@ namespace Velvet
 		const float deltaTime);
 
 	void CollideParticles(
-		glm::vec3* predicted,
 		glm::vec3* deltas,
 		int* deltaCounts,
+		glm::vec3* predicted,
 		CONST(float*) invMasses,
 		CONST(uint*) neighbors,
 		CONST(glm::vec3*) positions);

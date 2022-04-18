@@ -288,9 +288,9 @@ namespace Velvet
 	}
 
 	__global__ void CollideParticles_Impl(
-		glm::vec3* predicted,
 		glm::vec3* deltas,
 		int* deltaCounts,
+		CONST(glm::vec3*) predicted,
 		CONST(float*) invMasses,
 		CONST(uint*) neighbors,
 		CONST(glm::vec3*) positions)
@@ -307,30 +307,26 @@ namespace Velvet
 		{
 			uint j = neighbors[neighbor];
 			if (j > d_params.numParticles) break;
-			//if (j > id) continue;
 
-			float expectedDistance = d_params.particleDiameter;
+			float w_j = invMasses[j];
+			float denom = w_i + w_j;
+			if (denom <= 0) continue;
 
 			glm::vec3 pred_j = predicted[j];
 			glm::vec3 diff = pred_i - pred_j;
 			float distance = glm::length(diff);
-			float w_j = invMasses[j];
+			if (distance >= d_params.particleDiameter) continue;
 
-			if (distance < expectedDistance && w_i + w_j > 0)
-			{
-				glm::vec3 gradient = diff / (distance + EPSILON);
-				float denom = w_i + w_j;
-				float lambda = (distance - expectedDistance) / denom;
-				glm::vec3 common = lambda * gradient;
+			glm::vec3 gradient = diff / (distance + EPSILON);
+			float lambda = (distance - d_params.particleDiameter) / denom;
+			glm::vec3 common = lambda * gradient;
 
-				deltaCount++;
-				positionDelta -= w_i * common;
+			deltaCount++;
+			positionDelta -= w_i * common;
 
-				glm::vec3 relativeVelocity = vel_i - (pred_j - positions[j]);
-				glm::vec3 friction = ComputeFriction(common, relativeVelocity);
-				positionDelta += w_i * friction;
-
-			}
+			glm::vec3 relativeVelocity = vel_i - (pred_j - positions[j]);
+			glm::vec3 friction = ComputeFriction(common, relativeVelocity);
+			positionDelta += w_i * friction;
 		}
 
 		deltas[id] = positionDelta;
@@ -338,15 +334,15 @@ namespace Velvet
 	}
 
 	void CollideParticles(
-		glm::vec3* predicted,
 		glm::vec3* deltas,
 		int* deltaCounts,
+		glm::vec3* predicted,
 		CONST(float*) invMasses,
 		CONST(uint*) neighbors,
 		CONST(glm::vec3*) positions)
 	{
 		ScopedTimerGPU timer("Solver_CollideParticles");
-		CUDA_CALL(CollideParticles_Impl, h_params.numParticles)(predicted, deltas, deltaCounts, invMasses, neighbors, positions);
+		CUDA_CALL(CollideParticles_Impl, h_params.numParticles)(deltas, deltaCounts, predicted, invMasses, neighbors, positions);
 		CUDA_CALL(ApplyDeltas_Impl, h_params.numParticles)(predicted, deltas, deltaCounts);
 	}
 
