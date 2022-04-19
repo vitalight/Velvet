@@ -1,3 +1,3 @@
 cd Velvet
-..\x64\Release\Velvet.exe
+..\bin\Release\Velvet.exe
 pause
