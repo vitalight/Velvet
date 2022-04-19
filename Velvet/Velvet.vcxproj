@@ -106,7 +106,7 @@
     <ClInclude Include="External\stb_image.h" />
     <ClInclude Include="Actor.hpp" />
     <ClInclude Include="Component.hpp" />
-    <ClInclude Include="GeometryRenderer.hpp" />
+    <ClInclude Include="ParticleGeometryRenderer.hpp" />
     <ClInclude Include="Global.hpp" />
     <ClInclude Include="GUI.hpp" />
     <ClInclude Include="Input.hpp" />
@@ -116,7 +116,7 @@
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="MeshRenderer.hpp" />
     <ClInclude Include="MouseGrabber.hpp" />
-    <ClInclude Include="ParticleRenderer.hpp" />
+    <ClInclude Include="ParticleInstancedRenderer.hpp" />
     <ClInclude Include="PlayerController.hpp" />
     <ClInclude Include="RenderPipeline.hpp" />
     <ClInclude Include="Resource.hpp" />
@@ -127,9 +127,9 @@
     <ClInclude Include="Transform.hpp" />
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="VtBuffer.hpp" />
-    <ClInclude Include="VtClothObject.hpp" />
+    <ClInclude Include="VtClothObjectCPU.hpp" />
     <ClInclude Include="VtClothObjectGPU.hpp" />
-    <ClInclude Include="VtClothSolver.hpp" />
+    <ClInclude Include="VtClothSolverCPU.hpp" />
     <ClInclude Include="VtClothSolverGPU.cuh" />
     <ClInclude Include="VtClothSolverGPU.hpp" />
     <ClInclude Include="VtEngine.hpp" />
@@ -154,7 +154,7 @@
     <None Include="Assets\Shader\_ShadowDepth.vert" />
     <None Include="Assets\Shader\InfinitePlane.frag" />
     <None Include="Assets\Shader\InfinitePlane.vert" />
-    <None Include="SpatialHash.hpp" />
+    <None Include="SpatialHashCPU.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

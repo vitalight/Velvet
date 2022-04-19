@@ -135,7 +135,7 @@
       <Filter>Physics</Filter>
     </ClInclude>
     <ClInclude Include="Global.hpp" />
-    <ClInclude Include="ParticleRenderer.hpp">
+    <ClInclude Include="ParticleInstancedRenderer.hpp">
       <Filter>Physics</Filter>
     </ClInclude>
     <ClInclude Include="External\cuda\helper_cuda.h">
@@ -171,16 +171,16 @@
     <ClInclude Include="PlayerController.hpp">
       <Filter>Graphics\Include</Filter>
     </ClInclude>
-    <ClInclude Include="GeometryRenderer.hpp">
+    <ClInclude Include="ParticleGeometryRenderer.hpp">
       <Filter>Physics</Filter>
     </ClInclude>
     <ClInclude Include="MouseGrabber.hpp">
       <Filter>Physics\ClothSolverGPU</Filter>
     </ClInclude>
-    <ClInclude Include="VtClothSolver.hpp">
+    <ClInclude Include="VtClothSolverCPU.hpp">
       <Filter>Physics\ClothSolverCPU</Filter>
     </ClInclude>
-    <ClInclude Include="VtClothObject.hpp">
+    <ClInclude Include="VtClothObjectCPU.hpp">
       <Filter>Physics\ClothSolverCPU</Filter>
     </ClInclude>
   </ItemGroup>
@@ -215,7 +215,7 @@
     <None Include="Assets\Shader\InfinitePlane.vert">
       <Filter>Shader</Filter>
     </None>
-    <None Include="SpatialHash.hpp">
+    <None Include="SpatialHashCPU.hpp">
       <Filter>Physics\SpatialHash</Filter>
     </None>
     <None Include="Assets\Shader\_InstancedDefault.frag">

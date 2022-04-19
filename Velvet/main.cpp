@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "VtEngine.hpp"
-#include "VtClothObject.hpp"
 #include "GameInstance.hpp"
 #include "Resource.hpp"
 #include "Scene.hpp"

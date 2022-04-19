@@ -11,10 +11,10 @@
 #include "MeshRenderer.hpp"
 #include "MaterialProperty.hpp"
 #include "Collider.hpp"
-#include "VtClothObject.hpp"
+#include "VtClothObjectCPU.hpp"
 #include "VtClothObjectGPU.hpp"
-#include "ParticleRenderer.hpp"
-#include "GeometryRenderer.hpp"
+#include "ParticleInstancedRenderer.hpp"
+#include "ParticleGeometryRenderer.hpp"
 
 //#define SOLVER_CPU
 
@@ -272,7 +272,7 @@ namespace Velvet
 			renderer->SetMaterialProperty(materialProperty);
 
 			//auto prenderer = make_shared<ParticleRenderer>();
-			auto prenderer = make_shared<GeometryRenderer>();
+			auto prenderer = make_shared<ParticleGeometryRenderer>();
 
 #ifdef SOLVER_CPU
 			auto clothObj = make_shared<VtClothObject>(resolution);

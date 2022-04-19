@@ -8,7 +8,6 @@
 
 namespace Velvet
 {
-	// TODO(low): unify gpu and cpu interface, share object file
 	class VtClothObjectGPU : public Component
 	{
 	public:

@@ -17,7 +17,7 @@ namespace Velvet
 		glm::mat4 invCurTransform;
 		glm::mat4 lastTransform;
 
-		__device__ float sgn(float value) const { return (value > 0) ? 1 : (value < 0 ? -1 : 0); }
+		__device__ float sgn(float value) const { return (value > 0) ? 1.0f : (value < 0 ? -1.0f : 0.0f); }
 
 		__device__ glm::vec3 ComputeSDF(const glm::vec3 targetPosition, const float collisionMargin) const
 		{
@@ -55,7 +55,7 @@ namespace Velvet
 
 				if (maxVal < 0)
 				{
-					// HACK: make cube corner round to avoid particle vibration	
+					// make cube corner round to avoid particle vibration	
 					float margin = 0.03f;
 					if (midVal > -margin) scalar = 0.2f;
 					if (minVal > -margin)

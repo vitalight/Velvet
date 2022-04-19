@@ -31,7 +31,6 @@ __device__ inline int HashPosition(glm::vec3 position)
 	return h;
 }
 
-// TODO(low): make all parameters conform (output, input, constants)
 __global__ void ComputeParticleHash_Kernel(
 	uint* particleHash,
 	uint* particleIndex,
