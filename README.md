@@ -40,7 +40,9 @@ Velvet is built using `Visual Studio 2019`, `C++ 17` and `CUDA 11.1`. Extra depe
 * assimp: For model loading
 * imgui[core, opengl3-binding, glfw-binding]: For graphical user interface
 
-These dependencies can be easily installed using [vcpkg](https://github.com/microsoft/vcpkg):
+Executable is provided and can be launched using `run_velvet.bat`.
+
+If you want to build from source by yourself, dependencies can be installed using [vcpkg](https://github.com/microsoft/vcpkg):
 
 ```bash
 ./vcpkg.exe install glfw3:x64-windows
@@ -65,25 +67,25 @@ The methods and tricks of PBD is scattered across many papers and resources. Her
 CollideSDF(); // Collide particles with Signed Distance Fields (Q1)
 for (int substep = 0; substep < numSubsteps; substep++) // Reference: [Small steps in physics simulation, 2019]
 {
-	PredictPositions(); 			// Predict particle positions
-	FindNeighborsBySpatialHash(); 	// Use spatial hashing to find particle neighbors
+    PredictPositions();           // Predict particle positions
+    FindNeighborsBySpatialHash(); // Use spatial hashing to find particle neighbors
     
     // Handle Collisions
-	CollideParticles();				// Collide particles with neighboring particles
-	CollideSDF();					// Collide particles with Signed Distance Fields
+    CollideParticles();           // Collide particles with neighboring particles
+    CollideSDF();                 // Collide particles with Signed Distance Fields
 	
     // Solve constraints
-	for (int iteration = 0; iteration < numIterations; iteration++)
-	{
-		SolveStretch();				// Stretch constraint keeps the distance between two particles
-        SolveAttachment();			// Attachment constraint keeps the distance between a particle and a 3D position
-		// SolveBending();			// Bending constraints doesn't work well on GPU (Q2)
-        ApplyDeltas();				// Apply position deltas accumulated in previous constraint solving (Q3)
+    for (int iteration = 0; iteration < numIterations; iteration++)
+    {
+        SolveStretch();           // Stretch constraint keeps the distance between two particles
+        SolveAttachment();        // Attachment constraint keeps the distance between a particle and a 3D position
+        // SolveBending();        // Bending constraints doesn't work well on GPU (Q2)
+        ApplyDeltas();            // Apply position deltas accumulated in previous constraint solving (Q3)
     }
     
-    Finalize();						// Update velocities and positions
+    Finalize();                   // Update velocities and positions
 }
-ComputeNormals();					// Compute vertex normals for rendering
+ComputeNormals();                 // Compute vertex normals for rendering
 ```
 
 * Q1: Why `CollideSDF` is executed first?
@@ -119,42 +121,42 @@ The LRA is quite simple. In the original PBD, when solving an attachment constra
 
 ### 4. Performance Optimizations
 
-* Atomic updates
+**4.1 Atomic updates**
 
-  Many kernels in GPU cloth simulation use atomic updates to avoid conflict between different threads. Below is a useful method to improve the atomic performance by including a `reorder` parameter. 
+Many kernels in GPU cloth simulation use atomic updates to avoid conflict between different threads. Below is a useful method to improve the atomic performance by including a `reorder` parameter. 
 
-  The atomic updates for the x,y,z components of a vector is reordered based on the `reorder` value. This decreases the chances by `2/3` that multiple threads are updating the same memory location at the same time. 
+The atomic updates for the x,y,z components of a vector is reordered based on the `reorder` value. This decreases the chances by `2/3` that multiple threads are updating the same memory location at the same time. 
 
-  The value of `reorder` can be choosed easily, for example stretch constraints can use the sum of two particle's ID.
+The value of `reorder` can be choosed easily, for example stretch constraints can use the sum of two particle's ID.
 
-  ```glsl
-  __device__ inline void AtomicAdd(glm::vec3* address, int index, glm::vec3 val, int reorder)
-  {
-      int r1 = reorder % 3;
-      int r2 = (reorder + 1) % 3;
-      int r3 = (reorder + 2) % 3;
-      atomicAdd(&(address[index].x) + r1, val[r1]);
-      atomicAdd(&(address[index].x) + r2, val[r2]);
-      atomicAdd(&(address[index].x) + r3, val[r3]);
-  }
-  ```
+```glsl
+__device__ inline void AtomicAdd(glm::vec3* address, int index, glm::vec3 val, int reorder)
+{
+    int r1 = reorder % 3;
+    int r2 = (reorder + 1) % 3;
+    int r3 = (reorder + 2) % 3;
+    atomicAdd(&(address[index].x) + r1, val[r1]);
+    atomicAdd(&(address[index].x) + r2, val[r2]);
+    atomicAdd(&(address[index].x) + r3, val[r3]);
+}
+```
 
-* Spatial hashing
+**4.2 Spatial hashing**
 
-  We follow the CUDA sample project [particles](https://developer.download.nvidia.com/assets/cuda/files/particles.pdf) for spatial hashing implementation. There are some easy optimizations that can be made to improve its performance:
+We follow the CUDA sample project [particles](https://developer.download.nvidia.com/assets/cuda/files/particles.pdf) for spatial hashing implementation. There are some easy optimizations that can be made to improve its performance:
 
-  * Sort Algorithm
+* Sort Algorithm
 
-    The particles project use `thrust::sort_by_key` for sorting. In my experience, thrust's performance aren't that great. By replacing this with [`cub::DeviceRadiusSort::SortPairs`](https://nvlabs.github.io/cub/structcub_1_1_device_radix_sort.html), the sorting performance can be improved by roughly 50%.
+  The particles project use `thrust::sort_by_key` for sorting. In my experience, thrust's performance aren't that great. By replacing this with [`cub::DeviceRadiusSort::SortPairs`](https://nvlabs.github.io/cub/structcub_1_1_device_radix_sort.html), the sorting performance can be improved by roughly 50%.
 
-  * Neighbor Caching
+* Neighbor Caching
 
-    Spatial hashing are expensive to compute, but we don't need to update the spatial hashing every time we do particle collisions. The neighbor information can be stored in an `neighbors` array and used for multiple times. In this project, we use a integer parameter `interleavedHash` to control how many times neighbors are reused before recompute.
+  Spatial hashing are expensive to compute, but we don't need to update the spatial hashing every time we do particle collisions. The neighbor information can be stored in an `neighbors` array and used for multiple times. In this project, we use a integer parameter `interleavedHash` to control how many times neighbors are reused before recompute.
 
-    The `neighbors` array are structured such that `neighbors[i + numMaxNeighborsPerParticle * j]` stores the `j-th` neighbor for particle `i`. It's not recommended to organize `neighbors` as `neighbors[i * numMaxNeighborsPerParticle + j]`since this disallows [coalesced memory access](https://developer.nvidia.com/blog/how-access-global-memory-efficiently-cuda-c-kernels/).
+  The `neighbors` array are structured such that `neighbors[i + numMaxNeighborsPerParticle * j]` stores the `j-th` neighbor for particle `i`. It's not recommended to organize `neighbors` as `neighbors[i * numMaxNeighborsPerParticle + j]`since this disallows [coalesced memory access](https://developer.nvidia.com/blog/how-access-global-memory-efficiently-cuda-c-kernels/).
 
-* Particle Rendering
+**4.3 Particle Rendering**
 
-  Render particles make it easier to debug. However, even with instanced rendering, it can be get quite slow to render more than 100k particles (On my laptop with RTX2060, 50k particles can't make it to 60FPS). 
+Render particles make it easier to debug. However, even with instanced rendering, it can be get quite slow to render more than 100k particles (On my laptop with RTX2060, 50k particles can't make it to 60FPS). 
 
-  A more efficient way is screen space rendering [Reference: [Screen Space Fluid Rendering for Games](https://developer.download.nvidia.com/presentations/2010/gdc/Direct3D_Effects.pdf)]. Particles are rendered in screen space as billboard quads using geometry shader. Then the normals and depth of the pixels are mannually updated to produce the illusion of spheres. This is not physically accurate but much more efficient.
+A more efficient way is screen space rendering [Reference: [Screen Space Fluid Rendering for Games](https://developer.download.nvidia.com/presentations/2010/gdc/Direct3D_Effects.pdf)]. Particles are rendered in screen space as billboard quads using geometry shader. Then the normals and depth of the pixels are mannually updated to produce the illusion of spheres. This is not physically accurate but much more efficient.
