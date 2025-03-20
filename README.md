@@ -79,8 +79,8 @@ for (int substep = 0; substep < numSubsteps; substep++) // Reference: [Small ste
     {
         SolveStretch();           // Stretch constraint keeps the distance between two particles
         SolveAttachment();        // Attachment constraint keeps the distance between a particle and a 3D position
-        // SolveBending();        // Bending constraints doesn't work well on GPU (Q2)
-        ApplyDeltas();            // Apply position deltas accumulated in previous constraint solving (Q3)
+        SolveBending();           // Bending constraints keeps the angle between near triangles
+        ApplyDeltas();            // Apply position deltas accumulated in previous constraint solving (Q2)
     }
     
     Finalize();                   // Update velocities and positions
@@ -91,9 +91,7 @@ ComputeNormals();                 // Compute vertex normals for rendering
 * Q1: Why `CollideSDF` is executed first?
   * Kinematic objects (objects controlled by animation, user input, etc.) can move really fast, and if particles collide with them inside PBD loop, particles will end up with really large velocities and produce unstable behavior (mostly large **vibration**). Therefore, we include a pre-stabilization pass (which use`CollideSDF` in our project). This pass update the particle position $x_i$ directly, therefore will not influence particle velocity.
   * Reference: [Unified particle physics for real-time applications, 2014, Section 4.4 Initial Conditions]
-* Q2: Why not `SolveBending`?
-  * In my experience, bending constraints don't work well with Jacobi iteration. Using a small bending compliance is really difficult to converge, and results in particle clustering or vibration. Using large bending compliance makes little influence on overall visual results. Also, bending constraints are more expensive than other constraints. For your information, [Flex](https://github.com/NVIDIAGameWorks/FleX) also exclude bending constraints.
-* Q3: What is `ApplyDeltas`?
+* Q2: What is `ApplyDeltas`?
   * In GPU implementation, we normally replace the Gauss-Seidel iteration used in CPU version with Jacobi iteration for better parallization. The downside of Jacobi iteraiton is its slow convergence. If we directly update the predicted positions, the particles will **vibrate**. To address this issue, we accumulated the position changes of all constraints into another variable `deltas`, and apply the averaged value to predicted positions in the end.
   * Reference: [Unified particle physics for real-time applications, 2014, Section 4.3 Successive Over-Relaxation]
 

@@ -118,57 +118,74 @@ namespace Velvet
 		glm::vec3* predicted,
 		glm::vec3* deltas,
 		int* deltaCounts,
-		CONST(uint*) bendingIndices,
-		CONST(float*) bendingAngles,
+		CONST(uint*) dihedralIndices,
+		CONST(float*) restAngles,
 		CONST(float*) invMass,
 		const uint numConstraints,
 		const float deltaTime)
 	{
 		GET_CUDA_ID(id, numConstraints);
-		uint idx1 = bendingIndices[id * 4];
-		uint idx2 = bendingIndices[id * 4+1];
-		uint idx3 = bendingIndices[id * 4+2];
-		uint idx4 = bendingIndices[id * 4+3];
-		float expectedAngle = bendingAngles[id];
+		uint idx0 = dihedralIndices[id * 4];
+		uint idx1 = dihedralIndices[id * 4 + 1];
+		uint idx2 = dihedralIndices[id * 4 + 2];
+		uint idx3 = dihedralIndices[id * 4 + 3];
+		float restAngle = restAngles[id];
 
+		float w0 = invMass[idx0];
 		float w1 = invMass[idx1];
 		float w2 = invMass[idx2];
 		float w3 = invMass[idx3];
-		float w4 = invMass[idx4];
 
+		glm::vec3 p0 = predicted[idx0];
 		glm::vec3 p1 = predicted[idx1];
-		glm::vec3 p2 = predicted[idx2] - p1;
-		glm::vec3 p3 = predicted[idx3] - p1;
-		glm::vec3 p4 = predicted[idx4] - p1;
-		glm::vec3 n1 = glm::normalize(glm::cross(p2, p3));
-		glm::vec3 n2 = glm::normalize(glm::cross(p2, p4));
+		glm::vec3 p2 = predicted[idx2];
+		glm::vec3 p3 = predicted[idx3];
 
-		float d = clamp(glm::dot(n1, n2), 0.0f, 1.0f);
-		float angle = acos(d);
-		// cross product for two equal vector produces NAN
-		if (angle < EPSILON || isnan(d)) return;
+		glm::vec3 e = p3 - p2;
+		float elen = glm::length(e);
+		if (elen < EPSILON) return;
 
-		glm::vec3 q3 = (glm::cross(p2, n2) + glm::cross(n1, p2) * d) / (glm::length(glm::cross(p2, p3)) + EPSILON);
-		glm::vec3 q4 = (glm::cross(p2, n1) + glm::cross(n2, p2) * d) / (glm::length(glm::cross(p2, p4)) + EPSILON);
-		glm::vec3 q2 = -(glm::cross(p3, n2) + glm::cross(n1, p3) * d) / (glm::length(glm::cross(p2, p3)) + EPSILON)
-			- (glm::cross(p4, n1) + glm::cross(n2, p4) * d) / (glm::length(glm::cross(p2, p4)) + EPSILON);
-		glm::vec3 q1 = -q2 - q3 - q4;
+		float invElen = 1.0f / elen;
+
+		glm::vec3 n1 = glm::cross(p2 - p0, p3 - p0); n1 /= glm::dot(n1, n1);
+		glm::vec3 n2 = glm::cross(p3 - p1, p2 - p1); n2 /= glm::dot(n2, n2);
+
+		glm::vec3 d0 = elen * n1;
+		glm::vec3 d1 = elen * n2;
+		glm::vec3 d2 = glm::dot(p0 - p3,e) * invElen* n1 + glm::dot(p1 - p3,e) * invElen * n2;
+		glm::vec3 d3 = glm::dot(p2 - p0,e) * invElen * n1 + glm::dot(p2 - p1,e) * invElen * n2;
+
+		n1 = glm::normalize(n1);
+		n2 = glm::normalize(n2);
+		float dot = glm::dot(n1, n2);
+
+		dot = glm::clamp(dot, -1.0f, 1.0f);
+		float phi = acos(dot);
+
+		float lambda =
+			w0 * glm::dot(d0, d0) +
+			w1 * glm::dot(d1, d1) +
+			w2 * glm::dot(d2, d2) +
+			w3 * glm::dot(d3, d3);
+
+		if (lambda < EPSILON) return;
 
 		float xpbd_bend = d_params.bendCompliance / deltaTime / deltaTime;
-		float denom = xpbd_bend + (w1 * glm::dot(q1, q1) + w2 * glm::dot(q2, q2) + w3 * glm::dot(q3, q3) + w4 * glm::dot(q4, q4));
-		if (denom < EPSILON) return; // ?
-		float lambda = sqrt(1.0f - d * d) * (angle - expectedAngle) / denom;
+		lambda = (phi - restAngle) / (lambda + xpbd_bend);
 
-		int reorder = idx1 + idx2 + idx3 + idx4;
-		AtomicAdd(deltas, idx1, w1 * lambda * q1, reorder);
-		AtomicAdd(deltas, idx2, w2 * lambda * q2, reorder);
-		AtomicAdd(deltas, idx3, w3 * lambda * q3, reorder);
-		AtomicAdd(deltas, idx4, w4 * lambda * q4, reorder);
-		
+		if (glm::dot(glm::cross(n1, n2), e) > 0.0f)
+			lambda = -lambda;
+
+		int reorder = idx0 + idx1 + idx2 + idx3;
+		AtomicAdd(deltas, idx0, -w0 * lambda * d0, reorder);
+		AtomicAdd(deltas, idx1, -w1 * lambda * d1, reorder);
+		AtomicAdd(deltas, idx2, -w2 * lambda * d2, reorder);
+		AtomicAdd(deltas, idx3, -w3 * lambda * d3, reorder);
+
+		atomicAdd(&deltaCounts[idx0], 1);
 		atomicAdd(&deltaCounts[idx1], 1);
 		atomicAdd(&deltaCounts[idx2], 1);
 		atomicAdd(&deltaCounts[idx3], 1);
-		atomicAdd(&deltaCounts[idx4], 1);
 	}
 
 	void SolveBending(

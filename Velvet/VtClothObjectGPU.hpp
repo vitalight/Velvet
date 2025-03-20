@@ -121,9 +121,9 @@ namespace Velvet
 			for (int i = 0; i < indices.size(); i += 6)
 			{
 				int idx1 = indices[i];
-				int idx2 = indices[i + 1];
+				int idx2 = indices[i + 5];
 				int idx3 = indices[i + 2];
-				int idx4 = indices[i + 5];
+				int idx4 = indices[i + 1];
 
 				// TODO: calculate angle
 				float angle = 0;

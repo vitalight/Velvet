@@ -35,7 +35,7 @@ struct SolverTiming
 		"Predict",
 		"SolveStretch",
 		"SolveAttach",
-		//"SolveBending",
+		"SolveBending",
 		"ApplyDeltas",
 		"CollideSDFs",
 		"CollideParticles",
