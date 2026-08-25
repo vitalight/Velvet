@@ -4,12 +4,18 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+
+#include "cuda_to_hip.h"
+
+#if !defined(USE_HIP) && !defined(__HIP_PLATFORM_AMD__)
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
+#include "helper_cuda.h"
+#endif
+
 #include <thrust/device_ptr.h>
 #include <thrust/transform.h>
 
-#include "helper_cuda.h"
 #include "Mesh.hpp"
 #include "VtClothSolverGPU.cuh"
 #include "VtBuffer.hpp"

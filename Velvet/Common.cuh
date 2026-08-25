@@ -1,16 +1,27 @@
 #pragma once
 
 #include <tuple>
+#include <cstring>
+#include <cstdlib>
+
+// cuda_to_hip.h MUST come before glm so GLM_FORCE_CUDA et al. are defined
+#include "cuda_to_hip.h"
 
 #include <fmt/format.h>
 #include <glm/glm.hpp>
 
-#include <cuda_runtime.h> 
+#if defined(USE_HIP) || defined(__HIP_PLATFORM_AMD__)
+// HIP path: hip_runtime.h is included via cuda_to_hip.h
+#else
+// CUDA path
+#include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 #include <device_launch_parameters.h>
 #include <helper_cuda.h>
 #include <helper_math.h>
+#endif
 
+// cuda_to_hip.h already defines THRUST_DEVICE_COMPILER=5 for HIP backend
 #include <thrust/device_ptr.h>
 #include <thrust/transform.h>
 #include <thrust/sort.h>
@@ -20,7 +31,7 @@
 #define GET_CUDA_ID_NO_RETURN(id, maxID) 	uint id = blockIdx.x * blockDim.x + threadIdx.x
 #define EPSILON					1e-6f
 
-#ifdef __CUDACC__ 
+#if defined(__CUDACC__) || defined(__HIPCC__)
 #define CUDA_CALL(func, totalThreads)  \
 	if (totalThreads == 0) return; \
 	uint func ## _numBlocks, func ## _numThreads; \

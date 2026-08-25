@@ -7,11 +7,12 @@
 
 #define IMGUI_LEFT_LABEL(func, label, ...) (ImGui::TextUnformatted(label), ImGui::SameLine(), func("##" label, __VA_ARGS__))
 
-// Only initialize value on host. 
-// Since CUDA doesn't allow dynamics initialization, 
-// we use this macro to ignore initialization when compiling with NVCC.
-#ifdef __CUDA_ARCH__
-	#define HOST_INIT(val) 
+// Only initialize value on host.
+// Since CUDA/HIP does not allow dynamic initialization for __device__ variables,
+// suppress default member initializers when compiling with NVCC or hipcc.
+// The struct is used both as a host variable and as __device__ __constant__.
+#if defined(__CUDACC__) || defined(__HIPCC__)
+	#define HOST_INIT(val)
 #else
 	#define HOST_INIT(val) = val
 #endif
@@ -87,12 +88,15 @@ public:
 		m_funcs.push_back(func);
 	}
 
-	template <class... TArgs>
-	void Invoke(TArgs... args)
+	// Named Args, not TArgs: VtCallback already has a TArgs parameter pack, and
+	// reusing that name here shadows it, which nvcc/gcc reject ("shadows
+	// template parameter"). Keep this name distinct.
+	template <class... Args>
+	void Invoke(Args... args)
 	{
 		for (const auto& func : m_funcs)
 		{
-			func(std::forward<TArgs>(args)...);
+			func(std::forward<Args>(args)...);
 		}
 	}
 

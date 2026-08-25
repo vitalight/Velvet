@@ -7,7 +7,12 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <fmt/printf.h>
+
+#include "cuda_to_hip.h"
+
+#if !defined(USE_HIP) && !defined(__HIP_PLATFORM_AMD__)
 #include <cuda_runtime.h>
+#endif
 
 //#include "Global.hpp"
 

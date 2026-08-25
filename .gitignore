@@ -12,3 +12,6 @@ x86/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
+
+# CMake build directory (ROCm port)
+build/

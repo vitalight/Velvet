@@ -167,22 +167,35 @@ namespace Velvet
 		void registerBuffer(GLuint vbo)
 		{
 			checkCudaErrors(cudaGraphicsGLRegisterBuffer(&m_cudaVboResource, vbo, cudaGraphicsRegisterFlagsNone));
+		}
 
-			// map (example 'gl_cuda_interop_pingpong_st' says map and unmap only needs to be done once)
+		// The mapped device pointer is only valid between map() and unmap(). Holding on to it
+		// after the unmap is undefined, so every access has to happen inside that scope.
+		void map()
+		{
 			checkCudaErrors(cudaGraphicsMapResources(1, &m_cudaVboResource, 0));
 			checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&m_buffer, &m_numBytes,
 				m_cudaVboResource));
 			m_count = m_numBytes / sizeof(T);
+		}
 
-			// unmap
+		// m_count and m_numBytes describe the buffer rather than the mapping, and callers read
+		// them while it is unmapped, so only the pointer is invalidated here.
+		void unmap()
+		{
 			checkCudaErrors(cudaGraphicsUnmapResources(1, &m_cudaVboResource, 0));
+			m_buffer = nullptr;
 		}
 
 		size_t m_count = 0;
 		size_t m_numBytes = 0;
 		T* m_buffer = nullptr;
 		T* m_bufferCPU = nullptr;
+#if defined(USE_HIP) || defined(__HIP_PLATFORM_AMD__)
+		hipGraphicsResource* m_cudaVboResource = nullptr;
+#else
 		struct cudaGraphicsResource* m_cudaVboResource = nullptr;
+#endif
 	};
 
 	template <class T>
@@ -203,6 +216,7 @@ namespace Velvet
 		{
 			auto rbuf = make_shared<VtRegisteredBuffer<T>>();
 			rbuf->registerBuffer(vbo);
+			rbuf->map();
 			m_rbuffers.push_back(rbuf);
 
 			size_t last = m_offsets.size() - 1;
@@ -211,7 +225,8 @@ namespace Velvet
 
 			// copy from rbuffers to vbuffer
 			m_vbuffer.resize(m_vbuffer.size() + rbuf->size());
-			cudaMemcpy(m_vbuffer.data() + offset, rbuf->data(), rbuf->size() * sizeof(T), cudaMemcpyDefault);
+			checkCudaErrors(cudaMemcpy(m_vbuffer.data() + offset, rbuf->data(), rbuf->size() * sizeof(T), cudaMemcpyDefault));
+			rbuf->unmap();
 		}
 
 		size_t size() const
@@ -224,7 +239,9 @@ namespace Velvet
 			// copy from vbuffer to rbuffers
 			for (int i = 0; i < m_rbuffers.size(); i++)
 			{
-				cudaMemcpy(m_rbuffers[i]->data(), m_vbuffer.data() + m_offsets[i], m_rbuffers[i]->size() * sizeof(T), cudaMemcpyDefault);
+				m_rbuffers[i]->map();
+				checkCudaErrors(cudaMemcpy(m_rbuffers[i]->data(), m_vbuffer.data() + m_offsets[i], m_rbuffers[i]->size() * sizeof(T), cudaMemcpyDefault));
+				m_rbuffers[i]->unmap();
 			}
 		}
 

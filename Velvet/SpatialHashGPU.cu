@@ -1,6 +1,11 @@
 #include "SpatialHashGPU.cuh"
 
+#if defined(USE_HIP) || defined(__HIP_PLATFORM_AMD__)
+#include <hipcub/hipcub.hpp>
+namespace cub = hipcub;
+#else
 #include <cub/device/device_radix_sort.cuh>
+#endif
 
 #include "Timer.hpp"
 #include "VtBuffer.hpp"

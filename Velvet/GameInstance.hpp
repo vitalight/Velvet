@@ -11,6 +11,7 @@
 
 #include "Component.hpp"
 #include "Common.hpp"
+#include "Actor.hpp"
 
 namespace Velvet
 {
@@ -19,7 +20,6 @@ namespace Velvet
 	class Light;
 	class RenderPipeline;
 	class GUI;
-	class Actor;
 	class Timer;
 
 	class GameInstance
